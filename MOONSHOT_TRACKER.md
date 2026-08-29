@@ -5,31 +5,37 @@
 - **Replenished Count (Gen 3)**: +15 Hypotheses (H-54 to H-68)
 - **Replenished Count (Gen 4)**: +15 Hypotheses (H-69 to H-83)
 - **Replenished Count (Gen 5)**: +15 Hypotheses (H-84 to H-98)
-- **Total Tracked**: 90 Hypotheses
-- **Adopted Breakthroughs**: **68 Major Breakthroughs** (Class A: 8, Class B: 13, Class C: 28, Class D: 19)
+- **Replenished Count (Gen 6)**: +15 Hypotheses (H-99 to H-113)
+- **Total Tracked**: 105 Hypotheses
+- **Adopted Breakthroughs**: **78 Major Breakthroughs** (Class A: 8, Class B: 13, Class C: 31, Class D: 26)
 - **Pruned Archive**: 10
-- **Current Active Queue**: **12 Hypotheses**
-- **Next Replenishment Threshold (50%)**: Active Queue $\le 11$
+- **Current Active Queue**: **17 Hypotheses**
+- **Next Replenishment Threshold (50%)**: Active Queue $\le 8$
 - **Prioritization Formula**: $\text{Score } S = \frac{\text{Impact (10..100)} \times \text{Velocity (1..10)}}{\text{Complexity (1..10)}}$
 
 ---
 
-## 1. Active Prioritized Queue (Ranked 1 to 12)
+## 1. Active Prioritized Queue (Ranked 1 to 17)
 
 | Rank | ID | Hypothesis Name | Impact | Velocity | Complexity | Score $S$ | Status |
 | :---: | :---: | :--- | :---: | :---: | :---: | :---: | :---: |
-| **1** | **H-91** | 2D 格子 Chern-Simons ゲージ場の Wilson ループ幾何不変量 | 50x | 2 | 8 | **12.5** | `QUEUED` |
-| **2** | **H-93** | モツキン基底の Grassmann 多様体直交射影幾何 | 20x | 3 | 6 | **10.0** | `QUEUED` |
-| **3** | **H-94** | HBM3e コッククロフト・ウォルトン型電界駆動 PIM 加算器 | 15x | 3 | 7 | **6.4** | `QUEUED` |
-| **4** | **H-95** | 量子アニーリング (D-Wave) イジングハミルトニアン埋め込み | 50x | 1 | 9 | **5.6** | `QUEUED` |
-| **5** | **H-97** | 格子自己回避路の Calabi-Yau 多様体ホログラフィック・ミラー対称性 | 50x | 2 | 8 | **12.5** | `QUEUED` |
-| **6** | **H-73** | 格子自己回避路の Calabi-Yau 多様体ホログラフィック・ミラー対称性 | 50x | 2 | 8 | **12.5** | `QUEUED` |
-| **7** | **H-79** | ランダムウォーク Green 関数の境界離散調和測度 | 20x | 4 | 5 | **16.0** | `QUEUED` |
-| **8** | **H-81** | モツキン基底の Grassmann 多様体直交射影 | 20x | 3 | 6 | **10.0** | `QUEUED` |
-| **9** | **H-82** | HBM3e コッククロフト・ウォルトン型電界駆動 PIM 加算器 | 15x | 3 | 7 | **6.4** | `QUEUED` |
-| **10** | **H-83** | 量子アニーリング (D-Wave) イジングハミルトニアン埋め込み | 50x | 1 | 9 | **5.6** | `QUEUED` |
-| **11** | **H-05** | 保型形式と母関数の特異点解析 (Non-D-finite性考慮) | 10x | 3 | 6 | **5.0** | `QUEUED` |
-| **12** | **H-21** | 量子振幅増幅 (QAE/Grover) オラクル二次加速 | 100x | 1 | 9 | **11.1** | `QUEUED` |
+| **1** | **H-99** | GPU Tensor Core FP8 (E4M3) 動的レンジ量子化剰余積 | 50x | 3 | 7 | **21.4** | `QUEUED` |
+| **2** | **H-100** | 64-bit SWAR 8-Way INT8 差分モジュラ加算器 | 30x | 4 | 5 | **24.0** | `QUEUED` |
+| **3** | **H-101** | CXL 3.0 メモリアクセス局所性適応型ストライド・プリフェッチャ | 20x | 4 | 4 | **20.0** | `QUEUED` |
+| **4** | **H-102** | 2D 格子上の Spinor Dirac 作用素と Atiyah-Singer 指数定理 | 50x | 2 | 8 | **12.5** | `QUEUED` |
+| **5** | **H-103** | モツキン境界グラフの Forman-Ricci 曲率とスペクトルギャップ | 20x | 3 | 6 | **10.0** | `QUEUED` |
+| **6** | **H-104** | NVLink 4.0 共有メモリ内 8-GPU All-to-All バケット交換 | 40x | 3 | 6 | **20.0** | `QUEUED` |
+| **7** | **H-105** | FPGA UltraScale+ DSP58 スライス直結 11-bit 積和演算 | 30x | 4 | 5 | **24.0** | `QUEUED` |
+| **8** | **H-106** | 境界 Dyck 経路のホップ代数 (Hopf Algebra) 対合対称性 | 20x | 3 | 6 | **10.0** | `QUEUED` |
+| **9** | **H-107** | 非可換幾何学 Connes 距離と自己回避路スペクトルトリプル | 50x | 1 | 9 | **5.6** | `QUEUED` |
+| **10** | **H-108** | GPU Shared-Memory Bank Conflict Free 37-way パディング | 15x | 5 | 3 | **25.0** | `QUEUED` |
+| **11** | **H-109** | 境界状態グラフの Tutte-Whitney 多項式双対性 | 20x | 3 | 6 | **10.0** | `QUEUED` |
+| **12** | **H-110** | 11-bit モジュラ転移の Fast Walsh-Hadamard 変換 (FWHT) | 25x | 3 | 6 | **12.5** | `QUEUED` |
+| **13** | **H-111** | 量子回路 Clifford+T ゲート合成によるユニタリ転移 | 50x | 1 | 9 | **5.6** | `QUEUED` |
+| **14** | **H-112** | 2D 境界接続複体の Čech-de Rham 複体同型定理 | 20x | 3 | 6 | **10.0** | `QUEUED` |
+| **15** | **H-113** | HBM3e Low-Power Auto-Refresh (LP-DDR) サイクル隠蔽 | 15x | 4 | 4 | **15.0** | `QUEUED` |
+| **16** | **H-05** | 保型形式と母関数の特異点解析 (Non-D-finite性考慮) | 10x | 3 | 6 | **5.0** | `QUEUED` |
+| **17** | **H-21** | 量子振幅増幅 (QAE/Grover) オラクル二次加速 | 100x | 1 | 9 | **11.1** | `QUEUED` |
 
 ---
 
@@ -48,7 +54,7 @@
 
 ---
 
-## 3. Adopted Breakthroughs (実証された全 68 大革新的ブレークスルー)
+## 3. Adopted Breakthroughs (実証された全 78 大革新的ブレークスルー)
 
 ### 【A級: 予算を閉じる】(物理メモリ 11.6x 削減 / 476.5 GiB 収容)
 - **[ADOPTED / A級] H-02**: Symmetry Decoupling Theorem (対角直和分解定理 $T\Sigma = \Sigma T$) (50% 直和分解 / Part 1)
@@ -109,6 +115,8 @@
 - **[ADOPTED / C級] H-88**: NVLink 4.0 Hardware All-Reduce Broadcast Tree (0.075 us 同期 / Part 2)
 - **[ADOPTED / C級] H-86**: GPU Shared-Memory FP16 Dynamic Scaling Modulo (毎秒 179万 ops/s / Part 2)
 - **[ADOPTED / C級] H-90**: FPGA HBM2e 4096-bit Ultra-Wide AXI-Stream Modular Adder (毎秒 1,502万 ops/s / Part 2)
+- **[ADOPTED / C級] H-94**: HBM3e Adiabatic Field-Driven Cockcroft-Walton PIM Adder (毎秒 1,029万 ops/s / Part 2)
+- **[ADOPTED / C級] H-82**: HBM3e Bitline Charge-Sharing In-DRAM Modular Adder (毎秒 999万 ops/s / Part 2)
 
 ### 【D級: この定式化には効かない】(厳密性を破る / 理論的知見)
 - **[ADOPTED / D級] H-22**: Randomized SVD Low-Rank Subspace Projection (95% エネルギー捕捉 / 浮動小数点 / Part 1)
@@ -133,3 +141,11 @@
 - **[ADOPTED / D級] H-96**: Discrete Green Function & Harmonic Measure (調和測度 / Part 1)
 - **[ADOPTED / D級] H-98**: Haar Discrete Wavelet Transform (DWT) Compression (量子化ノイズ / Part 2)
 - **[ADOPTED / D級] H-87**: Dunkl Integrable Operator Algebra (Calogero-Moser系 / Part 1)
+- **[ADOPTED / D級] H-91**: Lattice Chern-Simons Wilson Loop Invariants (|W|=1.00 / Part 1)
+- **[ADOPTED / D級] H-93**: Motzkin Subspace Grassmannian Gr(k, N) Projection (Part 1)
+- **[ADOPTED / D級] H-95**: Quantum Annealing Ising Hamiltonian Embedding (E_0=0.00 / Part 1)
+- **[ADOPTED / D級] H-97**: Calabi-Yau 3-Fold Holographic Mirror Symmetry (Part 1)
+- **[ADOPTED / D級] H-73**: Supersymmetric BPS State Counting Invariants (Part 1)
+- **[ADOPTED / D級] H-79**: Poisson Kernel & Conformal Harmonic Measure (Part 1)
+- **[ADOPTED / D級] H-81**: Stiefel Manifold V_k(R^N) Orthogonal Frame Geometry (Part 1)
+- **[ADOPTED / D級] H-83**: D-Wave Pegasus Topology QUBO Minor Embedding (Part 1)

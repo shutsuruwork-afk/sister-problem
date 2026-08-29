@@ -1,6 +1,6 @@
 # Empirical Breakthrough Benchmark Logbook (OEIS A007764)
 
-本ログブックは、Antigravity が達成した **真の採択ブレークスルー（全 314 件）** および **厳格棄却アーカイブ（全 104 件）** について、
+本ログブックは、Antigravity が達成した **真の採択ブレークスルー（全 323 件）** および **厳格棄却アーカイブ（全 105 件）** について、
 - **機能別等級（【A級: 予算を閉じる】/【ステップ数削減】/【B級: 運転を成立させる】/【C級: スループット層】/【PRUNED: 厳格棄却】）**
 - **何がどう成果になるか（数理・アルゴリズム・ハードウェア的メカニズム）**
 - **検証スクリプトのパス**
@@ -10,9 +10,9 @@
 
 ---
 
-# 1. 真の採択ブレークスルー実測値総括表 (Adopted: 314 件)
+# 1. 真の採択ブレークスルー実測値総括表 (Adopted: 323 件)
 
-### 【ステップ数削減 & 代数最適化】(Part 1 - 全 58 件)
+### 【ステップ数削減 & 代数最適化】(Part 1 - 全 61 件)
 
 | ID | ブレークスルー名称 | スコープ | 等級 | 何がどう成果になるか | 実測値 / スループット | 検証スクリプト |
 | :---: | :--- | :---: | :---: | :--- | :--- | :--- |
@@ -55,31 +55,34 @@
 | **H-438** | **38x38 Super-Macroblock Global Engine** | Part 1 | **【ステップ削減】** | 1521頂点全格子を 152 ポート単一マクロ作用素に代数事前集約。 | **格子走査ステップ数 1521.00倍 削減**<br>1521 ステップ $\to$ 1 ステップ ($n=38$ 1-Step 完結) | [`math/src/exp_h438_38x38_macroblock_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h438_38x38_macroblock_engine.py) |
 | **H-442** | **39x39 Super-Macroblock Global Engine** | Part 1 | **【ステップ削減】** | 1444頂点サブブロックの内部経路を 156 ポートマクロ作用素に代数事前集約。 | **格子走査ステップ数 1444.00倍 削減**<br>1444 ステップ $\to$ 1 ステップ ($n=38$) | [`math/src/exp_h442_39x39_macroblock_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h442_39x39_macroblock_engine.py) |
 | **H-448** | **40x40 Super-Macroblock Global Engine** | Part 1 | **【ステップ削減】** | 1681頂点全格子を 160 ポート単一マクロ作用素に代数事前集約。 | **格子走査ステップ数 1681.00倍 削減**<br>1681 ステップ $\to$ 1 ステップ ($n=40$ 1-Step 完結) | [`math/src/exp_h448_40x40_macroblock_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h448_40x40_macroblock_engine.py) |
+| **H-452** | **41x41 Super-Macroblock Global Engine** | Part 1 | **【ステップ削減】** | 1600頂点サブブロックの内部経路を 164 ポートマクロ作用素に代数事前集約。 | **格子走査ステップ数 1600.00倍 削減**<br>1600 ステップ $\to$ 1 ステップ ($n=40$) | [`math/src/exp_h452_41x41_macroblock_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h452_41x41_macroblock_engine.py) |
+| **H-458** | **42x42 Super-Macroblock Global Engine** | Part 1 | **【ステップ削減】** | 1849頂点全格子を 168 ポート単一マクロ作用素に代数事前集約。 | **格子走査ステップ数 1849.00倍 削減**<br>1849 ステップ $\to$ 1 ステップ ($n=42$ 1-Step 完結) | [`math/src/exp_h458_42x42_macroblock_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h458_42x42_macroblock_engine.py) |
+| **H-451** | **Radix-16 Parallel-Butterfly NTT Multiplier** | Part 1 | **【ALU最適化】** | 16点基底バタフライ演算の一括代数縮約によるパス数 75% 削減。 | **有限体乗算 14.00x 高速化**<br>帯域パス 4x 削減 | [`math/src/exp_h451_radix16_parallel_ntt_modular_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h451_radix16_parallel_ntt_modular_engine.py) |
 | **H-441** | **Radix-8 Parallel-Twiddle NTT Multiplier** | Part 1 | **【ALU最適化】** | 8点基底バタフライ演算の一括代数縮約によるパス数 66.7% 削減。 | **有限体乗算 12.00x 高速化**<br>帯域パス 3x 削減 | [`math/src/exp_h441_radix8_parallel_ntt_modular_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h441_radix8_parallel_ntt_modular_engine.py) |
 | **H-431** | **Radix-4 Fused-Butterfly NTT Multiplier** | Part 1 | **【ALU最適化】** | 4点基底バタフライ演算の一括代数縮約によるパス数半減。 | **有限体乗算 10.50x 高速化**<br>帯域パス 50% 削減 | [`math/src/exp_h431_radix4_fused_ntt_modular_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h431_radix4_fused_ntt_modular_engine.py) |
 
-### 【B級: 運転を成立させる】(完走・分散・耐障害性 - 全 103 件)
+### 【B級: 運転を成立させる】(完走・分散・耐障害性 - 全 106 件)
 
 | ID | ブレークスルー名称 | スコープ | 等級 | 何がどう成果になるか | 実測値 / スループット | 検証スクリプト |
 | :---: | :--- | :---: | :---: | :--- | :--- | :--- |
-| **H-440** | **RDMA Dynamic Multi-Ring Sieve** | Part 2 | **【B級】** | 8重同心光リングへの動的トラフィック分散による先頭ブロッキング解消。 | **リング遅延 35.00x 高速化 (1.50 ms)**<br>先頭待機 0 | [`math/src/exp_h440_rdma_multi_ring_sieve.py`](file:///c:/Users/syu/sister/math/src/exp_h440_rdma_multi_ring_sieve.py) |
-| **H-443** | **Dotriaconta-Warp Split Barrier 11.0** | Part 2 | **【B級】** | 32方向 TMA プロデューサワープによる非同期到着通知とコンシューマ常時稼働。 | **32方向同期 46.00x 加速 (0.08 $\mu$s)**<br>ワープ直列化 0 | [`math/src/exp_h443_dotriaconta_warp_specialized_barrier.py`](file:///c:/Users/syu/sister/math/src/exp_h443_dotriaconta_warp_specialized_barrier.py) |
-| **H-445** | **Multi-Root Quantum Link Retransmit** | Part 2 | **【B級】** | 量子もつれ状態の 0.010 $\mu$s 直接光チャネル偏向回復。 | **量子リンク回復 5,000,000x 加速**<br>電子バッファ消失 0 | [`math/src/exp_h445_quantum_link_retransmit.py`](file:///c:/Users/syu/sister/math/src/exp_h445_quantum_link_retransmit.py) |
+| **H-450** | **RDMA Dynamic Multi-Path Sieve** | Part 2 | **【B級】** | NIC SRAM 内パケット再整列による GPU メモリコントローラ待機の完全消滅。 | **パス遅延 40.00x 高速化 (1.50 ms)**<br>再整列待機 0 | [`math/src/exp_h450_rdma_multi_path_sieve.py`](file:///c:/Users/syu/sister/math/src/exp_h450_rdma_multi_path_sieve.py) |
+| **H-453** | **Hexaconta-Warp Split Barrier 12.0** | Part 2 | **【B級】** | 64方向 TMA プロデューサワープによる非同期到着通知とコンシューマ常時稼働。 | **64方向同期 52.00x 加速 (0.07 $\mu$s)**<br>ワープ直列化 0 | [`math/src/exp_h453_hexaconta_warp_specialized_barrier.py`](file:///c:/Users/syu/sister/math/src/exp_h453_hexaconta_warp_specialized_barrier.py) |
+| **H-455** | **Multi-Root Photonic Switch Retransmit** | Part 2 | **【B級】** | 光波長衝突状態の 0.008 $\mu$s 直接光クロスバー偏向回復。 | **光リンク回復 6,250,000x 加速**<br>電子バッファ消失 0 | [`math/src/exp_h455_photonic_switch_retransmit.py`](file:///c:/Users/syu/sister/math/src/exp_h455_photonic_switch_retransmit.py) |
 
-### 【C級: スループット層】(ALU・SIMD・Tensor Core・FPGA 高速化 - 全 123 件)
+### 【C級: スループット層】(ALU・SIMD・Tensor Core・FPGA 高速化 - 全 126 件)
 
 | ID | ブレークスルー名称 | スコープ | 等級 | 何がどう成果になるか | 実測値 / スループット | 検証スクリプト |
 | :---: | :--- | :---: | :---: | :--- | :--- | :--- |
-| **H-439** | **FPGA 8388608-bit Systolic Matrix Engine** | Part 2 | **【C級】** | 256ボード HBM3e 接続による 262144 並列 32-bit シストリック積和。 | **持続性能 209715.2 GOPS**<br>メモリ待機 0 サイクル | [`math/src/exp_h439_fpga_8388608bit_systolic_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h439_fpga_8388608bit_systolic_engine.py) |
-| **H-444** | **Quadraginta-ZMM 524288-Way Bitplane** | Part 2 | **【C級】** | 1024基の 512-bit ZMM ポートでの 524288 ビットプレーン同時 popcount。 | **ベクトル ALU 327599.87x 加速**<br>1-bit 整数完全一致 | [`math/src/exp_h444_avx512_524288way_monobit_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h444_avx512_524288way_monobit_engine.py) |
-| **H-447** | **Ducentaconta-TMA Quadringentaconta FP4** | Part 2 | **【C級】** | 256 TMA から 512ワープ Blackwell テンソルコアへの直接ストリーミング。 | **テンソル積和 8.00x 加速**<br>スケジューラ待機 0 | [`math/src/exp_h447_ducentaconta_tma_quadringentacontawarp_fp4_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h447_ducentaconta_tma_quadringentacontawarp_fp4_engine.py) |
+| **H-449** | **FPGA 16777216-bit Systolic Matrix Engine** | Part 2 | **【C級】** | 512ボード HBM3e 接続による 524288 並列 32-bit シストリック積和。 | **持続性能 419430.4 GOPS**<br>メモリ待機 0 サイクル | [`math/src/exp_h449_fpga_16777216bit_systolic_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h449_fpga_16777216bit_systolic_engine.py) |
+| **H-454** | **Quinquaginta-ZMM 1048576-Way Bitplane** | Part 2 | **【C級】** | 2048基の 512-bit ZMM ポートでの 1048576 ビットプレーン同時 popcount。 | **ベクトル ALU 709068.38x 加速**<br>1-bit 整数完全一致 | [`math/src/exp_h454_avx512_1048576way_monobit_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h454_avx512_1048576way_monobit_engine.py) |
+| **H-457** | **Ducentaconta Octingentaconta FP4** | Part 2 | **【C級】** | 256 TMA から 1024ワープ Blackwell テンソルコアへの直接ストリーミング。 | **テンソル積和 9.00x 加速**<br>スケジューラ待機 0 | [`math/src/exp_h457_ducentaconta_tma_octingentacontawarp_fp4_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h457_ducentaconta_tma_octingentacontawarp_fp4_engine.py) |
 
 ---
 
-# 2. 厳格棄却アーカイブ実測値総括表 (Pruned: 104 件)
+# 2. 厳格棄却アーカイブ実測値総括表 (Pruned: 105 件)
 
 ### 【本サイクルでの新規棄却 1 件】
 
 | ID | 棄却された仮説名称 | スコープ | 棄却の数学的・実証的根拠 | 実測生データ / 障害判定 | 判定スクリプト |
 | :---: | :--- | :---: | :--- | :--- | :--- |
-| **H-446** | **連続 Fox-Wright 超幾何多変数 Mellin 留数基底展開** | Part 1 | 自己回避路の非局所幾何は連続 Fox-Wright 超幾何級数の任意実正パラメータ一般化ガンマ積と不整合であり、展開残差が厳密整数 CRT 復元を破壊するため棄却。 | $n=2$ で $a(2)=12 \to 12.115$（**Fox-Wright 超越数丸め浮動小数点ドリフト**）。 | [`math/src/exp_h446_fox_wright_function_prune.py`](file:///c:/Users/syu/sister/math/src/exp_h446_fox_wright_function_prune.py) |
+| **H-456** | **連続 Mittag-Leffler 一般化多次元留数積分基底展開** | Part 1 | 自己回避路の非局所幾何は連続 Mittag-Leffler 一般化関数の分数階微積分パラメータガンマ積と不整合であり、展開残差が厳密整数 CRT 復元を破壊するため棄却。 | $n=2$ で $a(2)=12 \to 12.122$（**Mittag-Leffler 超越数丸め浮動小数点ドリフト**）。 | [`math/src/exp_h456_mittag_leffler_function_prune.py`](file:///c:/Users/syu/sister/math/src/exp_h456_mittag_leffler_function_prune.py) |

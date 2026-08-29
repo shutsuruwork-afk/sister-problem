@@ -103,6 +103,16 @@ def tier0_static_analysis() -> bool:
         "exp_h66_random_matrix_rmt.py",
         "exp_h67_cpo_optics_cluster.py",
         "exp_h68_quantum_walk.py",
+        "exp_h23_cxl_zerocopy.py",
+        "exp_h53_swar_montgomery32.py",
+        "exp_h32_swar_barrett64.py",
+        "exp_h50_checkerboard_completeness.py",
+        "exp_h40_symmetry_limit.py",
+        "exp_h11_connective_entropy.py",
+        "exp_h12_pade_approximant.py",
+        "exp_h15_height_restricted_motzkin.py",
+        "exp_h17_graph_automorphism.py",
+        "exp_h46_padic_l_function.py",
         "verify_all.py",
         "ranking.py",
         "dense.py",
@@ -111,7 +121,7 @@ def tier0_static_analysis() -> bool:
         fpath = os.path.join(src_dir, fname)
         if os.path.exists(fpath):
             py_compile.compile(fpath, doraise=True)
-            print(f"  [PASS] {fname:36s} -> Compilation & AST validation OK")
+            print(f"  [PASS] {fname:38s} -> Compilation & AST validation OK")
     return True
 
 

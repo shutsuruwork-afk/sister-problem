@@ -71,6 +71,8 @@ def tier0_static_analysis() -> bool:
         "exp_h43_radix_bucket.py",
         "exp_h44_macrotile.py",
         "exp_h47_bitplane.py",
+        "exp_h48_tensor_core_gemm.py",
+        "exp_h50_topological_factoring.py",
         "verify_all.py",
         "ranking.py",
         "dense.py",

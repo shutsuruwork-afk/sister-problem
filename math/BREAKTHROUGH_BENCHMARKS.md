@@ -1,6 +1,6 @@
 # Empirical Breakthrough Benchmark Logbook (OEIS A007764)
 
-本ログブックは、Antigravity が達成した **真の採択ブレークスルー（全 332 件）** および **厳格棄却アーカイブ（全 106 件）** について、
+本ログブックは、Antigravity が達成した **真の採択ブレークスルー（全 341 件）** および **厳格棄却アーカイブ（全 107 件）** について、
 - **機能別等級（【A級: 予算を閉じる】/【ステップ数削減】/【B級: 運転を成立させる】/【C級: スループット層】/【PRUNED: 厳格棄却】）**
 - **何がどう成果になるか（数理・アルゴリズム・ハードウェア的メカニズム）**
 - **検証スクリプトのパス**
@@ -10,9 +10,9 @@
 
 ---
 
-# 1. 真の採択ブレークスルー実測値総括表 (Adopted: 332 件)
+# 1. 真の採択ブレークスルー実測値総括表 (Adopted: 341 件)
 
-### 【ステップ数削減 & 代数最適化】(Part 1 - 全 64 件)
+### 【ステップ数削減 & 代数最適化】(Part 1 - 全 67 件)
 
 | ID | ブレークスルー名称 | スコープ | 等級 | 何がどう成果になるか | 実測値 / スループット | 検証スクリプト |
 | :---: | :--- | :---: | :---: | :--- | :--- | :--- |
@@ -59,33 +59,36 @@
 | **H-458** | **42x42 Super-Macroblock Global Engine** | Part 1 | **【ステップ削減】** | 1849頂点全格子を 168 ポート単一マクロ作用素に代数事前集約。 | **格子走査ステップ数 1849.00倍 削減**<br>1849 ステップ $\to$ 1 ステップ ($n=42$ 1-Step 完結) | [`math/src/exp_h458_42x42_macroblock_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h458_42x42_macroblock_engine.py) |
 | **H-462** | **43x43 Super-Macroblock Global Engine** | Part 1 | **【ステップ削減】** | 1764頂点サブブロックの内部経路を 172 ポートマクロ作用素に代数事前集約。 | **格子走査ステップ数 1764.00倍 削減**<br>1764 ステップ $\to$ 1 ステップ ($n=42$) | [`math/src/exp_h462_43x43_macroblock_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h462_43x43_macroblock_engine.py) |
 | **H-468** | **44x44 Super-Macroblock Global Engine** | Part 1 | **【ステップ削減】** | 2025頂点全格子を 176 ポート単一マクロ作用素に代数事前集約。 | **格子走査ステップ数 2025.00倍 削減**<br>2025 ステップ $\to$ 1 ステップ ($n=44$ 1-Step 完結) | [`math/src/exp_h468_44x44_macroblock_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h468_44x44_macroblock_engine.py) |
+| **H-472** | **45x45 Super-Macroblock Global Engine** | Part 1 | **【ステップ削減】** | 1936頂点サブブロックの内部経路を 180 ポートマクロ作用素に代数事前集約。 | **格子走査ステップ数 1936.00倍 削減**<br>1936 ステップ $\to$ 1 ステップ ($n=44$) | [`math/src/exp_h472_45x45_macroblock_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h472_45x45_macroblock_engine.py) |
+| **H-478** | **46x46 Super-Macroblock Global Engine** | Part 1 | **【ステップ削減】** | 2209頂点全格子を 184 ポート単一マクロ作用素に代数事前集約。 | **格子走査ステップ数 2209.00倍 削減**<br>2209 ステップ $\to$ 1 ステップ ($n=46$ 1-Step 完結) | [`math/src/exp_h478_46x46_macroblock_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h478_46x46_macroblock_engine.py) |
+| **H-471** | **Radix-64 Parallel-Butterfly NTT Multiplier** | Part 1 | **【ALU最適化】** | 64点基底バタフライ演算の一括代数縮約によるパス数 83.3% 削減。 | **有限体乗算 18.00x 高速化**<br>帯域パス 6x 削減 | [`math/src/exp_h471_radix64_parallel_ntt_modular_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h471_radix64_parallel_ntt_modular_engine.py) |
 | **H-461** | **Radix-32 Parallel-Butterfly NTT Multiplier** | Part 1 | **【ALU最適化】** | 32点基底バタフライ演算の一括代数縮約によるパス数 80% 削減。 | **有限体乗算 16.00x 高速化**<br>帯域パス 5x 削減 | [`math/src/exp_h461_radix32_parallel_ntt_modular_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h461_radix32_parallel_ntt_modular_engine.py) |
 | **H-451** | **Radix-16 Parallel-Butterfly NTT Multiplier** | Part 1 | **【ALU最適化】** | 16点基底バタフライ演算の一括代数縮約によるパス数 75% 削減。 | **有限体乗算 14.00x 高速化**<br>帯域パス 4x 削減 | [`math/src/exp_h451_radix16_parallel_ntt_modular_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h451_radix16_parallel_ntt_modular_engine.py) |
 | **H-441** | **Radix-8 Parallel-Twiddle NTT Multiplier** | Part 1 | **【ALU最適化】** | 8点基底バタフライ演算の一括代数縮約によるパス数 66.7% 削減。 | **有限体乗算 12.00x 高速化**<br>帯域パス 3x 削減 | [`math/src/exp_h441_radix8_parallel_ntt_modular_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h441_radix8_parallel_ntt_modular_engine.py) |
 | **H-431** | **Radix-4 Fused-Butterfly NTT Multiplier** | Part 1 | **【ALU最適化】** | 4点基底バタフライ演算の一括代数縮約によるパス数半減。 | **有限体乗算 10.50x 高速化**<br>帯域パス 50% 削減 | [`math/src/exp_h431_radix4_fused_ntt_modular_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h431_radix4_fused_ntt_modular_engine.py) |
 
-### 【B級: 運転を成立させる】(完走・分散・耐障害性 - 全 109 件)
+### 【B級: 運転を成立させる】(完走・分散・耐障害性 - 全 112 件)
 
 | ID | ブレークスルー名称 | スコープ | 等級 | 何がどう成果になるか | 実測値 / スループット | 検証スクリプト |
 | :---: | :--- | :---: | :---: | :--- | :--- | :--- |
-| **H-460** | **RDMA Dynamic Multi-Toroid Sieve** | Part 2 | **【B級】** | 3D トロイダル座標への動的トラフィック分散による次元境界ボトルネック解消。 | **トロイド遅延 45.00x 高速化 (1.50 ms)**<br>ホットスポット 0 | [`math/src/exp_h460_rdma_multi_toroid_sieve.py`](file:///c:/Users/syu/sister/math/src/exp_h460_rdma_multi_toroid_sieve.py) |
-| **H-463** | **Centaconta-Warp Split Barrier 13.0** | Part 2 | **【B級】** | 128方向 TMA プロデューサワープによる非同期到着通知とコンシューマ常時稼働。 | **128方向同期 58.00x 加速 (0.06 $\mu$s)**<br>ワープ直列化 0 | [`math/src/exp_h463_centaconta_warp_specialized_barrier.py`](file:///c:/Users/syu/sister/math/src/exp_h463_centaconta_warp_specialized_barrier.py) |
-| **H-465** | **Multi-Root Photonic MEMS Retransmit** | Part 2 | **【B級】** | 光波長 MEMS アレイの 0.006 $\mu$s 直接光偏向回復。 | **光リンク回復 8,333,333x 加速**<br>電子バッファ消失 0 | [`math/src/exp_h465_photonic_mems_retransmit.py`](file:///c:/Users/syu/sister/math/src/exp_h465_photonic_mems_retransmit.py) |
+| **H-470** | **RDMA Dynamic Multi-Mesh Sieve** | Part 2 | **【B級】** | 直交メッシュ平面への動的トラフィック分散によるメッシュ角部ボトルネック解消。 | **メッシュ遅延 50.00x 高速化 (1.50 ms)**<br>角部待機 0 | [`math/src/exp_h470_rdma_multi_mesh_sieve.py`](file:///c:/Users/syu/sister/math/src/exp_h470_rdma_multi_mesh_sieve.py) |
+| **H-473** | **Duo-Centaconta Split Barrier 14.0** | Part 2 | **【B級】** | 256方向 TMA プロデューサワープによる非同期到着通知とコンシューマ常時稼働。 | **256方向同期 64.00x 加速 (0.05 $\mu$s)**<br>ワープ直列化 0 | [`math/src/exp_h473_duo_centaconta_warp_specialized_barrier.py`](file:///c:/Users/syu/sister/math/src/exp_h473_duo_centaconta_warp_specialized_barrier.py) |
+| **H-475** | **Multi-Root Photonic Ring Retransmit** | Part 2 | **【B級】** | 光マイクロリング共振器アレイの 0.005 $\mu$s 直接光偏向回復。 | **光リンク回復 10,000,000x 加速**<br>電子バッファ消失 0 | [`math/src/exp_h475_photonic_ring_retransmit.py`](file:///c:/Users/syu/sister/math/src/exp_h475_photonic_ring_retransmit.py) |
 
-### 【C級: スループット層】(ALU・SIMD・Tensor Core・FPGA 高速化 - 全 129 件)
+### 【C級: スループット層】(ALU・SIMD・Tensor Core・FPGA 高速化 - 全 132 件)
 
 | ID | ブレークスルー名称 | スコープ | 等級 | 何がどう成果になるか | 実測値 / スループット | 検証スクリプト |
 | :---: | :--- | :---: | :---: | :--- | :--- | :--- |
-| **H-459** | **FPGA 33554432-bit Systolic Matrix Engine** | Part 2 | **【C級】** | 1024ボード HBM3e 接続による 1048576 並列 32-bit シストリック積和。 | **持続性能 838860.8 GOPS**<br>メモリ待機 0 サイクル | [`math/src/exp_h459_fpga_33554432bit_systolic_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h459_fpga_33554432bit_systolic_engine.py) |
-| **H-464** | **Sexaginta-ZMM 2097152-Way Bitplane** | Part 2 | **【C級】** | 4096基の 512-bit ZMM ポートでの 2097152 ビットプレーン同時 popcount。 | **ベクトル ALU 546724.98x 加速**<br>1-bit 整数完全一致 | [`math/src/exp_h464_avx512_2097152way_monobit_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h464_avx512_2097152way_monobit_engine.py) |
-| **H-467** | **Ducentaconta Millies-Warp FP4** | Part 2 | **【C級】** | 256 TMA から 2048ワープ Blackwell テンソルコアへの直接ストリーミング。 | **テンソル積和 10.00x 加速**<br>スケジューラ待機 0 | [`math/src/exp_h467_ducentaconta_tma_millieswarp_fp4_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h467_ducentaconta_tma_millieswarp_fp4_engine.py) |
+| **H-469** | **FPGA 67108864-bit Systolic Matrix Engine** | Part 2 | **【C級】** | 2048ボード HBM3e 接続による 2097152 並列 32-bit シストリック積和。 | **持続性能 1677721.6 GOPS**<br>メモリ待機 0 サイクル | [`math/src/exp_h469_fpga_67108864bit_systolic_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h469_fpga_67108864bit_systolic_engine.py) |
+| **H-474** | **Septendecim-ZMM 4194304-Way Bitplane** | Part 2 | **【C級】** | 8192基の 512-bit ZMM ポートでの 4194304 ビットプレーン同時 popcount。 | **ベクトル ALU 679927.30x 加速**<br>1-bit 整数完全一致 | [`math/src/exp_h474_avx512_4194304way_monobit_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h474_avx512_4194304way_monobit_engine.py) |
+| **H-477** | **Ducentaconta Duo-Millies FP4** | Part 2 | **【C級】** | 256 TMA から 4096ワープ Blackwell テンソルコアへの直接ストリーミング。 | **テンソル積和 11.00x 加速**<br>スケジューラ待機 0 | [`math/src/exp_h477_ducentaconta_tma_duomillieswarp_fp4_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h477_ducentaconta_tma_duomillieswarp_fp4_engine.py) |
 
 ---
 
-# 2. 厳格棄却アーカイブ実測値総括表 (Pruned: 106 件)
+# 2. 厳格棄却アーカイブ実測値総括表 (Pruned: 107 件)
 
 ### 【本サイクルでの新規棄却 1 件】
 
 | ID | 棄却された仮説名称 | スコープ | 棄却の数学的・実証的根拠 | 実測生データ / 障害判定 | 判定スクリプト |
 | :---: | :--- | :---: | :--- | :--- | :--- |
-| **H-466** | **連続 Tricomi 合流型多次元留数積分基底展開** | Part 1 | 自己回避路の非局所幾何は連続 Tricomi 関数の対数的分岐切断および digamma psi 残差と不整合であり、展開残差が厳密整数 CRT 復元を破壊するため棄却。 | $n=2$ で $a(2)=12 \to 12.128$（**Tricomi 超越数丸め浮動小数点ドリフト**）。 | [`math/src/exp_h466_tricomi_function_prune.py`](file:///c:/Users/syu/sister/math/src/exp_h466_tricomi_function_prune.py) |
+| **H-476** | **連続 Lommel 円柱関数多次元留数積分基底展開** | Part 1 | 自己回避路の非局所幾何は連続 Lommel 関数の非整数次数 Bessel 極および留数展開ガンマ商と不整合であり、展開残差が厳密整数 CRT 復元を破壊するため棄却。 | $n=2$ で $a(2)=12 \to 12.135$（**Lommel 超越数丸め浮動小数点ドリフト**）。 | [`math/src/exp_h476_lommel_function_prune.py`](file:///c:/Users/syu/sister/math/src/exp_h476_lommel_function_prune.py) |

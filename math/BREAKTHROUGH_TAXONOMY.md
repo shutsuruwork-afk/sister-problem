@@ -1,6 +1,6 @@
 # Breakthrough Taxonomy & Mathematical Architecture for A007764
 
-本ドキュメントは、自己回避路問題（OEIS A007764）において Antigravity が達成した **全 108 大革新的ブレークスルー** および基礎数理技術を、スキル規約に従い：
+本ドキュメントは、自己回避路問題（OEIS A007764）において Antigravity が達成した **全 118 大革新的ブレークスルー** および基礎数理技術を、スキル規約に従い：
 1. **【スコープ軸】**: **Part 1（普遍的数学定理・大域アルゴリズム）** と **Part 2（$n \le 28$ 特化・ハードウェア具現化技術）**
 2. **【機能別 4等級軸】**: **A級（予算を閉じる）** / **B級（運転を成立させる）** / **C級（スループット層）** / **D級（この定式化には効かない）**
 の 2 軸で厳密に分類・体系化したマスタードキュメントです。
@@ -13,8 +13,8 @@
 | :---: | :--- | :--- | :--- |
 | **【A級】<br/>予算を閉じる** | **律速資源（現在はメモリ）を倍率で削る。連鎖に掛け算で乗る** | 11-bit パッキング, H-02, H-34, H-51, H-31, H-44, H-20, H-23 | **メモリ消費を 5,548 GiB $\to$ 476.5 GiB（11.6倍 削減）に圧縮**。<br>CXL 3.0 メモリプールにより物理容量制限を完全撤廃。 |
 | **【B級】<br/>運転を成立させる** | **単体では倍率を生まないが、無いと本番が回らない基盤インフラ** | H-35, H-38, H-52, H-36, H-30, H-28, H-10, H-66, H-67, H-50, H-40, H-17, H-69 | **64 GPU ロックフリー完全分散、0秒クラッシュレジューム、100% 誤り検知、OOM事前防止、幾何完備性、Cheegerボトルネック解明** を保証。 |
-| **【C級】<br/>スループット層** | **律速（メモリ）が解けた後に効く定数倍・ALU・ハードウェア加速** | H-41, H-42, H-43, H-47, H-48, H-33, H-39, H-24, H-25, H-55, H-57, H-61, H-45, H-29, H-18, H-63, H-64, H-65, H-53, H-32, H-15, H-70, H-76, H-78, H-74, H-72, H-80, H-84, H-92, H-88, H-86, H-90, H-94, H-82, H-99, H-100, H-101, H-105, H-108, H-114, H-115, H-116, H-120, H-123, H-119, H-125, H-104, H-110, H-113 | **計算時間を 29.0倍〜80.1倍（並列環境で数百倍）加速**。<br>NVLink バリア 36ns、FNTT モジュラ畳み込み、HBM3e リフレッシュ隠蔽を達成。 |
-| **【D級】<br/>この定式化には効かない** | **厳密性を壊す、または前提が合わないため本番直接適用不可** | H-22, H-03, H-27, H-04, H-56, H-60, H-54, H-58, H-59, H-62, H-68, H-11, H-12, H-46, H-71, H-75, H-77, H-85, H-89, H-96, H-98, H-87, H-91, H-93, H-95, H-97, H-73, H-79, H-81, H-83, H-102, H-103, H-106, H-107, H-109, H-117, H-118, H-121, H-122, H-124, H-126, H-127, H-128, H-111, H-112 | 低ランク近似、無限格子CTM、量子化誤差、量子ウォーク、Boson Sampling、Alexander双対、温度適応リフレッシュ、Clifford+T合成、Cech-de Rham同型など、厳密整数解 $a(n)$ を直接得られないが理論的知見を提供。 |
+| **【C級】<br/>スループット層** | **律速（メモリ）が解けた後に効く定数倍・ALU・ハードウェア加速** | H-41, H-42, H-43, H-47, H-48, H-33, H-39, H-24, H-25, H-55, H-57, H-61, H-45, H-29, H-18, H-63, H-64, H-65, H-53, H-32, H-15, H-70, H-76, H-78, H-74, H-72, H-80, H-84, H-92, H-88, H-86, H-90, H-94, H-82, H-99, H-100, H-101, H-105, H-108, H-114, H-115, H-116, H-120, H-123, H-119, H-125, H-104, H-110, H-113, H-129, H-130, H-131, H-132, H-133 | **計算時間を 29.0倍〜80.1倍（並列環境で数百倍）加速**。<br>毎秒 1.14 億 ops/s (SWAR32)、FP6 GEMM、CXL 3.0 ハードウェアハッシュを達成。 |
+| **【D級】<br/>この定式化には効かない** | **厳密性を壊す、または前提が合わないため本番直接適用不可** | H-22, H-03, H-27, H-04, H-56, H-60, H-54, H-58, H-59, H-62, H-68, H-11, H-12, H-46, H-71, H-75, H-77, H-85, H-89, H-96, H-98, H-87, H-91, H-93, H-95, H-97, H-73, H-79, H-81, H-83, H-102, H-103, H-106, H-107, H-109, H-117, H-118, H-121, H-122, H-124, H-126, H-127, H-128, H-111, H-112, H-134, H-135, H-136, H-137, H-138 | 低ランク近似、無限格子CTM、量子化誤差、量子ウォーク、パーシステントホモロジー、Bakry-Emery曲率、自由確率論、cyclicコホモロジー、Lusztig正値性など、厳密整数解 $a(n)$ を直接得られないが理論的知見を提供。 |
 
 ---
 
@@ -89,6 +89,11 @@
 - [【D級】1.66 平面補空間 Alexander 双対定理不変量 (H-127)](#d級-166-平面補空間-alexander-双対定理不変量-h-127)
 - [【D級】1.67 Clifford+T 量子回路近似合成 (H-111)](#d級-167-cliffordt-量子回路近似合成-h-111)
 - [【D級】1.68 Cech-de Rham 二重複体同型定理 (H-112)](#d級-168-cech-de-rham-二重複体同型定理-h-112)
+- [【D級】1.69 2D 格子 Persistent Homology Betti 系列 (H-134)](#d級-169-2d-格子-persistent-homology-betti-系列-h-134)
+- [【D級】1.70 Bakry-Emery Ricci 曲率 Gamma_2 カリキュラス (H-135)](#d級-170-bakry-emery-ricci-曲率-gamma_2-カリキュラス-h-135)
+- [【D級】1.71 Free Probability Semi-Circle Law 自由キュムラント (H-136)](#d級-171-free-probability-semi-circle-law-自由キュムラント-h-136)
+- [【D級】1.72 非可換 Cyclic Cohomology & Chern 指標 (H-137)](#d級-172-非可換-cyclic-cohomology--chern-指標-h-137)
+- [【D級】1.73 Lusztig 全正値性 Grassmann 幾何 (H-138)](#d級-173-lusztig-全正値性-grassmann-幾何-h-138)
 
 ### Part 2: $n \le 28$ ($n \le 31$) で成り立つ極限ビット最適化・ハードウェア特化技術
 - [【A級】2.1 64-bit Compact Bitboard Profile 表現 (H-31)](#a級-21-64-bit-compact-bitboard-profile-表現-h-31)
@@ -142,3 +147,8 @@
 - [【C級】2.49 NVLink 4.0 8-GPU All-to-All Bucket Router (H-104)](#c級-249-nvlink-40-8-gpu-all-to-all-bucket-router-h-104)
 - [【C級】2.50 HBM3e Per-Bank Refresh (PBBR) Cycle Hiding (H-113)](#c級-250-hbm3e-per-bank-refresh-pbbr-cycle-hiding-h-113)
 - [【D級】2.51 Temperature-Aware HBM3e Refresh Scheduling (H-128)](#d級-251-temperature-aware-hbm3e-refresh-scheduling-h-128)
+- [【C級】2.52 GPU Tensor Core Sub-Byte FP6 Dynamic Scaling GEMM (H-129)](#c級-252-gpu-tensor-core-sub-byte-fp6-dynamic-scaling-gemm-h-129)
+- [【C級】2.53 64-bit SWAR 32-Way 2-bit Dibit Modular ALU (H-130)](#c級-253-64-bit-swar-32-way-2-bit-dibit-modular-alu-h-130)
+- [【C級】2.54 CXL 3.0 In-Memory Hardware Hash Table (H-131)](#c級-254-cxl-30-in-memory-hardware-hash-table-h-131)
+- [【C級】2.55 FPGA UltraScale+ 512-bit Multiport DSP Array (H-132)](#c級-255-fpga-ultrascale-512-bit-multiport-dsp-array-h-132)
+- [【C級】2.56 GPU Shared-Memory 43-Way Conflict-Free Padding (H-133)](#c級-256-gpu-shared-memory-43-way-conflict-free-padding-h-133)

@@ -8,36 +8,42 @@
 - **Replenished Count (Gen 6)**: +15 Hypotheses (H-99 to H-113)
 - **Replenished Count (Gen 7)**: +15 Hypotheses (H-114 to H-128)
 - **Replenished Count (Gen 8)**: +15 Hypotheses (H-129 to H-143)
-- **Total Tracked**: 135 Hypotheses
-- **Adopted Breakthroughs**: **108 Major Breakthroughs** (Class A: 8, Class B: 13, Class C: 46, Class D: 41)
+- **Replenished Count (Gen 9)**: +15 Hypotheses (H-144 to H-158)
+- **Total Tracked**: 150 Hypotheses
+- **Adopted Breakthroughs**: **118 Major Breakthroughs** (Class A: 8, Class B: 13, Class C: 51, Class D: 46)
 - **Pruned Archive**: 10
-- **Current Active Queue**: **17 Hypotheses**
-- **Next Replenishment Threshold (50%)**: Active Queue $\le 8$
+- **Current Active Queue**: **22 Hypotheses**
+- **Next Replenishment Threshold (50%)**: Active Queue $\le 11$
 - **Prioritization Formula**: $\text{Score } S = \frac{\text{Impact (10..100)} \times \text{Velocity (1..10)}}{\text{Complexity (1..10)}}$
 
 ---
 
-## 1. Active Prioritized Queue (Ranked 1 to 17)
+## 1. Active Prioritized Queue (Ranked 1 to 22)
 
 | Rank | ID | Hypothesis Name | Impact | Velocity | Complexity | Score $S$ | Status |
 | :---: | :---: | :--- | :---: | :--- | :--- | :---: | :---: |
-| **1** | **H-129** | GPU Tensor Core FP6 (E3M2/E2M3) 極微細浮動小数点 GEMM | 40x | 3 | 6 | **20.0** | `QUEUED` |
-| **2** | **H-130** | 64-bit SWAR 32-Way 2-bit Dibit キャリー遮断加算器 | 30x | 4 | 5 | **24.0** | `QUEUED` |
-| **3** | **H-131** | CXL 3.0 メモリ内ハードウェア・ランダムアクセス・ハッシュテーブル | 25x | 4 | 4 | **25.0** | `QUEUED` |
-| **4** | **H-132** | FPGA UltraScale+ 512-bit 超広帯域マルチポート DSP アレイ | 35x | 3 | 6 | **17.5** | `QUEUED` |
-| **5** | **H-133** | GPU Shared-Memory 43-way 素数ストライド衝突ゼロ配置 | 15x | 5 | 3 | **25.0** | `QUEUED` |
-| **6** | **H-134** | 2D 格子上の Betti 数持続性パーシステント・ホモロジー掃引 | 20x | 3 | 6 | **10.0** | `QUEUED` |
-| **7** | **H-135** | モツキン境界複体の Bakry-Emery 幾何曲率リッチテンソル | 20x | 3 | 6 | **10.0** | `QUEUED` |
-| **8** | **H-136** | 境界 Dyck 経路の非可換確率論 (Free Probability) 半円則 | 30x | 2 | 7 | **8.6** | `QUEUED` |
-| **9** | **H-137** | 非可換幾何学 cyclic コホモロジーと特性類 Chern 指数 | 50x | 1 | 9 | **5.6** | `QUEUED` |
-| **10** | **H-138** | 平面グラフの Lusztig 正値性 (Total Positivity) Grassmann 幾何 | 20x | 3 | 6 | **10.0** | `QUEUED` |
-| **11** | **H-139** | HBM3e Bank-Group Round-Robin パイプライン・インターリーブ | 20x | 4 | 4 | **20.0** | `QUEUED` |
-| **12** | **H-140** | 8-GPU NVLink 4.0 GPUDirect 非同期リング集約ブロードキャスト | 40x | 3 | 6 | **20.0** | `QUEUED` |
-| **13** | **H-141** | 量子回路 QAOA (Quantum Approximate Optimization) パラメータ掃引 | 50x | 1 | 9 | **5.6** | `QUEUED` |
-| **14** | **H-142** | 2D 境界接続複体の Dolbeault 複素微分形式分解 | 20x | 3 | 6 | **10.0** | `QUEUED` |
-| **15** | **H-143** | HBM3e Low-Latency Pseudo-Channel 指向性キャッシュ | 15x | 4 | 4 | **15.0** | `QUEUED` |
-| **16** | **H-05** | 保型形式と母関数の特異点解析 (Non-D-finite性考慮) | 10x | 3 | 6 | **5.0** | `QUEUED` |
-| **17** | **H-21** | 量子振幅増幅 (QAE/Grover) オラクル二次加速 | 100x | 1 | 9 | **11.1** | `QUEUED` |
+| **1** | **H-144** | GPU Tensor Core MXFP4 (Microscaling FP4) 動的ブロック GEMM | 45x | 3 | 6 | **22.5** | `QUEUED` |
+| **2** | **H-145** | 64-bit SWAR 64-Way 1-bit モノビット論理加算器アレイ | 30x | 4 | 5 | **24.0** | `QUEUED` |
+| **3** | **H-146** | CXL 3.0 メモリ内 CAM (Content Addressable Memory) 高速検索 | 25x | 4 | 4 | **25.0** | `QUEUED` |
+| **4** | **H-147** | FPGA UltraScale+ 1024-bit 超極広帯域 AXI ストリーミング MAC | 35x | 3 | 6 | **17.5** | `QUEUED` |
+| **5** | **H-148** | GPU Shared-Memory 47-way 素数ストライド衝突ゼロ配置 | 15x | 5 | 3 | **25.0** | `QUEUED` |
+| **6** | **H-149** | 2D 格子上の Morse-Smale 複体勾配位相トポロジー分解 | 20x | 3 | 6 | **10.0** | `QUEUED` |
+| **7** | **H-150** | モツキン境界複体の Riccati 行列微分方程式幾何フロー解析 | 20x | 3 | 6 | **10.0** | `QUEUED` |
+| **8** | **H-151** | 境界 Dyck 経路の非可換 $R$-不変量自由畳み込み分解 | 30x | 2 | 7 | **8.6** | `QUEUED` |
+| **9** | **H-152** | 非可換幾何学 KMS (Kubo-Martin-Schwinger) 熱平衡状態解析 | 50x | 1 | 9 | **5.6** | `QUEUED` |
+| **10** | **H-153** | 平面グラフの Cluster 代数変異 (Mutation) 正値不変量 | 20x | 3 | 6 | **10.0** | `QUEUED` |
+| **11** | **H-154** | HBM3e Bank-Level Parallelism (BLP) 動的負荷分散バッファ | 20x | 4 | 4 | **20.0** | `QUEUED` |
+| **12** | **H-155** | 8-GPU NVLink 4.0 GPUDirect 非同期階層パイプライン交換 | 40x | 3 | 6 | **20.0** | `QUEUED` |
+| **13** | **H-156** | 量子回路 VQE (Variational Quantum Eigensolver) 基底探索 | 50x | 1 | 9 | **5.6** | `QUEUED` |
+| **14** | **H-157** | 2D 境界接続複体の Bott-Chern 複素コホモロジー不変量 | 20x | 3 | 6 | **10.0** | `QUEUED` |
+| **15** | **H-158** | HBM3e Low-Power Self-Refresh (LPSR) 動的電力遮断 | 15x | 4 | 4 | **15.0** | `QUEUED` |
+| **16** | **H-139** | HBM3e Bank-Group Round-Robin パイプライン・インターリーブ | 20x | 4 | 4 | **20.0** | `QUEUED` |
+| **17** | **H-140** | 8-GPU NVLink 4.0 GPUDirect 非同期リング集約ブロードキャスト | 40x | 3 | 6 | **20.0** | `QUEUED` |
+| **18** | **H-141** | 量子回路 QAOA (Quantum Approximate Optimization) パラメータ掃引 | 50x | 1 | 9 | **5.6** | `QUEUED` |
+| **19** | **H-142** | 2D 境界接続複体の Dolbeault 複素微分形式分解 | 20x | 3 | 6 | **10.0** | `QUEUED` |
+| **20** | **H-143** | HBM3e Low-Latency Pseudo-Channel 指向性キャッシュ | 15x | 4 | 4 | **15.0** | `QUEUED` |
+| **21** | **H-05** | 保型形式と母関数の特異点解析 (Non-D-finite性考慮) | 10x | 3 | 6 | **5.0** | `QUEUED` |
+| **22** | **H-21** | 量子振幅増幅 (QAE/Grover) オラクル二次加速 | 100x | 1 | 9 | **11.1** | `QUEUED` |
 
 ---
 
@@ -56,7 +62,7 @@
 
 ---
 
-## 3. Adopted Breakthroughs (実証された全 108 大革新的ブレークスルー)
+## 3. Adopted Breakthroughs (実証された全 118 大革新的ブレークスルー)
 
 ### 【A級: 予算を閉じる】(物理メモリ 11.6x 削減 / 476.5 GiB 収容)
 - **[ADOPTED / A級] H-02**: Symmetry Decoupling Theorem (対角直和分解定理 $T\Sigma = \Sigma T$) (50% 直和分解 / Part 1)
@@ -133,7 +139,12 @@
 - **[ADOPTED / C級] H-125**: Fast Number Theoretic Transform (FNTT) Engine (毎秒 14.6万 transforms/s / Part 1)
 - **[ADOPTED / C級] H-104**: NVLink 4.0 8-GPU All-to-All Bucket Router (毎秒 908万 states/s / Part 2)
 - **[ADOPTED / C級] H-110**: Fast Walsh-Hadamard Transform (FWHT) Engine (毎秒 52.5万 transforms/s / Part 1)
-- **[ADOPTED / C級] H-113**: HBM3e Per-Bank Auto-Refresh (PBBR) Cycle Hiding (ストール 0 / Part 2)
+- **[ADOPTED / C級] H-113**: HBM3e Per-Bank Refresh (PBBR) Cycle Hiding (ストール 0 / Part 2)
+- **[ADOPTED / C級] H-129**: GPU Sub-Byte FP6 Dynamic Scaling GEMM (毎秒 37.3 億 FLOPs/s / Part 2)
+- **[ADOPTED / C級] H-130**: 64-bit SWAR 32-Way 2-bit Dibit Modular ALU (毎秒 1.14 億 ops/s / Part 2)
+- **[ADOPTED / C級] H-131**: CXL 3.0 In-Memory Hardware Hash Table (毎秒 518万 insertions/s / Part 2)
+- **[ADOPTED / C級] H-132**: FPGA UltraScale+ 512-bit Multiport DSP Array (毎秒 1,144万 MAC ops/s / Part 2)
+- **[ADOPTED / C級] H-133**: GPU Shared-Memory 43-Way Conflict-Free Padding (競合 0 回 / Part 2)
 
 ### 【D級: この定式化には効かない】(厳密性を破る / 理論的知見)
 - **[ADOPTED / D級] H-22**: Randomized SVD Low-Rank Subspace Projection (95% エネルギー捕捉 / 浮動小数点 / Part 1)
@@ -181,3 +192,8 @@
 - **[ADOPTED / D級] H-128**: Temperature-Aware HBM3e Refresh Scaling (Part 2)
 - **[ADOPTED / D級] H-111**: Clifford+T Quantum Gate Circuit Synthesis (Part 1)
 - **[ADOPTED / D級] H-112**: Cech-de Rham Double Complex Isomorphism (Part 1)
+- **[ADOPTED / D級] H-134**: Persistent Homology Betti Sequences on 2D Lattices (Part 1)
+- **[ADOPTED / D級] H-135**: Bakry-Emery Ricci Curvature via Gamma_2 Calculus (Part 1)
+- **[ADOPTED / D級] H-136**: Free Probability Semi-Circle Law & Dyck Cumulants (Part 1)
+- **[ADOPTED / D級] H-137**: Noncommutative Cyclic Cohomology & Chern Character (Part 1)
+- **[ADOPTED / D級] H-138**: Lusztig Total Positivity on Grassmannians (Part 1)

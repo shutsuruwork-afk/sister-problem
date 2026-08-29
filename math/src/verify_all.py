@@ -8,6 +8,7 @@ Tier 2: Multi-Width Packed DP & CRT Invariance (11, 12, 16 bits cross-check)
 Tier 3: Rigorous Upper Bound Consistency (Z(n) >= a(n))
 Tier 4: Geometric Symmetry & Group-Theoretic Mod-4 Invariants
 Tier 5: Closed-Form State Dimension Theorem & Bijective Ranking Proof
+Bonus:  Bitboard 64-bit Frontier DP Equivalence Validation
 """
 
 from __future__ import annotations
@@ -16,7 +17,6 @@ import py_compile
 import sys
 import time
 
-# Ensure math/src is on the module search path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from state_engine import (
@@ -30,6 +30,7 @@ from state_engine import (
 )
 from bound_engine import evaluate_partitions
 from congruence_engine import count_antidiagonal_symmetric_paths
+from bitboard_engine import solve_exact_bitboard_crt
 
 
 def print_banner(title: str) -> None:
@@ -45,6 +46,7 @@ def tier0_static_analysis() -> bool:
         "state_engine.py",
         "bound_engine.py",
         "congruence_engine.py",
+        "bitboard_engine.py",
         "verify_all.py",
         "ranking.py",
         "dense.py",
@@ -60,14 +62,12 @@ def tier0_static_analysis() -> bool:
 def tier5_state_dimension_and_bijection() -> bool:
     print_banner("Tier 5: State Dimension Theorem & Bijective Rank Round-Trip Proof")
     M = motzkin(32)
-    # Check Motzkin dimension formula B(n) = M_{n+2} - M_{n+1}
     for n in range(1, 20):
         pred_dim = M[n + 2] - M[n + 1]
         sum_conv = sum(M[a] * M[n - a] for a in range(n + 1))
         assert pred_dim == sum_conv, f"[FAIL] Convolution mismatch at n={n}"
         print(f"  [PASS] n={n:2d}: B({n:2d}) = M_{n+2} - M_{n+1} = {pred_dim:>12d} == sum(M_a*M_b) -> PROVED")
 
-    # Round-trip bijection test for rank_valid <-> unrank_valid
     print("  --- Bijective Invertibility Check (rank <-> unrank round-trip) ---")
     for test_n in [2, 3, 4, 5]:
         tot = M[test_n + 2] - M[test_n + 1]
@@ -136,6 +136,18 @@ def tier1_ground_truth() -> bool:
     return True
 
 
+def bonus_bitboard_validation() -> bool:
+    print_banner("Bonus: 64-bit Bitboard Compact DP Engine Validation (n = 1 .. 8)")
+    primes_pool = [4294967291, 4294967279, 4294967231]
+    for n in range(1, 9):
+        expected = KNOWN_A007764[n]
+        primes_used = primes_pool[:2]
+        exact_ans = solve_exact_bitboard_crt(n, primes_used)
+        assert exact_ans == expected, f"[FAIL] Bitboard mismatch at n={n}: {exact_ans} != {expected}"
+        print(f"  [PASS] Bitboard a({n:2d}) = {exact_ans:>18d} -> 100% EQUIVALENCE TO GROUND TRUTH")
+    return True
+
+
 def main() -> None:
     start_time = time.time()
     print("=" * 76)
@@ -147,11 +159,12 @@ def main() -> None:
     tier3_upper_bounds()
     tier4_symmetry_congruence()
     tier2_packed_crt()
+    bonus_bitboard_validation()
     tier1_ground_truth()
 
     elapsed = time.time() - start_time
     print("\n" + "=" * 76)
-    print(f"  ALL QUALITY TIERS (Tier 0 .. 5) PASSED WITH ZERO DEFECTS in {elapsed:.2f}s!")
+    print(f"  ALL QUALITY TIERS PASSED WITH ZERO DEFECTS in {elapsed:.2f}s!")
     print("  Status: 100% COMPLIANT WITH CODE QUALITY & ASSURANCE BASELINE.")
     print("=" * 76)
 

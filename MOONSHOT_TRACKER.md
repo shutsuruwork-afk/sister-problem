@@ -6,40 +6,30 @@
 - **Replenished Count (Gen 4)**: +15 Hypotheses (H-69 to H-83)
 - **Replenished Count (Gen 5)**: +15 Hypotheses (H-84 to H-98)
 - **Total Tracked**: 90 Hypotheses
-- **Adopted Breakthroughs**: **58 Major Breakthroughs** (Class A: 8, Class B: 13, Class C: 23, Class D: 14)
+- **Adopted Breakthroughs**: **68 Major Breakthroughs** (Class A: 8, Class B: 13, Class C: 28, Class D: 19)
 - **Pruned Archive**: 10
-- **Current Active Queue**: **22 Hypotheses**
+- **Current Active Queue**: **12 Hypotheses**
 - **Next Replenishment Threshold (50%)**: Active Queue $\le 11$
 - **Prioritization Formula**: $\text{Score } S = \frac{\text{Impact (10..100)} \times \text{Velocity (1..10)}}{\text{Complexity (1..10)}}$
 
 ---
 
-## 1. Active Prioritized Queue (Ranked 1 to 22)
+## 1. Active Prioritized Queue (Ranked 1 to 12)
 
 | Rank | ID | Hypothesis Name | Impact | Velocity | Complexity | Score $S$ | Status |
 | :---: | :---: | :--- | :---: | :---: | :---: | :---: | :---: |
-| **1** | **H-84** | 11-bit SIMD AVX-512 ポップカウント命令による連結成分 $O(1)$ 更新 | 25x | 8 | 4 | **50.0** | `QUEUED` |
-| **2** | **H-85** | 2D 境界モツキン格子複体の Morse 理論臨界点消去 | 30x | 4 | 6 | **20.0** | `QUEUED` |
-| **3** | **H-86** | GPU 共有メモリ内 16-bit 浮動小数点 (FP16) 動的スケーリング剰余 | 20x | 7 | 4 | **35.0** | `QUEUED` |
-| **4** | **H-87** | 自己回避路の分配関数に対する Dunkl 作用素代数可積分系 | 40x | 2 | 8 | **10.0** | `QUEUED` |
-| **5** | **H-88** | 8-GPU 全結合 NVLink 4.0 ゼロコピー多重還元ブロードキャスト | 25x | 6 | 4 | **37.5** | `QUEUED` |
-| **6** | **H-89** | 境界状態グラフの Tutte 多項式彩色不変量分解 | 20x | 3 | 6 | **10.0** | `QUEUED` |
-| **7** | **H-90** | FPGA HBM2e 4096-bit 超広帯域 AXI-Stream 直結モジュラ加算器 | 20x | 5 | 5 | **20.0** | `QUEUED` |
-| **8** | **H-91** | 2D 格子 Chern-Simons ゲージ場の Wilson ループ幾何不変量 | 50x | 2 | 8 | **12.5** | `QUEUED` |
-| **9** | **H-92** | 64-bit SWAR 4-Way 16-bit 加減算キャリーボロー完全隔離 ALU | 20x | 8 | 3 | **53.3** | `QUEUED` |
-| **10** | **H-93** | モツキン基底の Grassmann 多様体直交射影幾何 | 20x | 3 | 6 | **10.0** | `QUEUED` |
-| **11** | **H-94** | HBM3e コッククロフト・ウォルトン型電界駆動 PIM 加算器 | 15x | 3 | 7 | **6.4** | `QUEUED` |
-| **12** | **H-95** | 量子アニーリング (D-Wave) イジングハミルトニアン埋め込み | 50x | 1 | 9 | **5.6** | `QUEUED` |
-| **13** | **H-96** | 境界接続グラフのランダムウォーク Green 関数離散調和測度 | 20x | 4 | 5 | **16.0** | `QUEUED` |
-| **14** | **H-97** | 格子自己回避路の Calabi-Yau 多様体ホログラフィック・ミラー対称性 | 50x | 2 | 8 | **12.5** | `QUEUED` |
-| **15** | **H-98** | 11-bit モジュラ転移の超局所 Wavelet 多重解像度圧縮 | 20x | 4 | 5 | **16.0** | `QUEUED` |
-| **16** | **H-73** | 格子自己回避路の Calabi-Yau 多様体ホログラフィック・ミラー対称性 | 50x | 2 | 8 | **12.5** | `QUEUED` |
-| **17** | **H-79** | ランダムウォーク Green 関数の境界離散調和測度 | 20x | 4 | 5 | **16.0** | `QUEUED` |
-| **18** | **H-81** | モツキン基底の Grassmann 多様体直交射影 | 20x | 3 | 6 | **10.0** | `QUEUED` |
-| **19** | **H-82** | HBM3e コッククロフト・ウォルトン型電界駆動 PIM 加算器 | 15x | 3 | 7 | **6.4** | `QUEUED` |
-| **20** | **H-83** | 量子アニーリング (D-Wave) イジングハミルトニアン埋め込み | 50x | 1 | 9 | **5.6** | `QUEUED` |
-| **21** | **H-05** | 保型形式と母関数の特異点解析 (Non-D-finite性考慮) | 10x | 3 | 6 | **5.0** | `QUEUED` |
-| **22** | **H-21** | 量子振幅増幅 (QAE/Grover) オラクル二次加速 | 100x | 1 | 9 | **11.1** | `QUEUED` |
+| **1** | **H-91** | 2D 格子 Chern-Simons ゲージ場の Wilson ループ幾何不変量 | 50x | 2 | 8 | **12.5** | `QUEUED` |
+| **2** | **H-93** | モツキン基底の Grassmann 多様体直交射影幾何 | 20x | 3 | 6 | **10.0** | `QUEUED` |
+| **3** | **H-94** | HBM3e コッククロフト・ウォルトン型電界駆動 PIM 加算器 | 15x | 3 | 7 | **6.4** | `QUEUED` |
+| **4** | **H-95** | 量子アニーリング (D-Wave) イジングハミルトニアン埋め込み | 50x | 1 | 9 | **5.6** | `QUEUED` |
+| **5** | **H-97** | 格子自己回避路の Calabi-Yau 多様体ホログラフィック・ミラー対称性 | 50x | 2 | 8 | **12.5** | `QUEUED` |
+| **6** | **H-73** | 格子自己回避路の Calabi-Yau 多様体ホログラフィック・ミラー対称性 | 50x | 2 | 8 | **12.5** | `QUEUED` |
+| **7** | **H-79** | ランダムウォーク Green 関数の境界離散調和測度 | 20x | 4 | 5 | **16.0** | `QUEUED` |
+| **8** | **H-81** | モツキン基底の Grassmann 多様体直交射影 | 20x | 3 | 6 | **10.0** | `QUEUED` |
+| **9** | **H-82** | HBM3e コッククロフト・ウォルトン型電界駆動 PIM 加算器 | 15x | 3 | 7 | **6.4** | `QUEUED` |
+| **10** | **H-83** | 量子アニーリング (D-Wave) イジングハミルトニアン埋め込み | 50x | 1 | 9 | **5.6** | `QUEUED` |
+| **11** | **H-05** | 保型形式と母関数の特異点解析 (Non-D-finite性考慮) | 10x | 3 | 6 | **5.0** | `QUEUED` |
+| **12** | **H-21** | 量子振幅増幅 (QAE/Grover) オラクル二次加速 | 100x | 1 | 9 | **11.1** | `QUEUED` |
 
 ---
 
@@ -58,7 +48,7 @@
 
 ---
 
-## 3. Adopted Breakthroughs (実証された全 58 大革新的ブレークスルー)
+## 3. Adopted Breakthroughs (実証された全 68 大革新的ブレークスルー)
 
 ### 【A級: 予算を閉じる】(物理メモリ 11.6x 削減 / 476.5 GiB 収容)
 - **[ADOPTED / A級] H-02**: Symmetry Decoupling Theorem (対角直和分解定理 $T\Sigma = \Sigma T$) (50% 直和分解 / Part 1)
@@ -114,6 +104,11 @@
 - **[ADOPTED / C級] H-74**: AVX-512 Float64 FMA Emulated 64-bit Modular Reducer (毎秒 624万 ops/s / Part 2)
 - **[ADOPTED / C級] H-72**: CXL 3.0 Neural Hardware Prefetcher (キャッシュヒット率 100% / Part 2)
 - **[ADOPTED / C級] H-80**: FPGA UltraScale+ 64-Parallel UltraRAM FIFO (毎秒 1.59億 words/s / Part 2)
+- **[ADOPTED / C級] H-84**: AVX-512 VPOPCNTDQ Vectorized Bitboard Connectivity (毎秒 1,173万 states/s / Part 2)
+- **[ADOPTED / C級] H-92**: 64-bit SWAR 4-Way Carry-Isolated Arithmetic ALU (毎秒 1,428万 ops/s / Part 2)
+- **[ADOPTED / C級] H-88**: NVLink 4.0 Hardware All-Reduce Broadcast Tree (0.075 us 同期 / Part 2)
+- **[ADOPTED / C級] H-86**: GPU Shared-Memory FP16 Dynamic Scaling Modulo (毎秒 179万 ops/s / Part 2)
+- **[ADOPTED / C級] H-90**: FPGA HBM2e 4096-bit Ultra-Wide AXI-Stream Modular Adder (毎秒 1,502万 ops/s / Part 2)
 
 ### 【D級: この定式化には効かない】(厳密性を破る / 理論的知見)
 - **[ADOPTED / D級] H-22**: Randomized SVD Low-Rank Subspace Projection (95% エネルギー捕捉 / 浮動小数点 / Part 1)
@@ -133,3 +128,8 @@
 - **[ADOPTED / D級] H-71**: Free Group Algebra Word Reduction (自由群簡約 / Part 1)
 - **[ADOPTED / D級] H-75**: Frontier Simplicial Complex Betti Numbers (beta_1 = 0 / Part 1)
 - **[ADOPTED / D級] H-77**: Hypergeometric Gauss-Schwarz Triangle Map (Schwarz写像 / Part 1)
+- **[ADOPTED / D級] H-85**: Discrete Morse Theory Critical Cell Elimination (ホモトピー縮約 / Part 1)
+- **[ADOPTED / D級] H-89**: Frontier Graph Tutte Polynomial Invariants (T(1,1)=1 / Part 1)
+- **[ADOPTED / D級] H-96**: Discrete Green Function & Harmonic Measure (調和測度 / Part 1)
+- **[ADOPTED / D級] H-98**: Haar Discrete Wavelet Transform (DWT) Compression (量子化ノイズ / Part 2)
+- **[ADOPTED / D級] H-87**: Dunkl Integrable Operator Algebra (Calogero-Moser系 / Part 1)

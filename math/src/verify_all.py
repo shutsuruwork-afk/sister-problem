@@ -11,6 +11,7 @@ Tier 5: Closed-Form State Dimension Theorem & Bijective Ranking Proof
 Bonus 1: 64-bit Bitboard Compact DP Engine Validation (H-31 Adopted)
 Bonus 2: Symmetry Decoupling Theorem (T * Sigma = Sigma * T) Invariance (H-02 Adopted)
 Bonus 3: Exact Bijective Quotient Ranking on S / Sigma (H-34 Adopted)
+Bonus 4: Parallel Multi-Prime Distributed CRT Engine (H-35 Adopted)
 """
 
 from __future__ import annotations
@@ -39,6 +40,7 @@ from exp_h02_symmetry_decomposition import (
     reflect_state,
 )
 from exp_quotient_ranking import QuotientRankEngine
+from parallel_crt_engine import solve_parallel_crt
 import numpy as np
 
 
@@ -57,6 +59,7 @@ def tier0_static_analysis() -> bool:
         "congruence_engine.py",
         "bitboard_engine.py",
         "sparse_bitboard_engine.py",
+        "parallel_crt_engine.py",
         "exp_h02_symmetry_decomposition.py",
         "exp_quotient_ranking.py",
         "verify_all.py",
@@ -159,6 +162,18 @@ def bonus_quotient_ranking_validation() -> bool:
     return True
 
 
+def bonus_parallel_crt_validation() -> bool:
+    print_banner("Bonus 4: Parallel Multi-Prime Distributed CRT Verification (n = 1 .. 7)")
+    primes_pool = [4294967291, 4294967279, 4294967231]
+    for n in range(1, 8):
+        expected = KNOWN_A007764[n]
+        primes_used = primes_pool[:2]
+        exact_ans, el = solve_parallel_crt(n, primes_used, max_workers=2)
+        assert exact_ans == expected, f"[FAIL] Parallel CRT mismatch at n={n}: {exact_ans} != {expected}"
+        print(f"  [PASS] Parallel CRT a({n:2d}) = {exact_ans:>15d} in {el:.4f}s -> 100% GROUND TRUTH MATCH")
+    return True
+
+
 def tier2_packed_crt() -> bool:
     print_banner("Tier 2: Multi-Width Packed DP & CRT Reconstruction (11, 12, 16 bits)")
     for n in [3, 5, 7]:
@@ -204,6 +219,7 @@ def main() -> None:
     tier4_symmetry_congruence()
     bonus_symmetry_decoupling_validation()
     bonus_quotient_ranking_validation()
+    bonus_parallel_crt_validation()
     tier2_packed_crt()
     bonus_bitboard_validation()
     tier1_ground_truth()

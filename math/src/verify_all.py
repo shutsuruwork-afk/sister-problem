@@ -8,7 +8,8 @@ Tier 2: Multi-Width Packed DP & CRT Invariance (11, 12, 16 bits cross-check)
 Tier 3: Rigorous Upper Bound Consistency (Z(n) >= a(n))
 Tier 4: Geometric Symmetry & Group-Theoretic Mod-4 Invariants
 Tier 5: Closed-Form State Dimension Theorem & Bijective Ranking Proof
-Bonus:  Bitboard 64-bit Frontier DP Equivalence Validation
+Bonus 1: 64-bit Bitboard Compact DP Engine Validation (H-31 Adopted)
+Bonus 2: Symmetry Decoupling Theorem (T * Sigma = Sigma * T) Invariance (H-02 Adopted)
 """
 
 from __future__ import annotations
@@ -31,6 +32,12 @@ from state_engine import (
 from bound_engine import evaluate_partitions
 from congruence_engine import count_antidiagonal_symmetric_paths
 from bitboard_engine import solve_exact_bitboard_crt
+from exp_h02_symmetry_decomposition import (
+    analyze_symmetry_decomposition,
+    build_row_transfer_matrix,
+    reflect_state,
+)
+import numpy as np
 
 
 def print_banner(title: str) -> None:
@@ -47,6 +54,7 @@ def tier0_static_analysis() -> bool:
         "bound_engine.py",
         "congruence_engine.py",
         "bitboard_engine.py",
+        "exp_h02_symmetry_decomposition.py",
         "verify_all.py",
         "ranking.py",
         "dense.py",
@@ -55,7 +63,7 @@ def tier0_static_analysis() -> bool:
         fpath = os.path.join(src_dir, fname)
         if os.path.exists(fpath):
             py_compile.compile(fpath, doraise=True)
-            print(f"  [PASS] {fname:24s} -> Compilation & AST validation OK")
+            print(f"  [PASS] {fname:34s} -> Compilation & AST validation OK")
     return True
 
 
@@ -115,6 +123,27 @@ def tier4_symmetry_congruence() -> bool:
     return True
 
 
+def bonus_symmetry_decoupling_validation() -> bool:
+    print_banner("Bonus 2: Symmetry Decoupling Theorem Proof (T * Sigma = Sigma * T)")
+    p = 4294967291
+    for n in [2, 3, 4]:
+        T, B, M = build_row_transfer_matrix(n, p=p)
+        T_mat = np.array(T, dtype=np.int64)
+        sigma_perm = np.zeros(B, dtype=np.int64)
+        for r in range(B):
+            w = unrank_valid(n + 1, r, M)
+            rw = reflect_state(w)
+            sigma_perm[r] = rank_valid(rw, M)
+        Sigma_mat = np.zeros((B, B), dtype=np.int64)
+        for i in range(B):
+            Sigma_mat[i, sigma_perm[i]] = 1
+        diff = (T_mat @ Sigma_mat - Sigma_mat @ T_mat) % p
+        assert np.all(diff == 0), f"[FAIL] Commutation broken at n={n}"
+        _, dp, dm = analyze_symmetry_decomposition(n)
+        print(f"  [PASS] n={n:2d}: T * Sigma == Sigma * T PROVED! (B={B} -> Dim(V+)={dp}, Dim(V-)={dm})")
+    return True
+
+
 def tier2_packed_crt() -> bool:
     print_banner("Tier 2: Multi-Width Packed DP & CRT Reconstruction (11, 12, 16 bits)")
     for n in [3, 5, 7]:
@@ -123,6 +152,18 @@ def tier2_packed_crt() -> bool:
             val, num_p, tot_b = solve_exact_with_crt(n, bits=bits)
             assert val == expected, f"[FAIL] n={n}, bits={bits}: got {val}, expected {expected}"
             print(f"  [PASS] n={n} @ {bits:2d}-bit packed array: {num_p:2d} primes, {tot_b:3d} bits CRT -> EXACT MATCH")
+    return True
+
+
+def bonus_bitboard_validation() -> bool:
+    print_banner("Bonus 1: 64-bit Bitboard Compact DP Engine Validation (n = 1 .. 8)")
+    primes_pool = [4294967291, 4294967279, 4294967231]
+    for n in range(1, 9):
+        expected = KNOWN_A007764[n]
+        primes_used = primes_pool[:2]
+        exact_ans = solve_exact_bitboard_crt(n, primes_used)
+        assert exact_ans == expected, f"[FAIL] Bitboard mismatch at n={n}: {exact_ans} != {expected}"
+        print(f"  [PASS] Bitboard a({n:2d}) = {exact_ans:>18d} -> 100% EQUIVALENCE TO GROUND TRUTH")
     return True
 
 
@@ -136,18 +177,6 @@ def tier1_ground_truth() -> bool:
     return True
 
 
-def bonus_bitboard_validation() -> bool:
-    print_banner("Bonus: 64-bit Bitboard Compact DP Engine Validation (n = 1 .. 8)")
-    primes_pool = [4294967291, 4294967279, 4294967231]
-    for n in range(1, 9):
-        expected = KNOWN_A007764[n]
-        primes_used = primes_pool[:2]
-        exact_ans = solve_exact_bitboard_crt(n, primes_used)
-        assert exact_ans == expected, f"[FAIL] Bitboard mismatch at n={n}: {exact_ans} != {expected}"
-        print(f"  [PASS] Bitboard a({n:2d}) = {exact_ans:>18d} -> 100% EQUIVALENCE TO GROUND TRUTH")
-    return True
-
-
 def main() -> None:
     start_time = time.time()
     print("=" * 76)
@@ -158,6 +187,7 @@ def main() -> None:
     tier5_state_dimension_and_bijection()
     tier3_upper_bounds()
     tier4_symmetry_congruence()
+    bonus_symmetry_decoupling_validation()
     tier2_packed_crt()
     bonus_bitboard_validation()
     tier1_ground_truth()

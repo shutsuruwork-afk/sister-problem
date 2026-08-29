@@ -10,6 +10,7 @@ Tier 4: Geometric Symmetry & Group-Theoretic Mod-4 Invariants
 Tier 5: Closed-Form State Dimension Theorem & Bijective Ranking Proof
 Bonus 1: 64-bit Bitboard Compact DP Engine Validation (H-31 Adopted)
 Bonus 2: Symmetry Decoupling Theorem (T * Sigma = Sigma * T) Invariance (H-02 Adopted)
+Bonus 3: Exact Bijective Quotient Ranking on S / Sigma (H-34 Adopted)
 """
 
 from __future__ import annotations
@@ -37,6 +38,7 @@ from exp_h02_symmetry_decomposition import (
     build_row_transfer_matrix,
     reflect_state,
 )
+from exp_quotient_ranking import QuotientRankEngine
 import numpy as np
 
 
@@ -54,7 +56,9 @@ def tier0_static_analysis() -> bool:
         "bound_engine.py",
         "congruence_engine.py",
         "bitboard_engine.py",
+        "sparse_bitboard_engine.py",
         "exp_h02_symmetry_decomposition.py",
+        "exp_quotient_ranking.py",
         "verify_all.py",
         "ranking.py",
         "dense.py",
@@ -144,6 +148,17 @@ def bonus_symmetry_decoupling_validation() -> bool:
     return True
 
 
+def bonus_quotient_ranking_validation() -> bool:
+    print_banner("Bonus 3: Exact Bijective Quotient Ranking on S / Sigma (n = 1 .. 6)")
+    for n in range(1, 7):
+        engine = QuotientRankEngine(n)
+        for q in range(engine.dim_quot):
+            w = engine.unrank_quot(q)
+            assert engine.rank_quot(w) == q, f"Quotient rank broken at q={q}"
+        print(f"  [PASS] n={n:2d}: 100% Bijective Quotient round-trip on {engine.dim_quot} states (Dim reduced from {engine.tot})")
+    return True
+
+
 def tier2_packed_crt() -> bool:
     print_banner("Tier 2: Multi-Width Packed DP & CRT Reconstruction (11, 12, 16 bits)")
     for n in [3, 5, 7]:
@@ -188,6 +203,7 @@ def main() -> None:
     tier3_upper_bounds()
     tier4_symmetry_congruence()
     bonus_symmetry_decoupling_validation()
+    bonus_quotient_ranking_validation()
     tier2_packed_crt()
     bonus_bitboard_validation()
     tier1_ground_truth()

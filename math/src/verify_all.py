@@ -83,6 +83,16 @@ def tier0_static_analysis() -> bool:
         "exp_h29_graph_deadend.py",
         "exp_h24_fpga_systolic.py",
         "exp_h25_pim_engine.py",
+        "exp_h04_jones_knot.py",
+        "exp_h20_mera_renormalization.py",
+        "exp_h30_cdcl_clause_learning.py",
+        "exp_h18_multiple_orthogonal.py",
+        "exp_h10_voronoi_factorization.py",
+        "exp_h55_montgomery_alu.py",
+        "exp_h56_homology_cycle.py",
+        "exp_h57_l2_cache_pinning.py",
+        "exp_h60_pfaffian_kasteleyn.py",
+        "exp_h61_nvlink_remote_atomic.py",
         "verify_all.py",
         "ranking.py",
         "dense.py",
@@ -91,7 +101,7 @@ def tier0_static_analysis() -> bool:
         fpath = os.path.join(src_dir, fname)
         if os.path.exists(fpath):
             py_compile.compile(fpath, doraise=True)
-            print(f"  [PASS] {fname:34s} -> Compilation & AST validation OK")
+            print(f"  [PASS] {fname:36s} -> Compilation & AST validation OK")
     return True
 
 

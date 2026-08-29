@@ -2,8 +2,8 @@
 
 Quality Assurance Protocol:
 ---------------------------
-Tier 0: Static Analysis & Compilation Check (AST / Bytecode compilation)
-Tier 1: Ground Truth Numerical Equivalence (OEIS A007764 reference check)
+Tier 0: Static Analysis & Compilation Check (AST / Bytecode compilation across all source files)
+Tier 1: Ground Truth Numerical Equivalence (OEIS A007764 reference check n=1..10)
 Tier 2: Multi-Width Packed DP & CRT Invariance (11, 12, 16 bits cross-check)
 Tier 3: Rigorous Upper Bound Consistency (Z(n) >= a(n))
 Tier 4: Geometric Symmetry & Group-Theoretic Mod-4 Invariants
@@ -62,6 +62,15 @@ def tier0_static_analysis() -> bool:
         "parallel_crt_engine.py",
         "exp_h02_symmetry_decomposition.py",
         "exp_quotient_ranking.py",
+        "exp_h36_parity_deadend.py",
+        "exp_h37_hierarchical_cache.py",
+        "exp_h38_checkpoint.py",
+        "exp_h39_simd_bitboard.py",
+        "exp_h41_packed_barrett.py",
+        "exp_h42_dfa_engine.py",
+        "exp_h43_radix_bucket.py",
+        "exp_h44_macrotile.py",
+        "exp_h47_bitplane.py",
         "verify_all.py",
         "ranking.py",
         "dense.py",

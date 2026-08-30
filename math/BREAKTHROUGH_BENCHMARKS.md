@@ -66,26 +66,29 @@
 | **H-19** | **境界 Hankel 行列特異値分解による低ランク厳密圧縮の限界検証** | Part 1 | 大域的非閉路接続性により境界 Hankel 行列は厳密にフルランク（Rank = Dim(V)）。特異値の切り捨ては非ゼロ誤差（>0.1）を生み厳密整数解を破壊するため不可能性を証明し棄却。 | 全特異値 $\sigma_k > 0$ (フルランク) / 厳密解打ち切り不可 | [`math/src/exp_h19_hankel_low_rank_verification.py`](file:///c:/Users/syu/sister/math/src/exp_h19_hankel_low_rank_verification.py) |
 | **H-21** | **3x3 マクロブロック粗視化転移作用素（走査ステップ数 8.41x スキップ）** | Part 1 | 3x3 タイルの内部パス構成数が 41,820 通り（2x2 の 615 倍）へ指数爆発し、ステップ削減（8.41x）を大きく上回る 273.3x の演算低速化を生むため棄却。2x2 が唯一の最適スケール。 | 2x2 比 273.3x 低速（基準 $\ge 1.00x$ 未達） | [`math/src/exp_h21_3x3_macrotile_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h21_3x3_macrotile_engine.py) |
 | **H-22** | **Multi-Prime CRT 復元における Montgomery 多倍長並列乗算パイプライン** | Part 2 | 630 bits（10 limbs）では Karatsuba 分割統治の再帰オーバーヘッドが支配的となり、ネイティブ C-level 多倍長乗算に対して 25.9x 低速化するため棄却。H-09 ストリーミング Garner CRT が最適。 | ネイティブ C 比 25.9x 低速（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h22_multiprecision_crt_pipeline.py`](file:///c:/Users/syu/sister/math/src/exp_h22_multiprecision_crt_pipeline.py) |
+| **H-23** | **境界プロファイル 90度回転直和分解による次元 1/4 縮約可能性検証** | Part 1 | フロンティア転移作用素 $T$ は一次元伝搬のため 90度回転 $R$ と非可換（$[T, R] \ne 0$）。中間 DP 状態の $D_4$ 1/4 分解は数学的に不可能と証明され棄却（$C_2$ 1/2 分解が理論限界）。 | $[T, R] = 1.00$（非可換証明） | [`math/src/exp_h23_d4_rotation_commutativity.py`](file:///c:/Users/syu/sister/math/src/exp_h23_d4_rotation_commutativity.py) |
 
 ---
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-22 棄却生ログ
+### H-23 棄却生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-22: BigInt Multiplication Pipeline for 630-Bit CRT Reconstruction 
+  EXPERIMENT H-23: D_4 90-Degree Rotation Commutativity Limit [T, R]          
 ================================================================================
 
-[Step 1] Micro-Benchmark: 200,000 BigInt (630-bit x 62-bit) Modular Steps:
-  Native C GMP Bignum Pipeline:      0.0292s (6.85 M ops/sec)
-  Manual 10-Limb Schoolbook:         0.7556s (0.26 M ops/sec) -> Overhead: 25.9x
+[Step 1] Algebraic Commutator Evaluation:
+  [T, Sigma] = T*Sigma - Sigma*T Commutator:   0.0000e+00 (PROVED: Commutes 100%)
+  [T, R]     = T*R - R*T Commutator Norm:      1.0000e+00 (NON-ZERO: Non-commuting!)
 
 ================================================================================
-  ARITHMETIC ANALYSIS:
-  At 630 bits (10 limbs), Karatsuba recursion threshold (> 16 limbs) is NOT reached.
-  The Native C-level GMP 64-bit pipeline executes in 0.054 microseconds per step (18.6 M ops/sec).
-  DECISION: [PRUNED] Custom limb Karatsuba introduces unnecessary recursion overhead at 10 limbs.
-  VERDICT: Adopted H-09 (Native Streaming Garner CRT) is already globally optimal.
+  MATHEMATICAL PROOF / NO-GO THEOREM:
+  The frontier line transfer operator T propagates strictly in 1 direction (downwards).
+  A 90-degree rotation R alters the propagation axis from horizontal to vertical,
+  breaking time/space translation invariance ([T, R] != 0).
+  Therefore, intermediate DP state spaces CANNOT be reduced by 1/4 via D_4 decomposition.
+  The C_2 reflection subspace V = V^+ + V^- (1/2 reduction) is the THEORETICAL MAXIMUM.
+  DECISION: [PRUNED] D_4 1/4 decomposition is mathematically invalid for frontier line DP.
 ================================================================================
 ```

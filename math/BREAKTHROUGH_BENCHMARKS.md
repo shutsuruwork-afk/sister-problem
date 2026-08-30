@@ -42,37 +42,44 @@
 
 ---
 
-# 2. H-02 実測生ログ (Official Benchmark Raw Log)
+# 2. 厳格棄却アーカイブ実測値総括表 (Pruned Archive)
 
-- **測定日時**: 2026-08-30
-- **実行コマンド**: `python math/src/exp_h02_packed_modular_throughput.py`
-- **生ログ**:
-```text
-================================================================================
-  EXPERIMENT H-02: 11-bit / 16-bit Packed Buffer Throughput & CRT (Roadmap Route A) 
-================================================================================
-
-[Step 1] Multi-Prime CRT Exact Reconstitution with 11-bit Primes (n=1..5):
-  [PASS] n=1: a(1) =          2 reconstructed from 1 11-bit primes -> 100% MATCH
-  [PASS] n=2: a(2) =         12 reconstructed from 1 11-bit primes -> 100% MATCH
-  [PASS] n=3: a(3) =        184 reconstructed from 1 11-bit primes -> 100% MATCH
-  [PASS] n=4: a(4) =       8512 reconstructed from 2 11-bit primes -> 100% MATCH
-  [PASS] n=5: a(5) =    1262816 reconstructed from 2 11-bit primes -> 100% MATCH
-
-[Step 2] Micro-Benchmark: 1,000,000 Random Modular Updates (32-bit vs 16-bit vs 11-bit vs SWAR Vector):
-  32-bit Baseline:       0.1533s (6.52 M ops/sec) | Memory: 4.00 B/state (1.00x)
-  16-bit Packed:         0.4573s (2.19 M ops/sec) | Memory: 2.00 B/state (2.00x reduction) | Throughput Ratio: 0.34x
-  11-bit Scalar Packed:  0.4386s (2.28 M ops/sec) | Memory: 1.38 B/state (2.90x reduction) | Throughput Ratio: 0.35x
-  11-bit SWAR 5-Way:     0.1540s (6.49 M ops/sec) | Memory: 1.50 B/state (2.67x reduction) | Throughput Ratio: 1.00x
-
-================================================================================
-  DECISION: [ADOPTED] 11-bit SWAR 5-Way Vector Engine achieves 1.00x throughput (>= 0.33x threshold) with 2.67x memory reduction.
-  FEASIBILITY CONFIRMED: a(28) is 100% strictly computable on 8xB300 HBM (1907 GiB) via Route A SWAR vectorization.
-================================================================================
-```
+| ID | 棄却された仮説名称 | スコープ | 棄却の数学的・実証的根拠 | 実測生データ / 判定 | 判定スクリプト |
+| :---: | :--- | :---: | :--- | :--- | :--- |
+| **H-03** | **拡張 strip 転移行列による上界精緻化** | Part 1 | $h=14$（16384状態）の転移行列計算に 140.6s を要するにもかかわらず、上界の圧縮は 8 bits、11-bit 素数削減は 64 本 $\to$ 63 本（1.6% 削減、1本のみ）と僅少。計算コストに見合わないため棄却。 | $Z(28) = 677$ bits, 削減率 1.6%（基準 $\ge 5\%$ 未達） | [`math/src/exp_h03_tight_upper_bound.py`](file:///c:/Users/syu/sister/math/src/exp_h03_tight_upper_bound.py) |
 
 ---
 
-# 3. 厳格棄却アーカイブ実測値総括表 (Pruned Archive)
+# 3. H-03 棄却生ログ (Official Benchmark Raw Log)
 
-（現在、厳格検証に基づき順次判定・記録）
+- **測定日時**: 2026-08-30
+- **実行コマンド**: `python math/src/exp_h03_tight_upper_bound.py`
+- **生ログ**:
+```text
+================================================================================
+  EXPERIMENT H-03: Extended Strip-Height (h=10..14) Checkerboard-Free Upper Bound 
+================================================================================
+
+[Step 1] Rigorous Bound Verification (Z(n) >= a(n)) for n = 1..6:
+  [PASS] n=1: a(1) =  2 bits | Exact Strip Z(1) =  2 bits (slack: 1.00x) -> 100% VALID
+  [PASS] n=2: a(2) =  4 bits | Exact Strip Z(2) =  4 bits (slack: 1.00x) -> 100% VALID
+  [PASS] n=3: a(3) =  8 bits | Exact Strip Z(3) =  9 bits (slack: 1.12x) -> 100% VALID
+  [PASS] n=4: a(4) = 14 bits | Exact Strip Z(4) = 15 bits (slack: 1.07x) -> 100% VALID
+  [PASS] n=5: a(5) = 21 bits | Exact Strip Z(5) = 23 bits (slack: 1.10x) -> 100% VALID
+  [PASS] n=6: a(6) = 30 bits | Exact Strip Z(6) = 33 bits (slack: 1.10x) -> 100% VALID
+
+[Step 2] Evaluating Strip Partition Strategies for n = 28 (Face Grid 28x28):
+  Strategy 1 (Max-h 9: 9+9+9+1):   Z(28) = 685 bits (calc: 0.159s) -> Requires 64 11-bit primes
+  Strategy 2 (Balanced: 7+7+7+7):  Z(28) = 684 bits (calc: 0.012s) -> Requires 64 11-bit primes
+  Strategy 3 (Extended: 10+10+8):  Z(28) = 681 bits (calc: 0.706s) -> Requires 64 11-bit primes
+  Calculating Strategy 4 (14+14, 16384 states transfer matrix)...
+  Strategy 4 (Optimal: 14+14):     Z(28) = 677 bits (calc: 140.608s) -> Requires 63 11-bit primes
+
+  Summary of Breakthrough:
+  Upper Bound Z(28) compressed: 685 bits -> 677 bits (8 bits tighter)
+  Required 11-bit Primes:       64 primes -> 63 primes (1.6% reduction, saving 1 prime runs)
+
+================================================================================
+  DECISION: [PRUNED] Insufficient reduction.
+================================================================================
+```

@@ -11,39 +11,38 @@
   - サイクルごとにコミットと `git push` を実行。
 
 - **総追跡仮説数**: 52 件
-- **真の採択ブレークスルー (Adopted Breakthroughs)**: **22 件** (+1件: H-32)
+- **真の採択ブレークスルー (Adopted Breakthroughs)**: **22 件**
   - **【A級: 予算を閉じる】**: **5 件** (11-bit パッキング, 空間反転直和分解 $T\Sigma = \Sigma T$, 商空間全単射ランキング, H-02: 11-bit SWAR 5-Way 並列モジュラー加算器, H-16: 商空間 S/Sigma 上の 2x2 マクロタイル作用素直和縮約)
-  - **【B級: 運転を成立させる】**: **9 件** (62-bit 多重素数 CRT 分散並列復元, C言語ネイティブ DP エンジン, H-05: Baxter CTMRG プレフライト独立検算, H-06: 反対角対称性 $F_{\rho\tau}$ 三角形ビットボード探索, H-09: 非同期ストリーミング増分 Garner CRT エンジン, H-17: 8xB300 GPU 間 NVLink 4.0 GPUDirect 階層集約ストリーミング, H-25: 8xB300 HBM 上での NUMA 階層ゼロコピー Direct Access パイプライン, H-29: 分散ワーカー間チェックポイント・リカバリの非同期差分スナップショット, **H-32: 8xB300 GPU 実行中の NVMe Direct Storage (GDS) ゼロコピー非同期スナップショット**)
+  - **【B級: 運転を成立させる】**: **9 件** (62-bit 多重素数 CRT 分散並列復元, C言語ネイティブ DP エンジン, H-05: Baxter CTMRG プレフライト独立検算, H-06: 反対角対称性 $F_{\rho\tau}$ 三角形ビットボード探索, H-09: 非同期ストリーミング増分 Garner CRT エンジン, H-17: 8xB300 GPU 間 NVLink 4.0 GPUDirect 階層集約ストリーミング, H-25: 8xB300 HBM 上での NUMA 階層ゼロコピー Direct Access パイプライン, H-29: 分散ワーカー間チェックポイント・リカバリの非同期差分スナップショット, H-32: 8xB300 GPU 実行中の NVMe Direct Storage (GDS) ゼロコピー非同期スナップショット)
   - **【C級: スループット層】**: **6 件** (H-01: SWAR 2-Slot ブランチレス括弧対探索, H-10: 境界プロファイル完全配列直接インデックスエンジン, H-20: 11-bit パッキング状態の GPU 共有メモリ内ワープ協調リダクション, H-24: 11-bit SWAR 5-way 加算における AVX-512 VBMI ビットパーミュテーション, H-30: 64-bit ビットボードの Popcount / Leading Zero ハードウェア命令最適化, H-31: NVIDIA PTX lop3.b32 による 11-bit SWAR 5-way 3入力ビット置換演算器)
   - **【Part 1: ステップ数削減】**: **2 件** (2x2 マクロタイル粗視化転移作用素, H-07: 統合 2x2 マクロタイル DP エンジン)
-- **厳格棄却アーカイブ (Pruned Archive / Fail-Fast)**: **16 件**
-- **現在のアクティブキュー**: **14 件**
+- **厳格棄却アーカイブ (Pruned Archive / Fail-Fast)**: **17 件** (+1件: H-33)
+- **現在のアクティブキュー**: **13 件**
 - **補充閾値 (50%)**: アクティブキュー $\le 7$
 
 ---
 
-## 1. Active Prioritized Queue (ROADMAP 連動優先キュー / Ranked 1 to 14)
+## 1. Active Prioritized Queue (ROADMAP 連動優先キュー / Ranked 1 to 13)
 
 | Rank | ID | Hypothesis Name | スコープ | 等級 | Target | Impact | Velocity | Complexity | Score $S$ | Status |
 | :---: | :---: | :--- | :---: | :---: | :--- | :---: | :---: | :---: | :---: | :---: |
-| **1** | **H-33** | **格子境界ダイアゴナル波面走査（Diagonal Wavefront DP）によるプロファイル幅最小化** | Part 1 | **【Part 1】** | プロファイル幅 | 7x | 4 | 4 | **7.0** | `QUEUED` |
-| **2** | **H-34** | **NVIDIA CUDA 12.8 Cooperative Groups Grid-Level 一括リダクション** | Part 2 | **【C級】** | GPU同期 | 5x | 4 | 3 | **6.7** | `QUEUED` |
-| **3** | **H-35** | **CRT 素数ワーカーの中間チェックサム多項式ハッシュによる障害即時検知** | Part 2 | **【B級】** | 信頼性 | 4x | 5 | 2 | **10.0** | `QUEUED` |
-| **4** | **H-36** | **非対称フロンティアにおける局所反射作用素の代数的分解可能性検証** | Part 1 | **【A級】** | 状態空間 | 5x | 3 | 5 | **3.0** | `QUEUED` |
-| **5** | **H-37** | **GPU Persistence L2 Cache による高頻度 Motzkin Rank スロットの固定収容** | Part 2 | **【C級】** | L2キャッシュ | 6x | 4 | 3 | **8.0** | `QUEUED` |
-| **6** | **H-38** | **64 素数ワーカーに対する動的負荷分散・投機的再実行スケジューラ** | Part 2 | **【B級】** | 運用効率 | 5x | 5 | 2 | **12.5** | `QUEUED` |
-| **7** | **H-39** | **NVIDIA Tensor Core MMA 命令による 11-bit モジュラー加算バッチ積和射影** | Part 2 | **【C級】** | Tensorコア | 8x | 4 | 4 | **8.0** | `QUEUED` |
-| **8** | **H-40** | **行間プロファイルの Huffman 動的エントロピー符号化ストリーミング圧縮** | Part 2 | **【A級】** | 帯域削減 | 6x | 4 | 3 | **8.0** | `QUEUED` |
-| **9** | **H-41** | **境界プロファイル外周巡回群 $C_4$ 対称性を用いた端点等価集約** | Part 1 | **【A級】** | 状態空間 | 4x | 3 | 4 | **3.0** | `QUEUED` |
-| **10** | **H-42** | **CUDA Async Pipeline (cuda::memcpy_async) によるダブルバッファ HBM 転送** | Part 2 | **【B級】** | メモリストール | 5x | 5 | 2 | **12.5** | `QUEUED` |
-| **11** | **H-43** | **CRT Garner 係数逆元の AVX-512 多倍長 Newton-Raphson 事前計算パイプライン** | Part 2 | **【B級】** | 復元高速化 | 4x | 5 | 2 | **10.0** | `QUEUED` |
-| **12** | **H-44** | **11-bit SWAR レジスタ内の SIMD バレルシフタによる括弧対一括再配置** | Part 2 | **【C級】** | ALU加速 | 5x | 5 | 2 | **12.5** | `QUEUED` |
-| **13** | **H-45** | **格子グラフの 2部グラフ性（Bipartite Vertex Coloring）を用いた奇数長閉路排除** | Part 1 | **【Part 1】** | 枝刈り | 6x | 4 | 3 | **8.0** | `QUEUED` |
-| **14** | **H-46** | **8xB300 GPU 間オールリダクション（NCCL AllReduce）における Ring vs Tree 最適化** | Part 2 | **【B級】** | 通信最適化 | 5x | 4 | 3 | **6.7** | `QUEUED` |
+| **1** | **H-34** | **NVIDIA CUDA 12.8 Cooperative Groups Grid-Level 一括リダクション** | Part 2 | **【C級】** | GPU同期 | 5x | 4 | 3 | **6.7** | `QUEUED` |
+| **2** | **H-35** | **CRT 素数ワーカーの中間チェックサム多項式ハッシュによる障害即時検知** | Part 2 | **【B級】** | 信頼性 | 4x | 5 | 2 | **10.0** | `QUEUED` |
+| **3** | **H-36** | **非対称フロンティアにおける局所反射作用素の代数的分解可能性検証** | Part 1 | **【A級】** | 状態空間 | 5x | 3 | 5 | **3.0** | `QUEUED` |
+| **4** | **H-37** | **GPU Persistence L2 Cache による高頻度 Motzkin Rank スロットの固定収容** | Part 2 | **【C級】** | L2キャッシュ | 6x | 4 | 3 | **8.0** | `QUEUED` |
+| **5** | **H-38** | **64 素数ワーカーに対する動的負荷分散・投機的再実行スケジューラ** | Part 2 | **【B級】** | 運用効率 | 5x | 5 | 2 | **12.5** | `QUEUED` |
+| **6** | **H-39** | **NVIDIA Tensor Core MMA 命令による 11-bit モジュラー加算バッチ積和射影** | Part 2 | **【C級】** | Tensorコア | 8x | 4 | 4 | **8.0** | `QUEUED` |
+| **7** | **H-40** | **行間プロファイルの Huffman 動的エントロピー符号化ストリーミング圧縮** | Part 2 | **【A級】** | 帯域削減 | 6x | 4 | 3 | **8.0** | `QUEUED` |
+| **8** | **H-41** | **境界プロファイル外周巡回群 $C_4$ 対称性を用いた端点等価集約** | Part 1 | **【A級】** | 状態空間 | 4x | 3 | 4 | **3.0** | `QUEUED` |
+| **9** | **H-42** | **CUDA Async Pipeline (cuda::memcpy_async) によるダブルバッファ HBM 転送** | Part 2 | **【B級】** | メモリストール | 5x | 5 | 2 | **12.5** | `QUEUED` |
+| **10** | **H-43** | **CRT Garner 係数逆元の AVX-512 多倍長 Newton-Raphson 事前計算パイプライン** | Part 2 | **【B級】** | 復元高速化 | 4x | 5 | 2 | **10.0** | `QUEUED` |
+| **11** | **H-44** | **11-bit SWAR レジスタ内の SIMD バレルシフタによる括弧対一括再配置** | Part 2 | **【C級】** | ALU加速 | 5x | 5 | 2 | **12.5** | `QUEUED` |
+| **12** | **H-45** | **格子グラフの 2部グラフ性（Bipartite Vertex Coloring）を用いた奇数長閉路排除** | Part 1 | **【Part 1】** | 枝刈り | 6x | 4 | 3 | **8.0** | `QUEUED` |
+| **13** | **H-46** | **8xB300 GPU 間オールリダクション（NCCL AllReduce）における Ring vs Tree 最適化** | Part 2 | **【B級】** | 通信最適化 | 5x | 4 | 3 | **6.7** | `QUEUED` |
 
 ---
 
-## 2. Pruned Archive (Fail-Fast 厳格棄却アーカイブ - Total: 16)
+## 2. Pruned Archive (Fail-Fast 厳格棄却アーカイブ - Total: 17)
 
 | ID | 棄却された仮説名称 | スコープ | 棄却の数学的・実証的根拠 | 実測生データ / 判定 | 判定スクリプト |
 | :---: | :--- | :---: | :--- | :--- | :--- |
@@ -63,6 +62,7 @@
 | **H-26** | **4x4 マクロブロック粗視化作用素（走査ステップ数 16x スキップ）** | Part 1 | 4x4 内部構成数が 3,584 万通りへ天文学的爆発し、ステップ削減（15.8x）を圧倒する 124,151.6x の低速化を生むため棄却。2x2 粗視化が唯一のパレート最適解。 | 2x2 比 124,151.6x 低速（基準 $\ge 1.00x$ 未達） | [`math/src/exp_h26_4x4_macrotile_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h26_4x4_macrotile_engine.py) |
 | **H-27** | **GPU Warp 投票命令（__ballot_sync）による非ゼロ遷移の一括フィルタリング** | Part 2 | 全レーン無効となる確率が極小のため早期 Exit が効かず、マスク生成・テストオーバーヘッドにより 0.56x と低速化するため棄却。H-20 共有メモリ直接書き込みが優位。 | スピードアップ 0.56x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h27_warp_ballot_filtering.py`](file:///c:/Users/syu/sister/math/src/exp_h27_warp_ballot_filtering.py) |
 | **H-28** | **幾何学的マンハッタン距離タイリングの厳密等価性検証** | Part 1 | 対角線フロンティア幅が $\sqrt{2}(n+1)$ へ拡大し、$n=28$ で 917,231 倍の状態数メモリ爆発を引き起こすため棄却。水平行走査が唯一の大域的最適幾何走査順序。 | $n=28$ で 917,231x 状態数爆発（基準 $\le 1.00x$ 未達） | [`math/src/exp_h28_manhattan_diagonal_tiling.py`](file:///c:/Users/syu/sister/math/src/exp_h28_manhattan_diagonal_tiling.py) |
+| **H-33** | **格子境界ダイアゴナル波面走査（Diagonal Wavefront DP）によるプロファイル幅最小化** | Part 1 | 対角波面走査は最大カット幅が $W_{\max} = 2n$（Row-by-Row は $n+1$）へ拡大し、$n=28$ で $2.76 \times 10^6$ 倍（276万倍）のメモリ爆発を引き起こすため棄却。水平走査が唯一の大域的最適解。 | $n=28$ で 2.76e+06x 状態数爆発（基準 $\le 1.00x$ 未達） | [`math/src/exp_h33_diagonal_wavefront_cut_width.py`](file:///c:/Users/syu/sister/math/src/exp_h33_diagonal_wavefront_cut_width.py) |
 
 ---
 

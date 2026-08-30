@@ -80,7 +80,7 @@
 | **H-19** | **境界 Hankel 行列特異値分解による低ランク厳密圧縮の限界検証** | Part 1 | 大域的非閉路接続性により境界 Hankel 行列は厳密にフルランク（Rank = Dim(V)）。特異値の切り捨ては非ゼロ誤差（>0.1）を生み厳密整数解を破壊するため不可能性を証明し棄却。 | 全特異値 $\sigma_k > 0$ (フルランク) / 厳密解打ち切り不可 | [`math/src/exp_h19_hankel_low_rank_verification.py`](file:///c:/Users/syu/sister/math/src/exp_h19_hankel_low_rank_verification.py) |
 | **H-21** | **3x3 マクロブロック粗視化転移作用素（走査ステップ数 8.41x スキップ）** | Part 1 | 3x3 タイルの内部パス構成数が 41,820 通り（2x2 の 615 倍）へ指数爆発し、ステップ削減（8.41x）を大きく上回る 273.3x の演算低速化を生むため棄却。2x2 が唯一の最適スケール。 | 2x2 比 273.3x 低速（基準 $\ge 1.00x$ 未達） | [`math/src/exp_h21_3x3_macrotile_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h21_3x3_macrotile_engine.py) |
 | **H-22** | **Multi-Prime CRT 復元における Montgomery 多倍長並列乗算パイプライン** | Part 2 | 630 bits（10 limbs）では Karatsuba 分割統治の再帰オーバーヘッドが支配的となり、ネイティブ C-level 多倍長乗算に対して 25.9x 低速化するため棄却。H-09 ストリーミング Garner CRT が最適。 | ネイティブ C 比 25.9x 低速（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h22_multiprecision_crt_pipeline.py`](file:///c:/Users/syu/sister/math/src/exp_h22_multiprecision_crt_pipeline.py) |
-| **H-23** | **境界プロファイル 90度回転直和分解による次元 1/4 縮約可能性検証** | Part 1 | フロンティア転移作用素 $T$ は一次元伝搬のため 90度回転 $R$ と非可換（$[T, R] \ne 0$）。中間 DP 状態の $D_4$ 1/4 分解は数学的に不可能と証明され棄却（$C_2$ 1/2 分解が理論限界）。 | $[T, R] = 1.00$（非可換証明） | [`math/src/exp_h23_d4_rotation_commutativity.py`](file:///c:/Users/syu/sister/math/src/exp_h23_d4_rotation_commutativity.py) |
+| **H-23** | **境界プロファイル 90度回転直和分解による次元 1/4 縮約可能性検証** | Part 1 | フロンティア転移作用素 $T$ は一次元伝搬のため 90度回転 $R$ と non-commutative（$[T, R] \ne 0$）。中間 DP 状態の $D_4$ 1/4 分解は数学的に不可能と証明され棄却（$C_2$ 1/2 分解が理論限界）。 | $[T, R] = 1.00$（非可換証明） | [`math/src/exp_h23_d4_rotation_commutativity.py`](file:///c:/Users/syu/sister/math/src/exp_h23_d4_rotation_commutativity.py) |
 | **H-26** | **4x4 マクロブロック粗視化作用素（走査ステップ数 16x スキップ）** | Part 1 | 4x4 内部構成数が 3,584 万通りへ天文学的爆発し、ステップ削減（15.8x）を圧倒する 124,151.6x の低速化を生むため棄却。2x2 粗視化が唯一のパレート最適解。 | 2x2 比 124,151.6x 低速（基準 $\ge 1.00x$ 未達） | [`math/src/exp_h26_4x4_macrotile_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h26_4x4_macrotile_engine.py) |
 | **H-27** | **GPU Warp 投票命令（__ballot_sync）による非ゼロ遷移の一括フィルタリング** | Part 2 | 全レーン無効となる確率が極小のため早期 Exit が効かず、マスク生成・テストオーバーヘッドにより 0.56x と低速化するため棄却。H-20 共有メモリ直接書き込みが優位。 | スピードアップ 0.56x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h27_warp_ballot_filtering.py`](file:///c:/Users/syu/sister/math/src/exp_h27_warp_ballot_filtering.py) |
 | **H-28** | **幾何学的マンハッタン距離タイリングの厳密等価性検証** | Part 1 | 対角線フロンティア幅が $\sqrt{2}(n+1)$ へ拡大し、$n=28$ で 917,231 倍の状態数メモリ爆発を引き起こすため棄却。水平行走査が唯一の大域的最適幾何走査順序。 | $n=28$ で 917,231x 状態数爆発（基準 $\le 1.00x$ 未達） | [`math/src/exp_h28_manhattan_diagonal_tiling.py`](file:///c:/Users/syu/sister/math/src/exp_h28_manhattan_diagonal_tiling.py) |
@@ -90,23 +90,33 @@
 | **H-37** | **GPU Persistence L2 Cache による高頻度 Motzkin Rank スロットの固定収容** | Part 2 | 書き込みストリームによるキャッシュ汚染のため、ヒット率向上は 50.57% $\to$ 61.20% に留まり、実効スピードアップは 1.15x 未満（1.148x）となり基準未達のため棄却。H-10/H-20 で十分最適化済み。 | スピードアップ 1.15x 未満（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h37_persistence_l2_cache.py`](file:///c:/Users/syu/sister/math/src/exp_h37_persistence_l2_cache.py) |
 | **H-38** | **64 素数ワーカーに対する動的負荷分散・投機的再実行スケジューラ** | Part 2 | 各素数の DP 計算量は均一であるため、投機的再実行による完了時間短縮は 1.13x（基準 $\ge 1.15x$ 未達）に留まり、リソース浪費のため棄却。 | スピードアップ 1.13x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h38_speculative_crt_scheduler.py`](file:///c:/Users/syu/sister/math/src/exp_h38_speculative_crt_scheduler.py) |
 | **H-40** | **行間プロファイルの Huffman 動的エントロピー符号化ストリーミング圧縮** | Part 2 | 30.0% のデータ圧縮を達成するものの、可変長ビットストリームのパッキング/アンパッキング処理により 1.44x の実行遅延（スループット 31% 低下）を招くため棄却。H-02 固定 SWAR と H-16 商空間で十分収容可能。 | 1.44x 実行遅延（基準 $\le 1.25x$ 未達） | [`math/src/exp_h40_huffman_entropy_streaming.py`](file:///c:/Users/syu/sister/math/src/exp_h40_huffman_entropy_streaming.py) |
+| **H-45** | **格子グラフの 2部グラフ性（Bipartite Vertex Coloring）を用いた奇数長閉路排除** | Part 1 | 頂点パリティ交互律は単一頂点フロンティア DP の各ステップ $(r, c)$ の幾何学的進行によって既に 100% 暗黙的に完全に保存（Algebraic Tautology）されており、追加フィルタによる状態数削減は 0%（削減数 0）のため棄却。 | 状態数削減 0.00%（基準 $\ge 5\%$ 未達） | [`math/src/exp_h45_bipartite_coloring_pruning.py`](file:///c:/Users/syu/sister/math/src/exp_h45_bipartite_coloring_pruning.py) |
 
 ---
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-44 採択生ログ
+### H-45 棄却生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-44: SIMD Barrel Shifter for 11-bit SWAR 5-Way Slot Realignment   
+  EXPERIMENT H-45: Bipartite Vertex Coloring & Path Parity State Pruning        
 ================================================================================
 
-[Step 1] Micro-Benchmark: 200,000 5-Slot SWAR Realignment Operations:
-  Sequential 5-Slot Shift/Extract:   0.0962s (10.40 M ops/sec)
-  SIMD Barrel Shifter Realignment:   0.0231s (43.27 M ops/sec) -> Speedup: 4.16x
+[Step 1] Verifying Bipartite Invariant on Grid SAW (n=1..5):
+  n=1: Standard States Explored:      1 | Bipartite Pruned:      0 (0.00%)
+  n=2: Standard States Explored:      9 | Bipartite Pruned:      0 (0.00%)
+  n=3: Standard States Explored:     52 | Bipartite Pruned:      0 (0.00%)
+  n=4: Standard States Explored:    281 | Bipartite Pruned:      0 (0.00%)
+  n=5: Standard States Explored:   1490 | Bipartite Pruned:      0 (0.00%)
+
+[Step 2] Theoretical Analysis:
+  * Coordinate (r, c) parity is uniquely fixed at every step of Row-by-Row DP.
+  * Every valid single-vertex transition automatically preserves bipartite alternation.
+  * Additional runtime parity checking provides 0% state reduction while adding CPU branch checks.
 
 ================================================================================
-  DECISION: [ADOPTED] SIMD Barrel Shifter achieves 4.16x speedup (43.27 M ops/sec).
-  ALU ACCELERATION: Eliminates 5-stage sequential masking loops with a single 64-bit cyclic rotate instruction.
+  DECISION: [PRUNED] Bipartite parity is an algebraic tautology of single-vertex DP (0% state reduction).
+  MATHEMATICAL INSIGHT: Bipartite alternating property is already 100% implicitly preserved by
+  standard Motzkin transfer operators without extra runtime filtering overhead.
 ================================================================================
 ```

@@ -36,6 +36,7 @@
 | **H-B02** | **C言語ネイティブ 高速 Bitboard DP エンジン** | Part 2 | **【B級】** | 64-bit ビットボードプロファイルとインライン最適化。 | **Pure Python 比 100x 高速化** | [`kaggle_sister_a28_dual_t4.py`](file:///c:/Users/syu/sister/math/../kaggle_sister_a28_dual_t4.py) |
 | **H-05** | **Baxter CTMRG プレフライト a(28) 独立検算オラクル** | Part 1 | **【B級】** | CFT スケーリング不変量フィッティングにより $a(28)$ の真値桁数を事前決定。 | **$a(28) \approx 10^{189.5}$ (630 bits, 適合誤差 0.0029%)**<br>理論真値 629 bits に極限一致、703-bit モジュラス収容を事前証明 | [`math/src/exp_h05_baxter_ctmrg.py`](file:///c:/Users/syu/sister/math/src/exp_h05_baxter_ctmrg.py) |
 | **H-06** | **反対角対称性 $F_{\rho\tau}$ 三角形ビットボード探索 & $\bmod 4$ 検証オラクル** | Part 1 | **【B級】** | 上三角領域の 64-bit ビットマスク探索により、ヒープ 0 バイトで対称自己回避路数を高速算定。 | **$F_{\rho\tau}(6)=2768$ を 2.80 ms (ヒープ 0 バイト) で完全計算**<br>$a(n) \bmod 4$ の独立チェックサムを提供 | [`math/src/exp_h06_triangular_symmetry_dp.py`](file:///c:/Users/syu/sister/math/src/exp_h06_triangular_symmetry_dp.py) |
+| **H-09** | **非同期ストリーミング増分 Garner CRT エンジン** | Part 2 | **【B級】** | Garner アルゴリズムにより、分散素数ワーカー完了時に $O(\log p)$ でストリーミング累積更新。 | **CRT 復元 1.45x 高速化 (0.124ms $\to$ 0.086ms)**<br>集約待機遅延ゼロ化、Ground Truth $n=1..10$ 100% 完全一致 | [`math/src/exp_h09_async_streaming_crt.py`](file:///c:/Users/syu/sister/math/src/exp_h09_async_streaming_crt.py) |
 
 ### 【C級: スループット層】(ALU・SIMD・ビット並列)
 
@@ -49,7 +50,7 @@
 
 | ID | 棄却された仮説名称 | スコープ | 棄却の数学的・実証的根拠 | 実測生データ / 判定 | 判定スクリプト |
 | :---: | :--- | :---: | :--- | :--- | :--- |
-| **H-03** | **拡張 strip 転移行列による上界精緻化** | Part 1 | $h=14$（16384状態）の転移行列計算に 140.6s を要するにもかかわらず、上界の圧縮は 8 bits、11-bit 素数削減は 64 本 $\to$ 63 本（1.6% 削減、1本のみ）と僅少。計算コストに見合わないため棄却。 | $Z(28) = 677$ bits, 削減率 1.6%（基準 $\ge 5\%$ 未達） | [`math/src/exp_h03_tight_upper_bound.py`](file:///c:/Users/syu/sister/math/src/exp_h03_tight_upper_bound.py) |
+| **H-03** | **$n=28$ 厳密上界 $Z(n)$ 精緻化と CRT 必要素数本数圧縮** | Part 1 | $h=14$（16384状態）の転移行列計算に 140.6s を要するにもかかわらず、上界の圧縮は 8 bits、11-bit 素数削減は 64 本 $\to$ 63 本（1.6% 削減、1本のみ）と僅少。計算コストに見合わないため棄却。 | $Z(28) = 677$ bits, 削減率 1.6%（基準 $\ge 5\%$ 未達） | [`math/src/exp_h03_tight_upper_bound.py`](file:///c:/Users/syu/sister/math/src/exp_h03_tight_upper_bound.py) |
 | **H-04** | **境界プロファイル開プラグ数 (k-open) 幾何学的枝刈り** | Part 1 | 残りマンハッタン距離による $k$-open 上界制約は、蛇行（meandering）迂回する自己回避路を誤って切り捨てるため、$n=5$ で $a(5)=1262816 \to 1257826$（誤差 -4990）となり厳密性を破壊するため棄却。 | $n=5$ で 1257826 != 1262816（厳密性破綻） | [`math/src/exp_h04_k_open_direct_sum.py`](file:///c:/Users/syu/sister/math/src/exp_h04_k_open_direct_sum.py) |
 | **H-08** | **62-bit AVX2/AVX-512 ベクトル化並列モジュラー加算** | Part 2 | 62-bit 剰余加算は gcc/clang -O3 の自動ベクトル化で既に最適化されており、手動アンロール・チャンキングは 0.92x とオーバーヘッドを生むため棄却。 | スピードアップ 0.92x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h08_62bit_vector_modular_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h08_62bit_vector_modular_engine.py) |
 
@@ -57,28 +58,31 @@
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-08 棄却生ログ
+### H-09 実測生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-08: 62-bit Vectorized SIMD Modular Addition Engine Benchmark   
+  EXPERIMENT H-09: Asynchronous Streaming Incremental Garner CRT Engine       
 ================================================================================
 
-[Step 1] Exact Equivalence Verification (Scalar vs 4-Way vs 8-Way):
-  [PASS] 100% Exact Equivalence verified across all 62-bit SIMD lanes.
+[Step 1] Exact Ground Truth Verification (Batch CRT vs Incremental Garner):
+  [PASS] n= 1: a( 1) =                            2 | Batch == Garner == Ground Truth (1 primes, 100% MATCH)
+  [PASS] n= 2: a( 2) =                           12 | Batch == Garner == Ground Truth (1 primes, 100% MATCH)
+  [PASS] n= 3: a( 3) =                          184 | Batch == Garner == Ground Truth (1 primes, 100% MATCH)
+  [PASS] n= 4: a( 4) =                         8512 | Batch == Garner == Ground Truth (2 primes, 100% MATCH)
+  [PASS] n= 5: a( 5) =                      1262816 | Batch == Garner == Ground Truth (2 primes, 100% MATCH)
+  [PASS] n= 6: a( 6) =                    575780564 | Batch == Garner == Ground Truth (3 primes, 100% MATCH)
+  [PASS] n= 7: a( 7) =                 789360053252 | Batch == Garner == Ground Truth (4 primes, 100% MATCH)
+  [PASS] n= 8: a( 8) =             3266598486981642 | Batch == Garner == Ground Truth (5 primes, 100% MATCH)
+  [PASS] n= 9: a( 9) =         41044208702632496804 | Batch == Garner == Ground Truth (7 primes, 100% MATCH)
+  [PASS] n=10: a(10) =    1568758030464750013214100 | Batch == Garner == Ground Truth (8 primes, 100% MATCH)
 
-[Step 2] Micro-Benchmark: 2,000,000 Modular Additions (Scalar vs 4-Way vs 8-Way):
-  Scalar 62-bit Mod-Add:     0.1895s (10.55 M ops/sec)
-  4-Way SIMD (AVX2):         0.2921s (6.85 M ops/sec) -> Speedup: 0.65x
-  8-Way SIMD (AVX-512):      0.2060s (9.71 M ops/sec) -> Speedup: 0.92x
-
-[Step 3] Multi-Prime CRT Exact Reconstitution with 62-bit Primes (n=1..5):
-  [PASS] n=1: a(1) =          2 reconstructed from 62-bit prime -> 100% MATCH
-  [PASS] n=2: a(2) =         12 reconstructed from 62-bit prime -> 100% MATCH
-  [PASS] n=3: a(3) =        184 reconstructed from 62-bit prime -> 100% MATCH
-  [PASS] n=4: a(4) =       8512 reconstructed from 62-bit prime -> 100% MATCH
-  [PASS] n=5: a(5) =    1262816 reconstructed from 62-bit prime -> 100% MATCH
+[Step 2] Full 64-Prime Scalability & Reconstruction Latency Benchmark:
+  Batch CRT Latency:       0.1242 ms
+  Streaming Garner CRT:    0.0859 ms
+  Reconstruction Speedup:  1.45x (1.45x faster)
 
 ================================================================================
-  DECISION: [PRUNED] Speedup (0.92x) below threshold (1.15x).
+  DECISION: [ADOPTED] H-09 Streaming Garner CRT Engine achieves 1.45x faster reconstruction with 100% precision.
+  DISTRIBUTED OVERHEAD: Replaces all-at-once batch reduction with zero-wait incremental streaming.
 ================================================================================
 ```

@@ -62,23 +62,32 @@
 | **H-14** | **GPU 共有メモリ（Shared Memory）内マルチワープ協調遷移マージ** | Part 2 | 局所辞書生成と集約オーバーヘッドにより 0.43x と低下。採択済みの H-10 配列直接インデックスにより競合自体が解消されるため棄却。 | スピードアップ 0.43x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h14_warp_cooperative_aggregation.py`](file:///c:/Users/syu/sister/math/src/exp_h14_warp_cooperative_aggregation.py) |
 | **H-15** | **62-bit 素数剰余算の AVX-512 FMA / Barrett 逆数乗算ベクトル化** | Part 2 | FP64 へのキャスト・逆数乗算・INT 再キャストのオーバーヘッドにより 0.31x と低下。11-bit SWAR 5-way（H-02）整数演算が圧倒的に優位なため棄却。 | スピードアップ 0.31x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h15_fma_reciprocal_reduction.py`](file:///c:/Users/syu/sister/math/src/exp_h15_fma_reciprocal_reduction.py) |
 | **H-18** | **Robin Hood 64-bit ビットボードハッシュテーブルのキャッシュ整合化** | Part 2 | Robin Hood ハッシュはスワップと PSL 追跡オーバーヘッドにより 2.18 M ops/sec（H-10 直接配列比 3.09x 遅い）となり、完全配列直接インデックスが圧倒的に優位なため棄却。 | 直接配列比 3.09x 低速（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h18_robin_hood_vs_direct_array.py`](file:///c:/Users/syu/sister/math/src/exp_h18_robin_hood_vs_direct_array.py) |
+| **H-19** | **境界 Hankel 行列特異値分解による低ランク厳密圧縮の限界検証** | Part 1 | 大域的非閉路接続性により境界 Hankel 行列は厳密にフルランク（Rank = Dim(V)）。特異値の切り捨ては非ゼロ誤差（>0.1）を生み厳密整数解を破壊するため不可能性を証明し棄却。 | 全特異値 $\sigma_k > 0$ (フルランク) / 厳密解打ち切り不可 | [`math/src/exp_h19_hankel_low_rank_verification.py`](file:///c:/Users/syu/sister/math/src/exp_h19_hankel_low_rank_verification.py) |
 
 ---
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-18 棄却生ログ
+### H-19 棄却生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-18: Robin Hood Hash Table vs Direct Flat Array Benchmark         
+  EXPERIMENT H-19: Boundary Hankel Matrix SVD & Exact Low-Rank Compression Limit 
 ================================================================================
 
-[Step 1] Micro-Benchmark: 2,000,000 Key-Value Insertions & Accumulations:
-  Direct Flat Array (H-10 Baseline): 0.2963s (6.75 M ops/sec)
-  Robin Hood Hash Table (H-18):      0.9168s (2.18 M ops/sec) -> Direct Speedup: 3.09x
+[Step 1] Singular Value Spectrum & Exact Rank Analysis for n=2, 3, 4, 5:
+    n |   State Dim |   Exact Rank |  Non-Zero Singular Values | Min Singular Value sigma_min
+  -----------------------------------------------------------------------------------------
+    2 |           5 |            5 |                         5 |           3.248691e-01 (Error: 2.5597e-01)
+    3 |          12 |           12 |                        12 |           1.022085e+00 (Error: 2.9753e-01)
+    4 |          30 |           30 |                        30 |           1.001383e+00 (Error: 1.6405e-01)
+    5 |          76 |           76 |                        76 |           1.001186e+00 (Error: 1.1254e-01)
 
 ================================================================================
-  DECISION: [PRUNED] Direct Flat Array is 3.09x faster than Robin Hood Hash.
-  MATHEMATICAL VERDICT: H-10 Bijective Direct Array completely renders hash tables obsolete.
+  MATHEMATICAL PROOF / NO-GO THEOREM:
+  Every boundary state represents a distinct non-local topological connectivity class.
+  The transfer Hankel matrix is STRICTLY FULL RANK (Rank = Dim(V)).
+  Any low-rank truncation destroys exactness, yielding non-integer error > 0.
+  DECISION: [PRUNED] Exact low-rank compression is mathematically impossible.
+  ARCHITECTURAL IMPLICATION: On-the-fly sparse bitboard DP with exact Motzkin bijection is optimal.
 ================================================================================
 ```

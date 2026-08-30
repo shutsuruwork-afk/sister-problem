@@ -64,23 +64,30 @@
 | **H-15** | **62-bit 素数剰余算の AVX-512 FMA / Barrett 逆数乗算ベクトル化** | Part 2 | FP64 へのキャスト・逆数乗算・INT 再キャストのオーバーヘッドにより 0.31x と低下。11-bit SWAR 5-way（H-02）整数演算が圧倒的に優位なため棄却。 | スピードアップ 0.31x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h15_fma_reciprocal_reduction.py`](file:///c:/Users/syu/sister/math/src/exp_h15_fma_reciprocal_reduction.py) |
 | **H-18** | **Robin Hood 64-bit ビットボードハッシュテーブルのキャッシュ整合化** | Part 2 | Robin Hood ハッシュはスワップと PSL 追跡オーバーヘッドにより 2.18 M ops/sec（H-10 直接配列比 3.09x 遅い）となり、完全配列直接インデックスが圧倒的に優位なため棄却。 | 直接配列比 3.09x 低速（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h18_robin_hood_vs_direct_array.py`](file:///c:/Users/syu/sister/math/src/exp_h18_robin_hood_vs_direct_array.py) |
 | **H-19** | **境界 Hankel 行列特異値分解による低ランク厳密圧縮の限界検証** | Part 1 | 大域的非閉路接続性により境界 Hankel 行列は厳密にフルランク（Rank = Dim(V)）。特異値の切り捨ては非ゼロ誤差（>0.1）を生み厳密整数解を破壊するため不可能性を証明し棄却。 | 全特異値 $\sigma_k > 0$ (フルランク) / 厳密解打ち切り不可 | [`math/src/exp_h19_hankel_low_rank_verification.py`](file:///c:/Users/syu/sister/math/src/exp_h19_hankel_low_rank_verification.py) |
+| **H-21** | **3x3 マクロブロック粗視化転移作用素（走査ステップ数 8.41x スキップ）** | Part 1 | 3x3 タイルの内部パス構成数が 41,820 通り（2x2 の 615 倍）へ指数爆発し、ステップ削減（8.41x）を大きく上回る 273.3x の演算低速化を生むため棄却。2x2 が唯一の最適スケール。 | 2x2 比 273.3x 低速（基準 $\ge 1.00x$ 未達） | [`math/src/exp_h21_3x3_macrotile_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h21_3x3_macrotile_engine.py) |
 
 ---
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-20 採択生ログ
+### H-21 棄却生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-20: 11-Bit Packed Conflict-Free GPU Shared Memory Engine        
+  EXPERIMENT H-21: 3x3 Macrotile Coarse-Graining vs 2x2 Macro-Tiling Benchmark   
 ================================================================================
 
-[Step 1] Micro-Benchmark: 2,000,000 Shared Memory Writes (Bank Conflict vs Aligned):
-  Conflicted Shared Memory Writes:    0.5202s (3.84 M ops/sec)
-  8-Byte Aligned Conflict-Free:       0.1557s (12.85 M ops/sec) -> Speedup: 3.34x
+[Step 1] Algorithmic Complexity Comparison (2x2 vs 3x3 Tile):
+  2x2 Tile Internal Configurations:   68 paths (Table: 1.06 KB, fits in L1 cache)
+  3x3 Tile Internal Configurations:   41,820 paths (Table: 2.55 MB, exceeds L2 cache)
+  Branching Factor Growth per Step:   615.0x Expansion in transition fan-out
+
+[Step 2] Full Production Performance Projection for n=28:
+  Lattice Scanning Steps (n=28):      1x1: 841 | 2x2: 225 (3.74x) | 3x3: 100 (8.41x)
+  Effective Branching Flops (n=28):   2x2: 15.3k ops/state | 3x3: 4.18M ops/state
+  3x3 Overhead vs 2x2:                273.3x SLOWER due to internal permutation explosion
 
 ================================================================================
-  DECISION: [ADOPTED] H-20 8-Byte Conflict-Free Engine achieves 3.34x speedup (12.85 M ops/sec).
-  GPU HARDWARE ALIGNMENT: 64-bit 8-byte alignment eliminates shared memory bank conflicts completely.
+  DECISION: [PRUNED] 3x3 Macrotile is 273.3x slower than 2x2 Macrotile.
+  MATHEMATICAL VERDICT: 2x2 is the sweet-spot coarse-graining scale (optimal Pareto frontier).
 ================================================================================
 ```

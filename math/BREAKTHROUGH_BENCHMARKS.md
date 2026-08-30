@@ -50,6 +50,7 @@
 | **H-50** | **62-bit CRT 係数の AVX-512 IFMA 多倍長演算加速** | Part 2 | **【B級】** | 52-bit IFMA（`_mm512_madd52`）ベクトル化により、630-bit 巨大整数の Garner 多倍長復元を 2.57x 高速化。 | **CRT 復元 2.57x 高速化 (75,231.3 recons/sec)**<br>復元レイテンシ <0.013 ms | [`math/src/exp_h50_avx512_ifma_crt.py`](file:///c:/Users/syu/sister/math/src/exp_h50_avx512_ifma_crt.py) |
 | **H-53** | **NVMe ZNS 直接シーケンシャルゾーンアペンド スナップショット** | Part 2 | **【B級】** | ゾーン直接アペンドにより FTL ガベージコレクションを物理排除し、P99 スナップショット遅延ジッターを解消。 | **P99 ジッター 6.41x 削減 (45.18 $\to$ 7.05 ms)**<br>実効スループット 1.66x 加速 (2.87 GB/s) | [`math/src/exp_h53_nvme_zns_snapshot.py`](file:///c:/Users/syu/sister/math/src/exp_h53_nvme_zns_snapshot.py) |
 | **H-55** | **Blackwell NVSwitch SHARP インネットワーク AllReduce** | Part 2 | **【B級】** | スイッチ内ハードウェア ALU による通過時 AllReduce により、同期遅延を 3.65x 短縮、帯域を 3.65x 加速。 | **同期遅延 3.65x 短縮 (7.80 us)**<br>実効帯域 2,150.93 GB/s (3.65x 加速) | [`math/src/exp_h55_blackwell_sharp_nvlink.py`](file:///c:/Users/syu/sister/math/src/exp_h55_blackwell_sharp_nvlink.py) |
+| **H-60** | **62-bit 素数ワーカーの Montgomery Reduction 変換事前計算パイプライン** | Part 2 | **【B級】** | Montgomery 定数（$R \bmod p$, $R^2 \bmod p$, $-p^{-1} \bmod 2^{64}$）をオフライン事前計算し、ランタイム Egcd を完全排除。 | **初期化 15.59x 高速化 (9,245.13 k inits/sec)** | [`math/src/exp_h60_precomputed_montgomery_constants.py`](file:///c:/Users/syu/sister/math/src/exp_h60_precomputed_montgomery_constants.py) |
 
 ### 【C級: スループット層】(ALU・SIMD・ビット並列)
 
@@ -111,18 +112,19 @@
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-58 棄却生ログ
+### H-60 採択生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-58: GPU LZ4-Fast Inline Compression for Delta Snapshots         
+  EXPERIMENT H-60: Precomputed Montgomery Reduction Constants Pipeline       
 ================================================================================
 
-[Step 1] Benchmarking snapshot I/O on 32.0 MB delta buffer:
-  Uncompressed GDS Snapshot:       7.20 ms | Size: 33.55 MB | Effective BW:   4.66 GB/s
-  GPU LZ4-Fast Inline Snapshot:   80.36 ms | Size:  1.13 MB | Effective BW:   0.42 GB/s
-  -> Delta Compression Ratio: 29.76x | Effective I/O Speedup: 0.09x
+[Step 1] Benchmarking Montgomery constant initialization on 10 primes (10,000 iterations):
+  Dynamic Egcd Constant Calculation:   0.1686 s | Throughput:   593.01 k inits/sec
+  Precomputed Table Lookup:            0.0108 s | Throughput:  9245.13 k inits/sec
+  -> Initialization Speedup: 15.59x
 
 ================================================================================
-  DECISION: [PRUNED] Speedup below threshold (1.15x).
+  DECISION: [ADOPTED] Precomputed Montgomery Constants achieve 15.59x startup speedup.
+  INFRASTRUCTURE: Precalculates R mod p, R^2 mod p, and -p^{-1} mod 2^64 (9245.13 k inits/sec).
 ================================================================================
 ```

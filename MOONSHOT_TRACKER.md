@@ -10,41 +10,40 @@
   - **アクティブキューの健全な維持と 50% での補充**（アクティブ $\le 7$ 件で第6世代 H-47〜H-54 自動補充完了）。
   - サイクルごとにコミットと `git push` を実行。
 
-- **総追跡仮説数**: 60 件 (+8件: H-47〜H-54)
-- **真の採択ブレークスルー (Adopted Breakthroughs)**: **24 件** (+1件: H-39)
+- **総追跡仮説数**: 60 件
+- **真の採択ブレークスルー (Adopted Breakthroughs)**: **24 件**
   - **【A級: 予算を閉じる】**: **5 件** (11-bit パッキング, 空間反転直和分解 $T\Sigma = \Sigma T$, 商空間全単射ランキング, H-02: 11-bit SWAR 5-Way 並列モジュラー加算器, H-16: 商空間 S/Sigma 上の 2x2 マクロタイル作用素直和縮約)
   - **【B級: 運転を成立させる】**: **9 件** (62-bit 多重素数 CRT 分散並列復元, C言語ネイティブ DP エンジン, H-05: Baxter CTMRG プレフライト独立検算, H-06: 反対角対称性 $F_{\rho\tau}$ 三角形ビットボード探索, H-09: 非同期ストリーミング増分 Garner CRT エンジン, H-17: 8xB300 GPU 間 NVLink 4.0 GPUDirect 階層集約ストリーミング, H-25: 8xB300 HBM 上での NUMA 階層ゼロコピー Direct Access パイプライン, H-29: 分散ワーカー間チェックポイント・リカバリの非同期差分スナップショット, H-32: 8xB300 GPU 実行中の NVMe Direct Storage (GDS) ゼロコピー非同期スナップショット)
-  - **【C級: スループット層】**: **8 件** (H-01: SWAR 2-Slot ブランチレス括弧対探索, H-10: 境界プロファイル完全配列直接インデックスエンジン, H-20: 11-bit パッキング状態の GPU 共有メモリ内ワープ協調リダクション, H-24: 11-bit SWAR 5-way 加算における AVX-512 VBMI ビットパーミュテーション, H-30: 64-bit ビットボードの Popcount / Leading Zero ハードウェア命令最適化, H-31: NVIDIA PTX lop3.b32 による 11-bit SWAR 5-way 3入力ビット置換演算器, H-34: NVIDIA CUDA 12.8 Cooperative Groups Grid-Level 一括リダクション, **H-39: NVIDIA Tensor Core MMA 命令による 11-bit モジュラー加算バッチ積和射影**)
+  - **【C級: スループット層】**: **8 件** (H-01: SWAR 2-Slot ブランチレス括弧対探索, H-10: 境界プロファイル完全配列直接インデックスエンジン, H-20: 11-bit パッキング状態の GPU 共有メモリ内ワープ協調リダクション, H-24: 11-bit SWAR 5-way 加算における AVX-512 VBMI ビットパーミュテーション, H-30: 64-bit ビットボードの Popcount / Leading Zero ハードウェア命令最適化, H-31: NVIDIA PTX lop3.b32 による 11-bit SWAR 5-way 3入力ビット置換演算器, H-34: NVIDIA CUDA 12.8 Cooperative Groups Grid-Level 一括リダクション, H-39: NVIDIA Tensor Core MMA 命令による 11-bit モジュラー加算バッチ積和射影)
   - **【Part 1: ステップ数削減】**: **2 件** (2x2 マクロタイル粗視化転移作用素, H-07: 統合 2x2 マクロタイル DP エンジン)
-- **厳格棄却アーカイブ (Pruned Archive / Fail-Fast)**: **21 件**
-- **現在のアクティブキュー**: **15 件** (第6世代 H-47〜H-54 補充完了)
+- **厳格棄却アーカイブ (Pruned Archive / Fail-Fast)**: **22 件** (+1件: H-40)
+- **現在のアクティブキュー**: **14 件**
 - **補充閾値 (50%)**: アクティブキュー $\le 7$
 
 ---
 
-## 1. Active Prioritized Queue (ROADMAP 連動優先キュー / Ranked 1 to 15)
+## 1. Active Prioritized Queue (ROADMAP 連動優先キュー / Ranked 1 to 14)
 
 | Rank | ID | Hypothesis Name | スコープ | 等級 | Target | Impact | Velocity | Complexity | Score $S$ | Status |
 | :---: | :---: | :--- | :---: | :---: | :--- | :---: | :---: | :---: | :---: | :---: |
-| **1** | **H-40** | **行間プロファイルの Huffman 動的エントロピー符号化ストリーミング圧縮** | Part 2 | **【A級】** | 帯域削減 | 6x | 4 | 3 | **8.0** | `QUEUED` |
-| **2** | **H-41** | **境界プロファイル外周巡回群 $C_4$ 対称性を用いた端点等価集約** | Part 1 | **【A級】** | 状態空間 | 4x | 3 | 4 | **3.0** | `QUEUED` |
-| **3** | **H-42** | **CUDA Async Pipeline (cuda::memcpy_async) によるダブルバッファ HBM 転送** | Part 2 | **【B級】** | メモリストール | 5x | 5 | 2 | **12.5** | `QUEUED` |
-| **4** | **H-43** | **CRT Garner 係数逆元の AVX-512 多倍長 Newton-Raphson 事前計算パイプライン** | Part 2 | **【B級】** | 復元高速化 | 4x | 5 | 2 | **10.0** | `QUEUED` |
-| **5** | **H-44** | **11-bit SWAR レジスタ内の SIMD バレルシフタによる括弧対一括再配置** | Part 2 | **【C級】** | ALU加速 | 5x | 5 | 2 | **12.5** | `QUEUED` |
-| **6** | **H-45** | **格子グラフの 2部グラフ性（Bipartite Vertex Coloring）を用いた奇数長閉路排除** | Part 1 | **【Part 1】** | 枝刈り | 6x | 4 | 3 | **8.0** | `QUEUED` |
-| **7** | **H-46** | **8xB300 GPU 間オールリダクション（NCCL AllReduce）における Ring vs Tree 最適化** | Part 2 | **【B級】** | 通信最適化 | 5x | 4 | 3 | **6.7** | `QUEUED` |
-| **8** | **H-47** | **格子境界プロファイルにおける非連結成分のトポロジカル交差数定理による事前排除** | Part 1 | **【Part 1】** | 枝刈り | 5x | 4 | 3 | **6.7** | `QUEUED` |
-| **9** | **H-48** | **NVLink P2P 通信における Blackwell Async Copy (cuda::barrier) による集約ストール排除** | Part 2 | **【B級】** | 同期短縮 | 6x | 5 | 2 | **15.0** | `QUEUED` |
-| **10** | **H-49** | **NVIDIA PTX prmt.b32 バイトパーミュテーション命令による 11-bit SWAR スロット再アライメント** | Part 2 | **【C級】** | ALU加速 | 5x | 5 | 2 | **12.5** | `QUEUED` |
-| **11** | **H-50** | **62-bit CRT 係数の AVX-512 IFMA (52-bit 整数積和) による復元多倍長演算加速** | Part 2 | **【B級】** | 復元高速化 | 5x | 5 | 2 | **12.5** | `QUEUED` |
-| **12** | **H-51** | **偶数長格子におけるチェスボード着色プラグパリティ保存則の厳密証明** | Part 1 | **【Part 1】** | 理論証明 | 4x | 4 | 3 | **5.3** | `QUEUED` |
-| **13** | **H-52** | **CUDA Warp レジスタ内 11-bit スロット直接シャッフル（__shfl_xor_sync）による共有メモリバイパス** | Part 2 | **【C級】** | レジスタ最適化 | 6x | 5 | 2 | **15.0** | `QUEUED` |
-| **14** | **H-53** | **NVMe ZNS (Zoned Namespaces) 直接シーケンシャル書き込みによるスナップショットジッター排除** | Part 2 | **【B級】** | I/O安定化 | 4x | 4 | 3 | **5.3** | `QUEUED` |
-| **15** | **H-54** | **NVIDIA Blackwell Tensor Memory Accelerator (TMA) による非同期 2D タイル直接ロード** | Part 2 | **【C級】** | TMA加速 | 7x | 4 | 3 | **9.3** | `QUEUED` |
+| **1** | **H-41** | **境界プロファイル外周巡回群 $C_4$ 対称性を用いた端点等価集約** | Part 1 | **【A級】** | 状態空間 | 4x | 3 | 4 | **3.0** | `QUEUED` |
+| **2** | **H-42** | **CUDA Async Pipeline (cuda::memcpy_async) によるダブルバッファ HBM 転送** | Part 2 | **【B級】** | メモリストール | 5x | 5 | 2 | **12.5** | `QUEUED` |
+| **3** | **H-43** | **CRT Garner 係数逆元の AVX-512 多倍長 Newton-Raphson 事前計算パイプライン** | Part 2 | **【B級】** | 復元高速化 | 4x | 5 | 2 | **10.0** | `QUEUED` |
+| **4** | **H-44** | **11-bit SWAR レジスタ内の SIMD バレルシフタによる括弧対一括再配置** | Part 2 | **【C級】** | ALU加速 | 5x | 5 | 2 | **12.5** | `QUEUED` |
+| **5** | **H-45** | **格子グラフの 2部グラフ性（Bipartite Vertex Coloring）を用いた奇数長閉路排除** | Part 1 | **【Part 1】** | 枝刈り | 6x | 4 | 3 | **8.0** | `QUEUED` |
+| **6** | **H-46** | **8xB300 GPU 間オールリダクション（NCCL AllReduce）における Ring vs Tree 最適化** | Part 2 | **【B級】** | 通信最適化 | 5x | 4 | 3 | **6.7** | `QUEUED` |
+| **7** | **H-47** | **格子境界プロファイルにおける非連結成分のトポロジカル交差数定理による事前排除** | Part 1 | **【Part 1】** | 枝刈り | 5x | 4 | 3 | **6.7** | `QUEUED` |
+| **8** | **H-48** | **NVLink P2P 通信における Blackwell Async Copy (cuda::barrier) による集約ストール排除** | Part 2 | **【B級】** | 同期短縮 | 6x | 5 | 2 | **15.0** | `QUEUED` |
+| **9** | **H-49** | **NVIDIA PTX prmt.b32 バイトパーミュテーション命令による 11-bit SWAR スロット再アライメント** | Part 2 | **【C級】** | ALU加速 | 5x | 5 | 2 | **12.5** | `QUEUED` |
+| **10** | **H-50** | **62-bit CRT 係数の AVX-512 IFMA (52-bit 整数積和) による復元多倍長演算加速** | Part 2 | **【B級】** | 復元高速化 | 5x | 5 | 2 | **12.5** | `QUEUED` |
+| **11** | **H-51** | **偶数長格子におけるチェスボード着色プラグパリティ保存則の厳密証明** | Part 1 | **【Part 1】** | 理論証明 | 4x | 4 | 3 | **5.3** | `QUEUED` |
+| **12** | **H-52** | **CUDA Warp レジスタ内 11-bit スロット直接シャッフル（__shfl_xor_sync）による共有メモリバイパス** | Part 2 | **【C級】** | レジスタ最適化 | 6x | 5 | 2 | **15.0** | `QUEUED` |
+| **13** | **H-53** | **NVMe ZNS (Zoned Namespaces) 直接シーケンシャル書き込みによるスナップショットジッター排除** | Part 2 | **【B級】** | I/O安定化 | 4x | 4 | 3 | **5.3** | `QUEUED` |
+| **14** | **H-54** | **NVIDIA Blackwell Tensor Memory Accelerator (TMA) による非同期 2D タイル直接ロード** | Part 2 | **【C級】** | TMA加速 | 7x | 4 | 3 | **9.3** | `QUEUED` |
 
 ---
 
-## 2. Pruned Archive (Fail-Fast 厳格棄却アーカイブ - Total: 21)
+## 2. Pruned Archive (Fail-Fast 厳格棄却アーカイブ - Total: 22)
 
 | ID | 棄却された仮説名称 | スコープ | 棄却の数学的・実証的根拠 | 実測生データ / 判定 | 判定スクリプト |
 | :---: | :--- | :---: | :--- | :--- | :--- |
@@ -69,6 +68,7 @@
 | **H-36** | **非対称フロンティアにおける局所反射作用素の代数的分解可能性検証** | Part 1 | 局所反射作用素 $\sigma_{\text{loc}}$ は大域的非交差括弧ペアの接続性を破壊するため、転移作用素 $T$ と非可換（$\|[T, \sigma_{\text{loc}}]\| = 5.3798 \ne 0$）であり、大域反転 $\Sigma$ が唯一の対称分解作用素と証明され棄却。 | $\|[T, \sigma_{\text{loc}}]\| = 5.3798$（非可換証明） | [`math/src/exp_h36_local_reflection_algebra.py`](file:///c:/Users/syu/sister/math/src/exp_h36_local_reflection_algebra.py) |
 | **H-37** | **GPU Persistence L2 Cache による高頻度 Motzkin Rank スロットの固定収容** | Part 2 | 書き込みストリームによるキャッシュ汚染のため、ヒット率向上は 50.57% $\to$ 61.20% に留まり、実効スピードアップは 1.15x 未満（1.148x）となり基準未達のため棄却。H-10/H-20 で十分最適化済み。 | スピードアップ 1.15x 未満（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h37_persistence_l2_cache.py`](file:///c:/Users/syu/sister/math/src/exp_h37_persistence_l2_cache.py) |
 | **H-38** | **64 素数ワーカーに対する動的負荷分散・投機的再実行スケジューラ** | Part 2 | 各素数の DP 計算量は均一であるため、投機的再実行による完了時間短縮は 1.13x（基準 $\ge 1.15x$ 未達）に留まり、リソース浪費のため棄却。 | スピードアップ 1.13x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h38_speculative_crt_scheduler.py`](file:///c:/Users/syu/sister/math/src/exp_h38_speculative_crt_scheduler.py) |
+| **H-40** | **行間プロファイルの Huffman 動的エントロピー符号化ストリーミング圧縮** | Part 2 | 30.0% のデータ圧縮を達成するものの、可変長ビットストリームのパッキング/アンパッキング処理により 1.44x の実行遅延（スループット 31% 低下）を招くため棄却。H-02 固定 SWAR と H-16 商空間で十分収容可能。 | 1.44x 実行遅延（基準 $\le 1.25x$ 未達） | [`math/src/exp_h40_huffman_entropy_streaming.py`](file:///c:/Users/syu/sister/math/src/exp_h40_huffman_entropy_streaming.py) |
 
 ---
 

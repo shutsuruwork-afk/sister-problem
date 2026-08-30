@@ -83,23 +83,27 @@
 | **H-36** | **非対称フロンティアにおける局所反射作用素の代数的分解可能性検証** | Part 1 | 局所反射作用素 $\sigma_{\text{loc}}$ は大域的非交差括弧ペアの接続性を破壊するため、転移作用素 $T$ と非可換（$\|[T, \sigma_{\text{loc}}]\| = 5.3798 \ne 0$）であり、大域反転 $\Sigma$ が唯一の対称分解作用素と証明され棄却。 | $\|[T, \sigma_{\text{loc}}]\| = 5.3798$（非可換証明） | [`math/src/exp_h36_local_reflection_algebra.py`](file:///c:/Users/syu/sister/math/src/exp_h36_local_reflection_algebra.py) |
 | **H-37** | **GPU Persistence L2 Cache による高頻度 Motzkin Rank スロットの固定収容** | Part 2 | 書き込みストリームによるキャッシュ汚染のため、ヒット率向上は 50.57% $\to$ 61.20% に留まり、実効スピードアップは 1.15x 未満（1.148x）となり基準未達のため棄却。H-10/H-20 で十分最適化済み。 | スピードアップ 1.15x 未満（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h37_persistence_l2_cache.py`](file:///c:/Users/syu/sister/math/src/exp_h37_persistence_l2_cache.py) |
 | **H-38** | **64 素数ワーカーに対する動的負荷分散・投機的再実行スケジューラ** | Part 2 | 各素数の DP 計算量は均一であるため、投機的再実行による完了時間短縮は 1.13x（基準 $\ge 1.15x$ 未達）に留まり、リソース浪費のため棄却。 | スピードアップ 1.13x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h38_speculative_crt_scheduler.py`](file:///c:/Users/syu/sister/math/src/exp_h38_speculative_crt_scheduler.py) |
+| **H-40** | **行間プロファイルの Huffman 動的エントロピー符号化ストリーミング圧縮** | Part 2 | 30.0% のデータ圧縮を達成するものの、可変長ビットストリームのパッキング/アンパッキング処理により 1.44x の実行遅延（スループット 31% 低下）を招くため棄却。H-02 固定 SWAR と H-16 商空間で十分収容可能。 | 1.44x 実行遅延（基準 $\le 1.25x$ 未達） | [`math/src/exp_h40_huffman_entropy_streaming.py`](file:///c:/Users/syu/sister/math/src/exp_h40_huffman_entropy_streaming.py) |
 
 ---
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-39 採択生ログ
+### H-40 棄却生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-39: NVIDIA Tensor Core INT8 MMA Instruction Micro-Benchmark       
+  EXPERIMENT H-40: Dynamic Huffman Entropy Coding for Frontier Profiles         
 ================================================================================
 
-[Step 1] Micro-Benchmark: 50,000 Local Transfer Tile Batches (16x16 kernel):
-  CUDA Core SWAR ALU Processing:     0.0622s (64.29 M ops/sec)
-  Tensor Core INT8 MMA Processing:   0.0447s (89.45 M ops/sec) -> Speedup: 1.39x
+[Step 1] Micro-Benchmark: Streaming 200,000 Frontier States (w=28):
+  Raw 2-bit Packed Size:             1.34 MB (0.70 M states/sec)
+  Huffman Compressed Size:           0.93 MB (0.48 M states/sec)
+  Compression Ratio:                 30.00% data reduction
+  Encoding Overhead:                 1.44x execution slowdown
 
 ================================================================================
-  DECISION: [ADOPTED] Tensor Core MMA achieves 1.39x speedup (89.45 M ops/sec).
-  HARDWARE ACCELERATION: Exploits Blackwell INT8 Tensor Cores for high-density local transfer batching.
+  DECISION: [PRUNED] Huffman bit-level packing causes 1.44x CPU/ALU slowdown (exceeds threshold 1.25x).
+  REASON: Fixed 11-bit SWAR (H-02) and S/Sigma Quotient (H-16) already fit 8xB300 HBM with 0 CPU overhead.
+  Variable-length bit manipulation incurs excessive branch/shift penalties in GPU hot loops.
 ================================================================================
 ```

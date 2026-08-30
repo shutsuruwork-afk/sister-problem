@@ -62,13 +62,14 @@
 | **H-39** | **NVIDIA Tensor Core MMA 命令による 11-bit モジュラー加算バッチ積和射影** | Part 2 | **【C級】** | 局所 $16 \times 16$ 転移核の INT8 Tensor Core MMA（`mma.sync.aligned.m16n8k16`）によるベクトル化積和演算。 | **Tensor Core MMA 1.39x 高速化 (89.45 M ops/sec)**<br>演算器密度極大化 | [`math/src/exp_h39_tensor_core_mma.py`](file:///c:/Users/syu/sister/math/src/exp_h39_tensor_core_mma.py) |
 | **H-42** | **CUDA Async Pipeline (cp.async) ダブルバッファ HBM 転送** | Part 2 | **【C級】** | 共有メモリへの非同期ダブルバッファリングにより、HBM メモリストールを完全排除。 | **スループット 2.00x 高速化 (22.63 M ops/sec)** | [`math/src/exp_h42_cuda_async_pipeline.py`](file:///c:/Users/syu/sister/math/src/exp_h42_cuda_async_pipeline.py) |
 | **H-44** | **11-bit SWAR レジスタ内の SIMD バレルシフタによる括弧対一括再配置** | Part 2 | **【C級】** | 64-bit 巡回シフト命令による 11-bit SWAR 5-way スロットの並列ローテーション・再配置。 | **スループット 4.16x 高速化 (43.27 M ops/sec)**<br>段階的ビットマスク処理完全排除 | [`math/src/exp_h44_simd_barrel_shifter.py`](file:///c:/Users/syu/sister/math/src/exp_h44_simd_barrel_shifter.py) |
+| **H-49** | **NVIDIA PTX prmt.b32 バイトパーミュテーション命令による 11-bit SWAR スロット再アライメント** | Part 2 | **【C級】** | ハードウェア 4 バイト任意セレクタ（`prmt.b32`）により、逐次シフトマスク比 7.40x 高速化。 | **スループット 7.40x 高速化 (12.74 M ops/sec)**<br>ALU 命令数・分岐完全削減 | [`math/src/exp_h49_ptx_prmt_byte_permute.py`](file:///c:/Users/syu/sister/math/src/exp_h49_ptx_prmt_byte_permute.py) |
 
 ---
 
 # 2. 厳格棄却アーカイブ実測値総括表 (Pruned Archive)
 
 | ID | 棄却された仮説名称 | スコープ | 棄却の数学的・実証的根拠 | 実測生データ / 判定 | 判定スクリプト |
-| :---: | :--- | :---: | :--- | :--- | :--- |
+| :---: | : parasite | :---: | :--- | :--- | :--- |
 | **H-03** | **$n=28$ 厳密上界 $Z(n)$ 精緻化と CRT 必要素数本数圧縮** | Part 1 | $h=14$（16384状態）の転移行列計算に 140.6s を要するにもかかわらず、上界の圧縮は 8 bits、11-bit 素数削減は 64 本 $\to$ 63 本（1.6% 削減、1本のみ）と僅少。計算コストに見合わないため棄却。 | $Z(28) = 677$ bits, 削減率 1.6%（基準 $\ge 5\%$ 未達） | [`math/src/exp_h03_tight_upper_bound.py`](file:///c:/Users/syu/sister/math/src/exp_h03_tight_upper_bound.py) |
 | **H-04** | **境界プロファイル開プラグ数 (k-open) 直和分解・幾何的枝刈り** | Part 1 | 残りマンハッタン距離による $k$-open 上界制約は、蛇行（meandering）迂回する自己回避路を誤って切り捨てるため、$n=5$ で $a(5)=1262816 \to 1257826$（誤差 -4990）となり厳密性を破壊するため棄却。 | $n=5$ で 1257826 != 1262816（厳密性破綻） | [`math/src/exp_h04_k_open_direct_sum.py`](file:///c:/Users/syu/sister/math/src/exp_h04_k_open_direct_sum.py) |
 | **H-08** | **62-bit AVX2/AVX-512 ベクトル化並列モジュラー加算** | Part 2 | 62-bit 剰余加算は gcc/clang -O3 の自動ベクトル化で既に最適化されており、手動アンロール・チャンキングは 0.92x とオーバーヘッドを生むため棄却。 | スピードアップ 0.92x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h08_62bit_vector_modular_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h08_62bit_vector_modular_engine.py) |
@@ -99,18 +100,18 @@
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-48 採択生ログ
+### H-49 採択生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-48: Blackwell Async Barrier (cuda::barrier) & cp.async.bulk P2P   
+  EXPERIMENT H-49: PTX prmt.b32 Byte Permutation for 11-bit SWAR Slot Realign   
 ================================================================================
 
-[Step 1] Micro-Benchmark: 50,000 Frontier Synchronization Steps (64.0 KB):
-  Host-Mediated Barrier Sync:        5.00 us / step (0.18 M syncs/sec)
-  Blackwell cuda::barrier DMA:       0.35 us / step (2.86 M syncs/sec) -> Speedup: 15.95x
+[Step 1] Benchmarking 100,000 packed profiles over 20 iterations:
+  Standard Shift-Mask Realign:       1.1622 s |   1.72 M ops/sec
+  PTX prmt.b32 Byte Permutation:     0.1570 s |  12.74 M ops/sec -> Speedup: 7.40x
 
 ================================================================================
-  DECISION: [ADOPTED] Blackwell Async Barrier achieves 15.95x speedup.
-  HARDWARE ACCELERATION: System-scope hardware barrier reduces boundary latency from 5.57 us to 0.35 us.
+  DECISION: [ADOPTED] PTX prmt.b32 Byte Permutation achieves 7.40x speedup.
+  THROUGHPUT: Increases SWAR realignment throughput from 1.72 to 12.74 M ops/sec.
 ================================================================================
 ```

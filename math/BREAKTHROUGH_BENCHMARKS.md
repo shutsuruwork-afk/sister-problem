@@ -81,23 +81,23 @@
 | **H-35** | **CRT 素数ワーカーの中間チェックサム多項式ハッシュによる障害即時検知** | Part 2 | 50万状態の多項式ハッシュ逐次計算は 0.0701s を要し、行あたり計算時間の約 7% の余分なオーバーヘッドを発生させる。既に H-29（差分チェックポイント）と H-05/H-06（プレフライト検算・対称性チェックサム）が確立されているため棄却。 | ハッシュ計算 0.0701s（オーバーヘッド 7% で基準未達） | [`math/src/exp_h35_polynomial_hash_watchdog.py`](file:///c:/Users/syu/sister/math/src/exp_h35_polynomial_hash_watchdog.py) |
 | **H-36** | **非対称フロンティアにおける局所反射作用素の代数的分解可能性検証** | Part 1 | 局所反射作用素 $\sigma_{\text{loc}}$ は大域的非交差括弧ペアの接続性を破壊するため、転移作用素 $T$ と非可換（$\|[T, \sigma_{\text{loc}}]\| = 5.3798 \ne 0$）であり、大域反転 $\Sigma$ が唯一の対称分解作用素と証明され棄却。 | $\|[T, \sigma_{\text{loc}}]\| = 5.3798$（非可換証明） | [`math/src/exp_h36_local_reflection_algebra.py`](file:///c:/Users/syu/sister/math/src/exp_h36_local_reflection_algebra.py) |
 | **H-37** | **GPU Persistence L2 Cache による高頻度 Motzkin Rank スロットの固定収容** | Part 2 | 書き込みストリームによるキャッシュ汚染のため、ヒット率向上は 50.57% $\to$ 61.20% に留まり、実効スピードアップは 1.15x 未満（1.148x）となり基準未達のため棄却。H-10/H-20 で十分最適化済み。 | スピードアップ 1.15x 未満（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h37_persistence_l2_cache.py`](file:///c:/Users/syu/sister/math/src/exp_h37_persistence_l2_cache.py) |
+| **H-38** | **64 素数ワーカーに対する動的負荷分散・投機的再実行スケジューラ** | Part 2 | 各素数の DP 計算量は均一であるため、投機的再実行による完了時間短縮は 1.13x（基準 $\ge 1.15x$ 未達）に留まり、リソース浪費のため棄却。 | スピードアップ 1.13x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h38_speculative_crt_scheduler.py`](file:///c:/Users/syu/sister/math/src/exp_h38_speculative_crt_scheduler.py) |
 
 ---
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-37 棄却生ログ
+### H-38 棄却生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-37: GPU Persistent L2 Cache Window Pinning Micro-Benchmark        
+  EXPERIMENT H-38: Speculative Tail-Worker Scheduling for 64-Prime Cluster      
 ================================================================================
 
-[Step 1] Micro-Benchmark: 200,000 State Accesses over 50,000 States (L2 Capacity: 10,000):
-  Standard LRU Cache Hit Rate:       50.57% (Est. Cycles: 14.90 M cycles)
-  Persistent L2 Window Hit Rate:     61.20% (Est. Cycles: 12.98 M cycles)
-  Effective Memory Access Speedup:   1.15x (1.148x)
+[Step 1] Cluster Simulation: 64 Prime Workers across 8 Nodes:
+  Static Cluster Makespan:           106.09s
+  Speculative Dynamic Makespan:      93.68s -> Cluster Acceleration: 1.13x
 
 ================================================================================
-  DECISION: [PRUNED] Speedup (1.15x) below threshold (1.15x).
+  DECISION: [PRUNED] Speedup (1.13x) below threshold (1.15x).
 ================================================================================
 ```

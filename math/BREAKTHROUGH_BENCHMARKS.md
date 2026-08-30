@@ -57,25 +57,23 @@
 | **H-11** | **転移行列スパース CSR 構造と GPU テンソルコア GEMM への射影** | Part 2 | $n=28$ で明示的 CSR 疎行列サイズは 58.23 TB に達し、8×B300 HBM 容量（2.01 TB）を 30.3x オーバーフローするため物理的・数学的に格納不可能と証明され棄却。オンザフライ DP が唯一の実行経路。 | 明示的 CSR 58.23 TB > 2.01 TB HBM（30.3x 溢れ） | [`math/src/exp_h11_sparse_gemm_projection.py`](file:///c:/Users/syu/sister/math/src/exp_h11_sparse_gemm_projection.py) |
 | **H-12** | **動的ハッシュテーブルのキャッシュライン（64-byte）整合パッキング** | Part 2 | 4スロットバケットは内部探索ループのオーバーヘッドにより 0.69x と遅化。さらに採択済みの H-10（完全配列直接インデックス: 8.24 M ops/sec）がハッシュ自体を排除して圧倒的に優位であるため棄却。 | スピードアップ 0.69x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h12_cache_aligned_bucket_packing.py`](file:///c:/Users/syu/sister/math/src/exp_h12_cache_aligned_bucket_packing.py) |
 | **H-13** | **Montgomery モジュラー乗算の 64-bit インラインアセンブラ化** | Part 2 | 手動 Barrett 逆数乗算クラスは Python インタープリタおよび C 最適化コンパイラ自動定数除算最適化に対して 0.56x と劣化したため棄却。 | スピードアップ 0.56x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h13_barrett_montgomery_mult.py`](file:///c:/Users/syu/sister/math/src/exp_h13_barrett_montgomery_mult.py) |
+| **H-14** | **GPU 共有メモリ（Shared Memory）内マルチワープ協調遷移マージ** | Part 2 | 局所辞書生成と集約オーバーヘッドにより 0.43x と低下。採択済みの H-10 配列直接インデックスにより競合自体が解消されるため棄却。 | スピードアップ 0.43x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h14_warp_cooperative_aggregation.py`](file:///c:/Users/syu/sister/math/src/exp_h14_warp_cooperative_aggregation.py) |
 
 ---
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-13 棄却生ログ
+### H-14 棄却生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-13: Division-Free Barrett Modular Multiplication Benchmark      
+  EXPERIMENT H-14: GPU Warp-Cooperative Transition Aggregation Benchmark        
 ================================================================================
 
-[Step 1] Exact Equivalence Verification (Standard Modulo vs Barrett):
-  [PASS] 100% Exact Equivalence verified across 100,000 random 62-bit modular products.
-
-[Step 2] Micro-Benchmark: 2,000,000 62-bit Modular Multiplications:
-  Standard Hardware Modulo (%):  0.3953s (5.06 M ops/sec)
-  Division-Free Barrett Reducer: 0.7031s (2.84 M ops/sec) -> Speedup: 0.56x
+[Step 1] Micro-Benchmark: 2,000,000 High-Contention Transition Writes:
+  Standard Serial Atomic Writes:    0.2410s (8.30 M ops/sec)
+  Warp-Cooperative Pre-Aggregation: 0.5555s (3.60 M ops/sec) -> Speedup: 0.43x
 
 ================================================================================
-  DECISION: [PRUNED] Verification failed.
+  DECISION: [PRUNED] Speedup (0.43x) below threshold (1.15x).
 ================================================================================
 ```

@@ -105,24 +105,24 @@
 | **H-56** | **11-bit SWAR 5-way スロットの CUDA 32-bit Funnel Shift (`__funnelshift_lc`) ALU 最適化** | Part 2 | スカラー 32-bit 単位の Funnel Shift は 1.04x に留まり採択基準（1.15x）未達。採択済みの H-49（PTX prmt.b32: 12.74 M ops/sec）および H-44（SIMD バレルシフタ: 43.27 M ops/sec）が広帯域に優位なため棄却。 | スピードアップ 1.04x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h56_cuda_funnel_shift.py`](file:///c:/Users/syu/sister/math/src/exp_h56_cuda_funnel_shift.py) |
 | **H-62** | **NVIDIA PTX bfe / bfi 命令による 11-bit SWAR スロット抽出・挿入 1 サイクル化** | Part 2 | スカラー bfe/bfi スロット展開・再パック（3.72 M ops/sec）は、採用済みの 5-way / 10-way SWAR 一括演算（27.92 M ops/sec）に対して 7.51x 圧倒的に遅く、インプレース SWAR が確立されたアーキテクチャにおいて不要なため棄却。 | SWAR 比 7.51x 低速（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h62_ptx_bfe_bfi_slots.py`](file:///c:/Users/syu/sister/math/src/exp_h62_ptx_bfe_bfi_slots.py) |
 | **H-66** | **CUDA Warp プリエンプティブ Early-Branch Elimination による Motzkin ループ完全レジスタマスキング** | Part 2 | 手動ビットワイズ・レジスタマスキングは演算命令数の 4 倍増とレジスタ圧迫により 2.71x 低速化。CUDA コンパイラ（nvcc）のハードウェア Predicate レジスタ（`@p0..@p7`）による自動最適化が圧倒的に優位なため棄却。 | スピードアップ 0.37x（2.71x 低速 / 基準 $\ge 1.15x$ 未達） | [`math/src/exp_h66_warp_early_branch_elimination.py`](file:///c:/Users/syu/sister/math/src/exp_h66_warp_early_branch_elimination.py) |
+| **H-58** | **非同期 LZ4-Fast GPU カーネルによる差分スナップショットのインライン圧縮** | Part 2 | GDS（6.02 GB/s）の NVMe ダイレクト DMA に対し、圧縮処理計算時間（80.36 ms）がボトルネックとなり実効 I/O スループットが 0.09x（11.1x 低速）となるため棄却。非圧縮生データの直接 DMA が圧倒的に優位。 | 実効スループット 0.09x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h58_gpu_lz4_snapshot.py`](file:///c:/Users/syu/sister/math/src/exp_h58_gpu_lz4_snapshot.py) |
 
 ---
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-66 棄却生ログ
+### H-58 棄却生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-66: Manual Register Masking vs Hardware Compiler Predication     
+  EXPERIMENT H-58: GPU LZ4-Fast Inline Compression for Delta Snapshots         
 ================================================================================
 
-[Step 1] Benchmarking 1,000,000 frontier transitions:
-  Native Predication Dispatch:       0.0984 s | Throughput:  10.17 M trans/sec
-  Manual Bitwise Register Masking:   0.2664 s | Throughput:   3.75 M trans/sec
-  -> Instruction Bloat Overhead: 2.71x slower with manual masking
+[Step 1] Benchmarking snapshot I/O on 32.0 MB delta buffer:
+  Uncompressed GDS Snapshot:       7.20 ms | Size: 33.55 MB | Effective BW:   4.66 GB/s
+  GPU LZ4-Fast Inline Snapshot:   80.36 ms | Size:  1.13 MB | Effective BW:   0.42 GB/s
+  -> Delta Compression Ratio: 29.76x | Effective I/O Speedup: 0.09x
 
 ================================================================================
-  DECISION: [PRUNED] Manual bitwise register masking is 2.71x slower due to arithmetic bloat.
-  ARCHITECTURE: nvcc compiler hardware predicate registers (@p0..@p7) are natively superior.
+  DECISION: [PRUNED] Speedup below threshold (1.15x).
 ================================================================================
 ```

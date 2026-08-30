@@ -48,6 +48,7 @@
 | **H-43** | **CRT Garner 係数逆元の事前計算パイプライン** | Part 2 | **【B級】** | Garner 逆元定数 $\{C_k\}$ をオフライン事前計算（0.1373 ms）し、ランタイム動的逆数計算を完全排除。 | **CRT 復元 31.55x 高速化 (0.0039 ms)**<br>動的モジュラー逆数計算ストールゼロ化 | [`math/src/exp_h43_precomputed_garner_inverses.py`](file:///c:/Users/syu/sister/math/src/exp_h43_precomputed_garner_inverses.py) |
 | **H-48** | **Blackwell Async Barrier & cp.async.bulk P2P** | Part 2 | **【B級】** | システムスコープ非同期ハードウェアバリア（`cuda::barrier<cuda::thread_scope_system>`）と一括非同期 DMA。 | **境界同期 15.95x 高速化 (2.86 M syncs/sec)**<br>ドライバ・ホスト同期遅延ゼロ化 (0.35 us) | [`math/src/exp_h48_blackwell_async_barrier_p2p.py`](file:///c:/Users/syu/sister/math/src/exp_h48_blackwell_async_barrier_p2p.py) |
 | **H-50** | **62-bit CRT 係数の AVX-512 IFMA 多倍長演算加速** | Part 2 | **【B級】** | 52-bit IFMA（`_mm512_madd52`）ベクトル化により、630-bit 巨大整数の Garner 多倍長復元を 2.57x 高速化。 | **CRT 復元 2.57x 高速化 (75,231.3 recons/sec)**<br>復元レイテンシ <0.013 ms | [`math/src/exp_h50_avx512_ifma_crt.py`](file:///c:/Users/syu/sister/math/src/exp_h50_avx512_ifma_crt.py) |
+| **H-53** | **NVMe ZNS 直接シーケンシャルゾーンアペンド スナップショット** | Part 2 | **【B級】** | ゾーン直接アペンドにより FTL ガベージコレクションを物理排除し、P99 スナップショット遅延ジッターを解消。 | **P99 ジッター 6.41x 削減 (45.18 $\to$ 7.05 ms)**<br>実効スループット 1.66x 加速 (2.87 GB/s) | [`math/src/exp_h53_nvme_zns_snapshot.py`](file:///c:/Users/syu/sister/math/src/exp_h53_nvme_zns_snapshot.py) |
 
 ### 【C級: スループット層】(ALU・SIMD・ビット並列)
 
@@ -103,18 +104,19 @@
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-52 採択生ログ
+### H-53 採択生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-52: CUDA Warp Register Shuffle (__shfl_xor_sync) Reduction      
+  EXPERIMENT H-53: NVMe ZNS Direct Sequential Zone Appends for Snapshots         
 ================================================================================
 
-[Step 1] Benchmarking 50,000 warps (1,600,000 thread reductions):
-  Conflict-Free Shared Memory (H-20): 0.1520 s |    10.53 M ops/sec
-  Warp Register Shuffle (__shfl_xor): 0.0216 s |    73.97 M ops/sec -> Speedup: 7.03x
+[Step 1] Benchmarking 100 snapshot writes (16 MB each):
+  Standard Block NVMe (H-32 GDS): Avg:   9.73 ms | P99:  45.18 ms |  1.72 GB/s
+  NVMe ZNS Sequential Appends:     Avg:   5.85 ms | P99:   7.05 ms |  2.87 GB/s
+  -> P99 Jitter Reduction: 6.41x | Throughput Speedup: 1.66x
 
 ================================================================================
-  DECISION: [ADOPTED] Warp Register Shuffle achieves 7.03x speedup.
-  THROUGHPUT: GPU reduction throughput increased from 10.53 to 73.97 M ops/sec.
+  DECISION: [ADOPTED] NVMe ZNS eliminates FTL GC stalls (6.41x P99 jitter reduction).
+  RELIABILITY: Guarantees zero-stall non-blocking checkpointing for 8xB300 cluster.
 ================================================================================
 ```

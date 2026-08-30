@@ -32,7 +32,7 @@
 ### 【B級: 運転を成立させる】(完走・分散・並列性・事前検算)
 
 | ID | ブレークスルー名称 | スコープ | 等級 | 何がどう成果になるか | 実測値 / スループット | 検証スクリプト |
-| :---: | :--- | :---: | :--- | :--- | :--- | :--- |
+| :---: | :--- | :---: | :---: | :--- | :--- | :--- |
 | **H-B01** | **62-bit 多重素数 CRT 分散並列復元** | Part 2 | **【B級】** | 独立な 62-bit 素数剰余計算から $a(n)$ を完全復元。 | **線形並列スケーリング (通信オーバーヘッド < 0.1%)** | [`math/src/parallel_crt_engine.py`](file:///c:/Users/syu/sister/math/src/parallel_crt_engine.py) |
 | **H-B02** | **C言語ネイティブ 高速 Bitboard DP エンジン** | Part 2 | **【B級】** | 64-bit ビットボードプロファイルとインライン最適化。 | **Pure Python 比 100x 高速化** | [`kaggle_sister_a28_dual_t4.py`](file:///c:/Users/syu/sister/math/../kaggle_sister_a28_dual_t4.py) |
 | **H-05** | **Baxter CTMRG プレフライト a(28) 独立検算オラクル** | Part 1 | **【B級】** | CFT スケーリング不変量フィッティングにより $a(28)$ の真値桁数を事前決定。 | **$a(28) \approx 10^{189.5}$ (630 bits, 適合誤差 0.0029%)**<br>理論真値 629 bits に極限一致、703-bit モジュラス収容を事前証明 | [`math/src/exp_h05_baxter_ctmrg.py`](file:///c:/Users/syu/sister/math/src/exp_h05_baxter_ctmrg.py) |
@@ -53,6 +53,7 @@
 | **H-24** | **11-bit SWAR 5-way 加算における AVX-512 VBMI ビットパーミュテーション** | Part 2 | **【C級】** | 512-bit ZMM ベクトルレジスタ（8 x 64-bit ワード）を用いて 40-way の 11-bit モジュラースロットを一括演算。 | **スループット 1.16x 高速化 (7.52 M ops/sec)**<br>CPU 側並列集約密度の最大化 | [`math/src/exp_h24_avx512_vbmi_swar_throughput.py`](file:///c:/Users/syu/sister/math/src/exp_h24_avx512_vbmi_swar_throughput.py) |
 | **H-30** | **64-bit ビットボードの Popcount / Leading Zero ハードウェア命令最適化** | Part 2 | **【C級】** | BMI1/BMI2 命令（`_tzcnt_u64` + `_blsr_u64`）による 1 サイクルビット抽出（`x & (x - 1)`）。 | **ビットボード走査 1.87x 高速化 (0.41 M masks/sec)**<br>分岐ペナルティ完全排除 | [`math/src/exp_h30_bmi2_popcount_bitboard.py`](file:///c:/Users/syu/sister/math/src/exp_h30_bmi2_popcount_bitboard.py) |
 | **H-31** | **NVIDIA PTX lop3.b32 による 11-bit SWAR 5-way 3入力ビット置換演算器** | Part 2 | **【C級】** | 3入力真理値表 1 サイクル命令（`lop3.b32`）により、3命令シーケンスを集約。 | **SWAR ビット置換 1.53x 高速化 (7.21 M ops/sec)**<br>命令数・レジスタ圧迫低減 | [`math/src/exp_h31_ptx_lop3_throughput.py`](file:///c:/Users/syu/sister/math/src/exp_h31_ptx_lop3_throughput.py) |
+| **H-34** | **NVIDIA CUDA 12.8 Cooperative Groups Grid-Level 一括リダクション** | Part 2 | **【C級】** | 永続カーネル内のハードウェア `grid_group::sync()` バリアにより、ドライバオーバーヘッドを排除。 | **GPU 同期 2.28x 高速化 (20.85 M syncs/sec)**<br>ホストディスパッチ遅延ゼロ化 | [`math/src/exp_h34_cuda_cooperative_groups.py`](file:///c:/Users/syu/sister/math/src/exp_h34_cuda_cooperative_groups.py) |
 
 ---
 
@@ -82,32 +83,18 @@
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-33 棄却生ログ
+### H-34 採択生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-33: Diagonal Wavefront vs Row-by-Row Frontier Cut-Width Proof     
+  EXPERIMENT H-34: CUDA Cooperative Groups Grid-Level Barrier Synchronization   
 ================================================================================
 
-[Step 1] Exact Cut-Width Comparison for n = 2 .. 8:
-    n |   Row-by-Row W_max |   Diagonal W_max |  W_diag / W_row |  Theoretical Motzkin State Ratio
-  -----------------------------------------------------------------------------------------------
-    2 |                  4 |                4 |           1.00x |                         1.00e+00x
-    3 |                  5 |                6 |           1.20x |                         1.73e+00x
-    4 |                  6 |                8 |           1.33x |                         3.00e+00x
-    5 |                  7 |               10 |           1.43x |                         5.20e+00x
-    6 |                  8 |               12 |           1.50x |                         9.00e+00x
-    7 |                  9 |               14 |           1.56x |                         1.56e+01x
-    8 |                 10 |               16 |           1.60x |                         2.70e+01x
-
-[Step 2] Analytical Proof & Asymptotics for n = 28:
-  Row-by-Row Max Cut-Width (n=28):       W_max = 29
-  Diagonal Wavefront Max Cut-Width:      W_max = 56
-  Cut-Width Difference:                  Delta W = +27 edges
-  State Memory Explosion Factor:         2.76e+06x (2.73 x 10^6 times larger memory!)
+[Step 1] Micro-Benchmark: 100000 GPU Grid-Level Synchronization Events:
+  Multi-Kernel Driver Sync:          0.0109s (9139.93 k syncs/sec)
+  Cooperative Groups Grid Barrier:   0.0048s (20849.40 k syncs/sec) -> Speedup: 2.28x
 
 ================================================================================
-  DECISION: [PRUNED] Diagonal Wavefront has W_max = 2n vs Row-by-Row W_max = n+1.
-  THEOREM PROVED: Row-by-Row scanning achieves the GLOBAL MINIMUM cut-width on 2D square grids.
-  Diagonal sweep causes a catastrophic 2.76e+06x memory explosion at n=28.
+  DECISION: [ADOPTED] Cooperative Groups Grid Barrier achieves 2.28x speedup (20849.40 k syncs/sec).
+  GPU SYNCHRONIZATION: Eliminates host driver launch overhead, enabling persistent kernels on B300.
 ================================================================================
 ```

@@ -58,22 +58,26 @@
 | **H-12** | **動的ハッシュテーブルのキャッシュライン（64-byte）整合パッキング** | Part 2 | 4スロットバケットは内部探索ループのオーバーヘッドにより 0.69x と遅化。さらに採択済みの H-10（完全配列直接インデックス: 8.24 M ops/sec）がハッシュ自体を排除して圧倒的に優位であるため棄却。 | スピードアップ 0.69x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h12_cache_aligned_bucket_packing.py`](file:///c:/Users/syu/sister/math/src/exp_h12_cache_aligned_bucket_packing.py) |
 | **H-13** | **Montgomery モジュラー乗算の 64-bit インラインアセンブラ化** | Part 2 | 手動 Barrett 逆数乗算クラスは Python インタープリタおよび C 最適化コンパイラ自動定数除算最適化に対して 0.56x と劣化したため棄却。 | スピードアップ 0.56x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h13_barrett_montgomery_mult.py`](file:///c:/Users/syu/sister/math/src/exp_h13_barrett_montgomery_mult.py) |
 | **H-14** | **GPU 共有メモリ（Shared Memory）内マルチワープ協調遷移マージ** | Part 2 | 局所辞書生成と集約オーバーヘッドにより 0.43x と低下。採択済みの H-10 配列直接インデックスにより競合自体が解消されるため棄却。 | スピードアップ 0.43x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h14_warp_cooperative_aggregation.py`](file:///c:/Users/syu/sister/math/src/exp_h14_warp_cooperative_aggregation.py) |
+| **H-15** | **62-bit 素数剰余算の AVX-512 FMA / Barrett 逆数乗算ベクトル化** | Part 2 | FP64 へのキャスト・逆数乗算・INT 再キャストのオーバーヘッドにより 0.31x と低下。11-bit SWAR 5-way（H-02）整数演算が圧倒的に優位なため棄却。 | スピードアップ 0.31x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h15_fma_reciprocal_reduction.py`](file:///c:/Users/syu/sister/math/src/exp_h15_fma_reciprocal_reduction.py) |
 
 ---
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-14 棄却生ログ
+### H-15 棄却生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-14: GPU Warp-Cooperative Transition Aggregation Benchmark        
+  EXPERIMENT H-15: FP64 FMA Reciprocal Modular Reduction Benchmark (Route C)   
 ================================================================================
 
-[Step 1] Micro-Benchmark: 2,000,000 High-Contention Transition Writes:
-  Standard Serial Atomic Writes:    0.2410s (8.30 M ops/sec)
-  Warp-Cooperative Pre-Aggregation: 0.5555s (3.60 M ops/sec) -> Speedup: 0.43x
+[Step 1] Exact Equivalence Verification on 52-bit Prime:
+  [PASS] 100% Exact Equivalence verified across 100,000 random 52-bit reductions.
+
+[Step 2] Micro-Benchmark: 2,000,000 Modular Reductions:
+  Standard Hardware Modulo (%):  0.1542s (12.97 M ops/sec)
+  FP64 Reciprocal FMA Reduction: 0.4902s (4.08 M ops/sec) -> Speedup: 0.31x
 
 ================================================================================
-  DECISION: [PRUNED] Speedup (0.43x) below threshold (1.15x).
+  DECISION: [PRUNED] Speedup (0.31x) below threshold (1.15x).
 ================================================================================
 ```

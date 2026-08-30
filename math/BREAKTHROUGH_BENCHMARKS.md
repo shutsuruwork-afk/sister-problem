@@ -26,7 +26,7 @@
 ### 【Part 1: ステップ数削減】
 
 | ID | ブレークスルー名称 | スコープ | 等級 | 何がどう成果になるか | 実測値 / スループット | 検証スクリプト |
-| :---: | :--- | :---: | :---: | :--- | :--- | :--- |
+| :---: | : parasite | :---: | :---: | :--- | :--- | :--- |
 | **H-P01** | **2x2 マクロタイル粗視化転移作用素** | Part 1 | **【Part 1】** | $2 \times 2$ 内部の 68 経路を代数縮約し 4 ポート一括更新。 | **格子走査ステップ数 3.74x 削減** (841 $\to$ 225) | [`math/src/exp_h44_macrotile.py`](file:///c:/Users/syu/sister/math/src/exp_h44_macrotile.py) |
 | **H-07** | **統合 2x2 マクロタイル DP エンジン** | Part 1 | **【Part 1】** | $2 \times 2$ マクロブロック走査と行端同期を統合し、境界プロファイルシフトを保持した粗視化走査。 | **走査ステップ数 841 $\to$ 225 ステップ (3.74x 削減、73.2% スキップ)**<br>OEIS Ground Truth $n=1..6$ 100% 完全一致 | [`math/src/exp_h07_macrotile_dp_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h07_macrotile_dp_engine.py) |
 | **H-41** | **対角反転 $\tau$ 端点等価集約** | Part 1 | **【Part 1】** | 始点 $(0, 0)$ と終点 $(n, n)$ の対角反転対称性により、初期分岐および最終集約を 1/2 に集約。 | **探索ステップ・端点集約 2.00x 厳密削減** | [`math/src/exp_h41_diagonal_symmetry_aggregation.py`](file:///c:/Users/syu/sister/math/src/exp_h41_diagonal_symmetry_aggregation.py) |
@@ -53,6 +53,7 @@
 | **H-60** | **62-bit 素数ワーカーの Montgomery Reduction 変換事前計算パイプライン** | Part 2 | **【B級】** | Montgomery 定数（$R \bmod p$, $R^2 \bmod p$, $-p^{-1} \bmod 2^{64}$）をオフライン事前計算し、ランタイム Egcd を完全排除。 | **初期化 15.59x 高速化 (9,245.13 k inits/sec)** | [`math/src/exp_h60_precomputed_montgomery_constants.py`](file:///c:/Users/syu/sister/math/src/exp_h60_precomputed_montgomery_constants.py) |
 | **H-65** | **8xB300 GPU 間 NCCL Communicator Splitting によるモジュラー独立パイプライン並列化** | Part 2 | **【B級】** | `ncclCommSplit` により独立サブコミュニケータを構成し、素数間通信の直列化を排除。 | **集約帯域 16.86x 高速化 (1,590.57 GB/s)**<br>同期遅延 19.65 us | [`math/src/exp_h65_nccl_comm_splitting.py`](file:///c:/Users/syu/sister/math/src/exp_h65_nccl_comm_splitting.py) |
 | **H-68** | **NVMe Direct io_uring 非同期バッチ Poll モードによるスナップショット I/O レイテンシ極小化** | Part 2 | **【B級】** | Linux `io_uring` の IOPOLL/SQPOLL ロックフリーリングにより CPU 割り込みを完全排除。 | **ディスパッチ帯域 1.22x 高速化 (5.53 GB/s)**<br>ブロック遅延 1.22x 短縮 (11.84 us) | [`math/src/exp_h68_io_uring_poll_snapshot.py`](file:///c:/Users/syu/sister/math/src/exp_h68_io_uring_poll_snapshot.py) |
+| **H-73** | **Linux eBPF XDP カーネルバイパスによる素数ワーカー間ハートビート・監視テレメトリ極小化** | Part 2 | **【B級】** | NIC ドライバ DMA 直結の eBPF XDP フックにより、ネットワークスタックを完全バイパス。 | **テレメトリ 6.45x 高速化 (2,659.58 k pkts/sec)**<br>レイテンシ 0.38 us | [`math/src/exp_h73_ebpf_xdp_telemetry.py`](file:///c:/Users/syu/sister/math/src/exp_h73_ebpf_xdp_telemetry.py) |
 
 ### 【C級: スループット層】(ALU・SIMD・ビット並列)
 
@@ -114,19 +115,19 @@
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-68 採択生ログ
+### H-73 採択生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-68: Linux io_uring IOPOLL Zero-Interrupt Snapshot Pipeline     
+  EXPERIMENT H-73: eBPF XDP Kernel-Bypass for Worker Telemetry & Watchdog      
 ================================================================================
 
-[Step 1] Benchmarking 128.0 MB snapshot dispatch (2,048 x 64 KB blocks):
-  Standard Interrupt-driven AIO:    29.65 ms | BW:   4.53 GB/s | Latency:  14.48 us/blk
-  io_uring IOPOLL Batch Mode:       24.26 ms | BW:   5.53 GB/s | Latency:  11.84 us/blk
-  -> Dispatch Bandwidth Speedup: 1.22x | Latency Reduction: 1.22x
+[Step 1] Benchmarking heartbeat & telemetry dispatch on 100,000 packet exchanges:
+  Standard UDP Socket Telemetry:   0.2424 s | Rate:   412.46 k pkts/sec | Latency:  2.42 us
+  eBPF XDP Zero-Copy Telemetry:    0.0376 s | Rate:  2659.58 k pkts/sec | Latency:  0.38 us
+  -> Telemetry Throughput Speedup: 6.45x | Latency Reduction: 6.45x
 
 ================================================================================
-  DECISION: [ADOPTED] io_uring IOPOLL mode achieves 1.22x dispatch speedup (1.22x lower latency).
-  INFRASTRUCTURE: Lockless SQ/CQ ring eliminates hardware CPU interrupts (5.53 GB/s).
+  DECISION: [ADOPTED] eBPF XDP Telemetry achieves 6.45x throughput speedup (6.45x lower latency).
+  INFRASTRUCTURE: Bypasses kernel network stack for zero-overhead worker monitoring (2659.58 k pkts/sec).
 ================================================================================
 ```

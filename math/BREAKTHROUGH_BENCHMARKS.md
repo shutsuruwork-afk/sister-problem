@@ -70,29 +70,23 @@
 | **H-22** | **Multi-Prime CRT 復元における Montgomery 多倍長並列乗算パイプライン** | Part 2 | 630 bits（10 limbs）では Karatsuba 分割統治の再帰オーバーヘッドが支配的となり、ネイティブ C-level 多倍長乗算に対して 25.9x 低速化するため棄却。H-09 ストリーミング Garner CRT が最適。 | ネイティブ C 比 25.9x 低速（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h22_multiprecision_crt_pipeline.py`](file:///c:/Users/syu/sister/math/src/exp_h22_multiprecision_crt_pipeline.py) |
 | **H-23** | **境界プロファイル 90度回転直和分解による次元 1/4 縮約可能性検証** | Part 1 | フロンティア転移作用素 $T$ は一次元伝搬のため 90度回転 $R$ と非可換（$[T, R] \ne 0$）。中間 DP 状態の $D_4$ 1/4 分解は数学的に不可能と証明され棄却（$C_2$ 1/2 分解が理論限界）。 | $[T, R] = 1.00$（非可換証明） | [`math/src/exp_h23_d4_rotation_commutativity.py`](file:///c:/Users/syu/sister/math/src/exp_h23_d4_rotation_commutativity.py) |
 | **H-26** | **4x4 マクロブロック粗視化作用素（走査ステップ数 16x スキップ）** | Part 1 | 4x4 内部構成数が 3,584 万通りへ天文学的爆発し、ステップ削減（15.8x）を圧倒する 124,151.6x の低速化を生むため棄却。2x2 粗視化が唯一のパレート最適解。 | 2x2 比 124,151.6x 低速（基準 $\ge 1.00x$ 未達） | [`math/src/exp_h26_4x4_macrotile_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h26_4x4_macrotile_engine.py) |
+| **H-27** | **GPU Warp 投票命令（__ballot_sync）による非ゼロ遷移の一括フィルタリング** | Part 2 | 全レーン無効となる確率が極小のため早期 Exit が効かず、マスク生成・テストオーバーヘッドにより 0.56x と低速化するため棄却。H-20 共有メモリ直接書き込みが優位。 | スピードアップ 0.56x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h27_warp_ballot_filtering.py`](file:///c:/Users/syu/sister/math/src/exp_h27_warp_ballot_filtering.py) |
 
 ---
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-26 棄却生ログ
+### H-27 棄却生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-26: 4x4 Macrotile Coarse-Graining Tradeoff Analysis              
+  EXPERIMENT H-27: GPU Warp Vote (__ballot_sync) Transition Filtering Engine     
 ================================================================================
 
-[Step 1] Algorithmic Complexity Comparison (2x2 vs 4x4 Tile):
-  2x2 Tile Internal Configurations:   68 paths (Table: 1.06 KB, L1 cache)
-  4x4 Tile Internal Configurations:   35,840,000 paths (Table: 4.27 GB, exceeds CPU L3/GPU HBM budget)
-  Branching Factor Growth per Step:   527,058.8x Expansion in transition fan-out
-
-[Step 2] Full Production Performance Projection for n=28:
-  Lattice Scanning Steps (n=28):      1x1: 841 | 2x2: 225 (3.74x) | 4x4: 53 (15.8x)
-  Effective Branching Flops (n=28):   2x2: 15.3k ops/state | 4x4: 1.90G ops/state
-  4x4 Overhead vs 2x2:                124,151.6x SLOWER due to combinatorial explosion
+[Step 1] Micro-Benchmark: 2,000,000 Transition Evaluations (Divergence vs Ballot):
+  Divergent Branch Execution:        0.2094s (9.55 M ops/sec)
+  Warp Ballot Early-Exit Engine:     0.3755s (5.33 M ops/sec) -> Speedup: 0.56x
 
 ================================================================================
-  DECISION: [PRUNED] 4x4 Macrotile is 124,151.6x slower than 2x2 Macrotile.
-  MATHEMATICAL VERDICT: 2x2 coarse-graining remains strictly optimal.
+  DECISION: [PRUNED] Speedup (0.56x) below threshold (1.15x).
 ================================================================================
 ```

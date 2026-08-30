@@ -60,6 +60,7 @@
 | **H-34** | **NVIDIA CUDA 12.8 Cooperative Groups Grid-Level 一括リダクション** | Part 2 | **【C級】** | 永続カーネル内のハードウェア `grid_group::sync()` バリアにより、ドライバオーバーヘッドを排除。 | **GPU 同期 2.28x 高速化 (20.85 M syncs/sec)**<br>ホストディスパッチ遅延ゼロ化 | [`math/src/exp_h34_cuda_cooperative_groups.py`](file:///c:/Users/syu/sister/math/src/exp_h34_cuda_cooperative_groups.py) |
 | **H-39** | **NVIDIA Tensor Core MMA 命令による 11-bit モジュラー加算バッチ積和射影** | Part 2 | **【C級】** | 局所 $16 \times 16$ 転移核の INT8 Tensor Core MMA（`mma.sync.aligned.m16n8k16`）によるベクトル化積和演算。 | **Tensor Core MMA 1.39x 高速化 (89.45 M ops/sec)**<br>演算器密度極大化 | [`math/src/exp_h39_tensor_core_mma.py`](file:///c:/Users/syu/sister/math/src/exp_h39_tensor_core_mma.py) |
 | **H-42** | **CUDA Async Pipeline (cp.async) ダブルバッファ HBM 転送** | Part 2 | **【C級】** | 共有メモリへの非同期ダブルバッファリングにより、HBM メモリストールを完全排除。 | **スループット 2.00x 高速化 (22.63 M ops/sec)** | [`math/src/exp_h42_cuda_async_pipeline.py`](file:///c:/Users/syu/sister/math/src/exp_h42_cuda_async_pipeline.py) |
+| **H-44** | **11-bit SWAR レジスタ内の SIMD バレルシフタによる括弧対一括再配置** | Part 2 | **【C級】** | 64-bit 巡回シフト命令による 11-bit SWAR 5-way スロットの並列ローテーション・再配置。 | **スループット 4.16x 高速化 (43.27 M ops/sec)**<br>段階的ビットマスク処理完全排除 | [`math/src/exp_h44_simd_barrel_shifter.py`](file:///c:/Users/syu/sister/math/src/exp_h44_simd_barrel_shifter.py) |
 
 ---
 
@@ -94,21 +95,18 @@
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-43 採択生ログ
+### H-44 採択生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-43: Precomputed Garner Inverses for CRT Reconstruction             
+  EXPERIMENT H-44: SIMD Barrel Shifter for 11-bit SWAR 5-Way Slot Realignment   
 ================================================================================
 
-[Step 1] Precomputing Garner Inverse Constants:
-  Precomputed 12 constants in 0.1373 ms.
-
-[Step 2] Micro-Benchmark: 2,000 Mixed-Radix CRT Reconstructions:
-  Dynamic Inversion CRT:             0.2439s (0.1220 ms/reconstruction)
-  Precomputed Constant CRT:          0.0077s (0.0039 ms/reconstruction) -> Speedup: 31.55x
+[Step 1] Micro-Benchmark: 200,000 5-Slot SWAR Realignment Operations:
+  Sequential 5-Slot Shift/Extract:   0.0962s (10.40 M ops/sec)
+  SIMD Barrel Shifter Realignment:   0.0231s (43.27 M ops/sec) -> Speedup: 4.16x
 
 ================================================================================
-  DECISION: [ADOPTED] Precomputed Garner Inverses achieve 31.55x speedup.
-  INFRASTRUCTURE ACCELERATION: Completely eliminates runtime Extended GCD latency stalls.
+  DECISION: [ADOPTED] SIMD Barrel Shifter achieves 4.16x speedup (43.27 M ops/sec).
+  ALU ACCELERATION: Eliminates 5-stage sequential masking loops with a single 64-bit cyclic rotate instruction.
 ================================================================================
 ```

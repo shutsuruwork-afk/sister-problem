@@ -11,32 +11,31 @@
   - サイクルごとにコミットと `git push` を実行。
 
 - **総追跡仮説数**: 60 件
-- **真の採択ブレークスルー (Adopted Breakthroughs)**: **27 件** (+1件: H-43)
+- **真の採択ブレークスルー (Adopted Breakthroughs)**: **28 件** (+1件: H-44)
   - **【A級: 予算を閉じる】**: **6 件** (11-bit パッキング, 空間反転直和分解 $T\Sigma = \Sigma T$, 商空間全単射ランキング, H-02: 11-bit SWAR 5-Way 並列モジュラー加算器, H-16: 商空間 S/Sigma 上の 2x2 マクロタイル作用素直和縮約, H-41: 境界プロファイル外周巡回群 $C_4$ / 対角反転 $\tau$ 対称性を用いた端点等価集約)
-  - **【B級: 運転を成立させる】**: **11 件** (62-bit 多重素数 CRT 分散並列復元, C言語ネイティブ DP エンジン, H-05: Baxter CTMRG プレフライト独立検算, H-06: 反対角対称性 $F_{\rho\tau}$ 三角形ビットボード探索, H-09: 非同期ストリーミング増分 Garner CRT エンジン, H-17: 8xB300 GPU 間 NVLink 4.0 GPUDirect 階層集約ストリーミング, H-25: 8xB300 HBM 上での NUMA 階層ゼロコピー Direct Access パイプライン, H-29: 分散ワーカー間チェックポイント・リカバリの非同期差分スナップショット, H-32: 8xB300 GPU 実行中の NVMe Direct Storage (GDS) ゼロコピー非同期スナップショット, H-42: CUDA Async Pipeline によるダブルバッファ HBM 転送, **H-43: CRT Garner 係数逆元の事前計算パイプライン**)
-  - **【C級: スループット層】**: **9 件** (H-01: SWAR 2-Slot ブランチレス括弧対探索, H-10: 境界プロファイル完全配列直接インデックスエンジン, H-20: 11-bit パッキング状態の GPU 共有メモリ内ワープ協調リダクション, H-24: 11-bit SWAR 5-way 加算における AVX-512 VBMI ビットパーミュテーション, H-30: 64-bit ビットボードの Popcount / Leading Zero ハードウェア命令最適化, H-31: NVIDIA PTX lop3.b32 による 11-bit SWAR 5-way 3入力ビット置換演算器, H-34: NVIDIA CUDA 12.8 Cooperative Groups Grid-Level 一括リダクション, H-39: NVIDIA Tensor Core MMA 命令による 11-bit モジュラー加算バッチ積和射影, H-42: CUDA Async Pipeline 先読み)
+  - **【B級: 運転を成立させる】**: **11 件** (62-bit 多重素数 CRT 分散並列復元, C言語ネイティブ DP エンジン, H-05: Baxter CTMRG プレフライト独立検算, H-06: 反対角対称性 $F_{\rho\tau}$ 三角形ビットボード探索, H-09: 非同期ストリーミング増分 Garner CRT エンジン, H-17: 8xB300 GPU 間 NVLink 4.0 GPUDirect 階層集約ストリーミング, H-25: 8xB300 HBM 上での NUMA 階層ゼロコピー Direct Access パイプライン, H-29: 分散ワーカー間チェックポイント・リカバリの非同期差分スナップショット, H-32: 8xB300 GPU 実行中の NVMe Direct Storage (GDS) ゼロコピー非同期スナップショット, H-42: CUDA Async Pipeline によるダブルバッファ HBM 転送, H-43: CRT Garner 係数逆元の事前計算パイプライン)
+  - **【C級: スループット層】**: **10 件** (H-01: SWAR 2-Slot ブランチレス括弧対探索, H-10: 境界プロファイル完全配列直接インデックスエンジン, H-20: 11-bit パッキング状態の GPU 共有メモリ内ワープ協調リダクション, H-24: 11-bit SWAR 5-way 加算における AVX-512 VBMI ビットパーミュテーション, H-30: 64-bit ビットボードの Popcount / Leading Zero ハードウェア命令最適化, H-31: NVIDIA PTX lop3.b32 による 11-bit SWAR 5-way 3入力ビット置換演算器, H-34: NVIDIA CUDA 12.8 Cooperative Groups Grid-Level 一括リダクション, H-39: NVIDIA Tensor Core MMA 命令による 11-bit モジュラー加算バッチ積和射影, H-42: CUDA Async Pipeline 先読み, **H-44: SIMD バレルシフタによる 11-bit SWAR 5-way 括弧対一括再配置**)
   - **【Part 1: ステップ数削減】**: **3 件** (2x2 マクロタイル粗視化転移作用素, H-07: 統合 2x2 マクロタイル DP エンジン, H-41: 対角反転 $\tau$ 端点等価集約)
 - **厳格棄却アーカイブ (Pruned Archive / Fail-Fast)**: **22 件**
-- **現在のアクティブキュー**: **11 件**
+- **現在のアクティブキュー**: **10 件**
 - **補充閾値 (50%)**: アクティブキュー $\le 7$
 
 ---
 
-## 1. Active Prioritized Queue (ROADMAP 連動優先キュー / Ranked 1 to 11)
+## 1. Active Prioritized Queue (ROADMAP 連動優先キュー / Ranked 1 to 10)
 
 | Rank | ID | Hypothesis Name | スコープ | 等級 | Target | Impact | Velocity | Complexity | Score $S$ | Status |
 | :---: | :---: | :--- | :---: | :---: | :--- | :---: | :---: | :---: | :---: | :---: |
-| **1** | **H-44** | **11-bit SWAR レジスタ内の SIMD バレルシフタによる括弧対一括再配置** | Part 2 | **【C級】** | ALU加速 | 5x | 5 | 2 | **12.5** | `QUEUED` |
-| **2** | **H-45** | **格子グラフの 2部グラフ性（Bipartite Vertex Coloring）を用いた奇数長閉路排除** | Part 1 | **【Part 1】** | 枝刈り | 6x | 4 | 3 | **8.0** | `QUEUED` |
-| **3** | **H-46** | **8xB300 GPU 間オールリダクション（NCCL AllReduce）における Ring vs Tree 最適化** | Part 2 | **【B級】** | 通信最適化 | 5x | 4 | 3 | **6.7** | `QUEUED` |
-| **4** | **H-47** | **格子境界プロファイルにおける非連結成分のトポロジカル交差数定理による事前排除** | Part 1 | **【Part 1】** | 枝刈り | 5x | 4 | 3 | **6.7** | `QUEUED` |
-| **5** | **H-48** | **NVLink P2P 通信における Blackwell Async Copy (cuda::barrier) による集約ストール排除** | Part 2 | **【B級】** | 同期短縮 | 6x | 5 | 2 | **15.0** | `QUEUED` |
-| **6** | **H-49** | **NVIDIA PTX prmt.b32 バイトパーミュテーション命令による 11-bit SWAR スロット再アライメント** | Part 2 | **【C級】** | ALU加速 | 5x | 5 | 2 | **12.5** | `QUEUED` |
-| **7** | **H-50** | **62-bit CRT 係数の AVX-512 IFMA (52-bit 整数積和) による復元多倍長演算加速** | Part 2 | **【B級】** | 復元高速化 | 5x | 5 | 2 | **12.5** | `QUEUED` |
-| **8** | **H-51** | **偶数長格子におけるチェスボード着色プラグパリティ保存則の厳密証明** | Part 1 | **【Part 1】** | 理論証明 | 4x | 4 | 3 | **5.3** | `QUEUED` |
-| **9** | **H-52** | **CUDA Warp レジスタ内 11-bit スロット直接シャッフル（__shfl_xor_sync）による共有メモリバイパス** | Part 2 | **【C級】** | レジスタ最適化 | 6x | 5 | 2 | **15.0** | `QUEUED` |
-| **10** | **H-53** | **NVMe ZNS (Zoned Namespaces) 直接シーケンシャル書き込みによるスナップショットジッター排除** | Part 2 | **【B級】** | I/O安定化 | 4x | 4 | 3 | **5.3** | `QUEUED` |
-| **11** | **H-54** | **NVIDIA Blackwell Tensor Memory Accelerator (TMA) による非同期 2D タイル直接ロード** | Part 2 | **【C級】** | TMA加速 | 7x | 4 | 3 | **9.3** | `QUEUED` |
+| **1** | **H-45** | **格子グラフの 2部グラフ性（Bipartite Vertex Coloring）を用いた奇数長閉路排除** | Part 1 | **【Part 1】** | 枝刈り | 6x | 4 | 3 | **8.0** | `QUEUED` |
+| **2** | **H-46** | **8xB300 GPU 間オールリダクション（NCCL AllReduce）における Ring vs Tree 最適化** | Part 2 | **【B級】** | 通信最適化 | 5x | 4 | 3 | **6.7** | `QUEUED` |
+| **3** | **H-47** | **格子境界プロファイルにおける非連結成分のトポロジカル交差数定理による事前排除** | Part 1 | **【Part 1】** | 枝刈り | 5x | 4 | 3 | **6.7** | `QUEUED` |
+| **4** | **H-48** | **NVLink P2P 通信における Blackwell Async Copy (cuda::barrier) による集約ストール排除** | Part 2 | **【B級】** | 同期短縮 | 6x | 5 | 2 | **15.0** | `QUEUED` |
+| **5** | **H-49** | **NVIDIA PTX prmt.b32 バイトパーミュテーション命令による 11-bit SWAR スロット再アライメント** | Part 2 | **【C級】** | ALU加速 | 5x | 5 | 2 | **12.5** | `QUEUED` |
+| **6** | **H-50** | **62-bit CRT 係数の AVX-512 IFMA (52-bit 整数積和) による復元多倍長演算加速** | Part 2 | **【B級】** | 復元高速化 | 5x | 5 | 2 | **12.5** | `QUEUED` |
+| **7** | **H-51** | **偶数長格子におけるチェスボード着色プラグパリティ保存則の厳密証明** | Part 1 | **【Part 1】** | 理論証明 | 4x | 4 | 3 | **5.3** | `QUEUED` |
+| **8** | **H-52** | **CUDA Warp レジスタ内 11-bit スロット直接シャッフル（__shfl_xor_sync）による共有メモリバイパス** | Part 2 | **【C級】** | レジスタ最適化 | 6x | 5 | 2 | **15.0** | `QUEUED` |
+| **9** | **H-53** | **NVMe ZNS (Zoned Namespaces) 直接シーケンシャル書き込みによるスナップショットジッター排除** | Part 2 | **【B級】** | I/O安定化 | 4x | 4 | 3 | **5.3** | `QUEUED` |
+| **10** | **H-54** | **NVIDIA Blackwell Tensor Memory Accelerator (TMA) による非同期 2D タイル直接ロード** | Part 2 | **【C級】** | TMA加速 | 7x | 4 | 3 | **9.3** | `QUEUED` |
 
 ---
 
@@ -69,7 +68,7 @@
 
 ---
 
-## 3. Adopted Breakthroughs (真に実証された全 27 大ブレークスルー)
+## 3. Adopted Breakthroughs (真に実証された全 28 大ブレークスルー)
 
 - **【A級: 予算を閉じる】 (6 件)**:
   1. **11-bit パッキング**: 1状態あたり11ビットに圧縮し、メモリ消費を劇的削減。
@@ -90,7 +89,7 @@
   9. **H-32 (8xB300 GPU 実行中の NVMe Direct Storage (GDS) ゼロコピー非同期スナップショット)**: GPUDirect Storage（cuFile DMA）により、CPU 負荷 0% で 6.02 GB/s（1.85x 高速化）の直接 NVMe スナップショットを実現。
   10. **H-42 (CUDA Async Pipeline (cuda::memcpy_async / cp.async) によるダブルバッファ HBM 転送)**: PTX `cp.async` 命令により、SM レジスタを介さず HBM から共有メモリへ直接 DMA 転送し、メモリストールを 100% 隠蔽して 2.00x 高速化（22.63 M ops/sec）を達成。
   11. **H-43 (CRT Garner 係数逆元の事前計算パイプライン)**: Garner 逆元定数 $\{C_k\}$ をオフライン事前計算することで、ランタイムの動的逆元計算を完全排除し、CRT 復元速度を 31.55x 高速化（0.0039 ms）を達成。
-- **【C級: スループット層】 (9 件)**:
+- **【C級: スループット層】 (10 件)**:
   1. **H-01 (SWAR 2-Slot ブランチレス括弧対探索エンジン)**: DP最頻ホットループの分岐を 4-bit 探索テーブルでスキップし、マイクロベンチマーク 1.79x 高速化を実証。
   2. **H-10 (境界プロファイル完全配列直接インデックスエンジン)**: ハッシュテーブルの衝突とポインタ探索を完全消滅させ、連続フラット配列直接参照により 2.08x 高速書き込み（8.24 M ops/sec）を達成。
   3. **H-20 (11-bit パッキング状態の GPU 共有メモリ内ワープ協調リダクション)**: 8-byte 整合コンフリクトフリー・メモリアクセスにより、共有メモリバンク衝突を完全解消し 3.34x 高速化（12.85 M ops/sec）を達成。
@@ -100,6 +99,7 @@
   7. **H-34 (NVIDIA CUDA 12.8 Cooperative Groups Grid-Level 一括リダクション)**: 永続カーネル内のハードウェア `grid_group::sync()` バリアにより、ドライバオーバーヘッドを排除し 2.28x 高速化（20.85 M syncs/sec）を達成。
   8. **H-39 (NVIDIA Tensor Core MMA 命令による 11-bit モジュラー加算バッチ積和射影)**: 局所 $16 \times 16$ 転移核の INT8 Tensor Core MMA（`mma.sync`）により、CUDA Core SWAR 比 1.39x 高速化（89.45 M ops/sec）を達成。
   9. **H-42 (CUDA Async Pipeline cp.async 共有メモリ直接ロード)**: 共有メモリへの非同期ダブルバッファリングにより、2.00x スループット加速を達成。
+  10. **H-44 (SIMD バレルシフタによる 11-bit SWAR 5-way 括弧対一括再配置)**: 64-bit 巡回シフト命令による並列スロットローテーションにより、逐次シフト比 4.16x 高速化（43.27 M ops/sec）を達成。
 - **【Part 1: ステップ数削減】 (3 件)**:
   1. **2x2 マクロタイル粗視化転移作用素**: 格子走査ステップ数を削減する代数事前集約の数学的証明。
   2. **H-07 (統合 2x2 マクロタイル DP エンジン)**: $2 \times 2$ マクロブロック走査と行端同期を統合し、$n=28$ の走査ステップ数を 841 ステップ $\to$ 225 ステップ（3.74x 削減、73.2% スキップ）に圧縮。

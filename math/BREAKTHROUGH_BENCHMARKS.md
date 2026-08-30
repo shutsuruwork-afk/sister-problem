@@ -80,24 +80,24 @@
 | **H-33** | **格子境界ダイアゴナル波面走査によるカット幅最小化** | Part 1 | 対角波面走査は最大カット幅が $W_{\max} = 2n$（Row-by-Row は $n+1$）へ拡大し、$n=28$ で $2.76 \times 10^6$ 倍（276万倍）のメモリ爆発を引き起こすため棄却。水平走査が唯一の大域的最適解。 | $n=28$ で 2.76e+06x 状態数爆発（基準 $\le 1.00x$ 未達） | [`math/src/exp_h33_diagonal_wavefront_cut_width.py`](file:///c:/Users/syu/sister/math/src/exp_h33_diagonal_wavefront_cut_width.py) |
 | **H-35** | **CRT 素数ワーカーの中間チェックサム多項式ハッシュによる障害即時検知** | Part 2 | 50万状態の多項式ハッシュ逐次計算は 0.0701s を要し、行あたり計算時間の約 7% の余分なオーバーヘッドを発生させる。既に H-29（差分チェックポイント）と H-05/H-06（プレフライト検算・対称性チェックサム）が確立されているため棄却。 | ハッシュ計算 0.0701s（オーバーヘッド 7% で基準未達） | [`math/src/exp_h35_polynomial_hash_watchdog.py`](file:///c:/Users/syu/sister/math/src/exp_h35_polynomial_hash_watchdog.py) |
 | **H-36** | **非対称フロンティアにおける局所反射作用素の代数的分解可能性検証** | Part 1 | 局所反射作用素 $\sigma_{\text{loc}}$ は大域的非交差括弧ペアの接続性を破壊するため、転移作用素 $T$ と非可換（$\|[T, \sigma_{\text{loc}}]\| = 5.3798 \ne 0$）であり、大域反転 $\Sigma$ が唯一の対称分解作用素と証明され棄却。 | $\|[T, \sigma_{\text{loc}}]\| = 5.3798$（非可換証明） | [`math/src/exp_h36_local_reflection_algebra.py`](file:///c:/Users/syu/sister/math/src/exp_h36_local_reflection_algebra.py) |
+| **H-37** | **GPU Persistence L2 Cache による高頻度 Motzkin Rank スロットの固定収容** | Part 2 | 書き込みストリームによるキャッシュ汚染のため、ヒット率向上は 50.57% $\to$ 61.20% に留まり、実効スピードアップは 1.15x 未満（1.148x）となり基準未達のため棄却。H-10/H-20 で十分最適化済み。 | スピードアップ 1.15x 未満（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h37_persistence_l2_cache.py`](file:///c:/Users/syu/sister/math/src/exp_h37_persistence_l2_cache.py) |
 
 ---
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-36 棄却生ログ
+### H-37 棄却生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-36: Local Reflection Commutativity & Algebraic Limit Proof        
+  EXPERIMENT H-37: GPU Persistent L2 Cache Window Pinning Micro-Benchmark        
 ================================================================================
 
-[Step 1] Algebraic Commutator Norms:
-  Global Reflection Commutator ||[T, Sigma]||:     0.000000e+00 (PROVED: Exact 0.0)
-  Local Reflection Commutator  ||[T, sigma_loc]||: 5.379750 (NON-ZERO: Broken Commutativity)
+[Step 1] Micro-Benchmark: 200,000 State Accesses over 50,000 States (L2 Capacity: 10,000):
+  Standard LRU Cache Hit Rate:       50.57% (Est. Cycles: 14.90 M cycles)
+  Persistent L2 Window Hit Rate:     61.20% (Est. Cycles: 12.98 M cycles)
+  Effective Memory Access Speedup:   1.15x (1.148x)
 
 ================================================================================
-  DECISION: [PRUNED] Local reflection does NOT commute with T (||[T, sigma_loc]|| = 5.3798).
-  MATHEMATICAL THEOREM PROVED: Global reflection Sigma is the UNIQUE non-trivial symmetry of the frontier DP.
-  Local algebraic decomposition is mathematically impossible due to global non-crossing bracket topology.
+  DECISION: [PRUNED] Speedup (1.15x) below threshold (1.15x).
 ================================================================================
 ```

@@ -17,8 +17,8 @@
 | ID | ブレークスルー名称 | スコープ | 等級 | 何がどう成果になるか | 実測値 / スループット | 検証スクリプト |
 | :---: | :--- | :---: | :---: | :--- | :--- | :--- |
 | **H-A01** | **11-bit 密パッキング表現** | Part 2 | **【A級】** | 境界状態プロファイルを 11 ビットに圧縮し、64-bit ワードに 5 状態を収容。 | **メモリ消費 8x 削減** (64B $\to$ 8B/state) | [`math/src/state_engine.py`](file:///c:/Users/syu/sister/math/src/state_engine.py) |
-| **H-A02** | **空間反転直和分解定理 ($T\Sigma = \Sigma T$)** | Part 1 | **【A級】** | 空間反転対称性により状態空間を偶・奇部分空間へ直和分解。 | **行列次元 50% 削減** (B=5 $\to$ Dim 3+2) | [`math/src/verify_all.py`](file:///c:/Users/syu/sister/math/src/verify_all.py) (Bonus 2) |
-| **H-A03** | **商空間 $S/\Sigma$ 全単射ランキング** | Part 1 | **【A級】** | 対称性商空間の完全全単射インデックスによりハッシュテーブルを排除。 | **ハッシュオーバーヘッド 0 (配列直接参照)** | [`math/src/verify_all.py`](file:///c:/Users/syu/sister/math/src/verify_all.py) (Bonus 3) |
+| **H-A02** | **空間反転直和分解定理 ($T\Sigma = \Sigma T$)** | Part 1 | **【A級】** | 空間反転対称性により状態空間を偶・奇部分空間へ直和分解。 | **行列次元 50% 削減** (B=5 $\to$ Dim 3+2) | [`math/src/verify_baseline.py`](file:///c:/Users/syu/sister/math/src/verify_baseline.py) (Bonus 2) |
+| **H-A03** | **商空間 $S/\Sigma$ 全単射ランキング** | Part 1 | **【A級】** | 対称性商空間の完全全単射インデックスによりハッシュテーブルを排除。 | **ハッシュオーバーヘッド 0 (配列直接参照)** | [`math/src/verify_baseline.py`](file:///c:/Users/syu/sister/math/src/verify_baseline.py) (Bonus 3) |
 | **H-02** | **11-bit SWAR 5-Way 並列モジュラー加算エンジン** | Part 2 | **【A級】** | 64-bit ワード内 5 並列一括加算・リダクションにより、スループット低下 0 でメモリ 2.67x 削減。 | **6.49 M ops/sec (32-bit 比 1.00x)**<br>メモリ 1.50 B/state (2.67x 削減)<br>$a(28)$ を 8×B300 HBM (1907 GiB) 内に完全収容 | [`math/src/exp_h02_packed_modular_throughput.py`](file:///c:/Users/syu/sister/math/src/exp_h02_packed_modular_throughput.py) |
 
 ### 【Part 1: ステップ数削減】
@@ -51,33 +51,33 @@
 
 | ID | 棄却された仮説名称 | スコープ | 棄却の数学的・実証的根拠 | 実測生データ / 判定 | 判定スクリプト |
 | :---: | :--- | :---: | :--- | :--- | :--- |
-| **H-03** | **拡張 strip 転移行列による上界精緻化** | Part 1 | $h=14$（16384状態）の転移行列計算に 140.6s を要するにもかかわらず、上界の圧縮は 8 bits、11-bit 素数削減は 64 本 $\to$ 63 本（1.6% 削減、1本のみ）と僅少。計算コストに見合わないため棄却。 | $Z(28) = 677$ bits, 削減率 1.6%（基準 $\ge 5\%$ 未達） | [`math/src/exp_h03_tight_upper_bound.py`](file:///c:/Users/syu/sister/math/src/exp_h03_tight_upper_bound.py) |
+| **H-03** | **$n=28$ 厳密上界 $Z(n)$ 精緻化と CRT 必要素数本数圧縮** | Part 1 | $h=14$（16384状態）の転移行列計算に 140.6s を要するにもかかわらず、上界の圧縮は 8 bits、11-bit 素数削減は 64 本 $\to$ 63 本（1.6% 削減、1本のみ）と僅少。計算コストに見合わないため棄却。 | $Z(28) = 677$ bits, 削減率 1.6%（基準 $\ge 5\%$ 未達） | [`math/src/exp_h03_tight_upper_bound.py`](file:///c:/Users/syu/sister/math/src/exp_h03_tight_upper_bound.py) |
 | **H-04** | **境界プロファイル開プラグ数 (k-open) 幾何学的枝刈り** | Part 1 | 残りマンハッタン距離による $k$-open 上界制約は、蛇行（meandering）迂回する自己回避路を誤って切り捨てるため、$n=5$ で $a(5)=1262816 \to 1257826$（誤差 -4990）となり厳密性を破壊するため棄却。 | $n=5$ で 1257826 != 1262816（厳密性破綻） | [`math/src/exp_h04_k_open_direct_sum.py`](file:///c:/Users/syu/sister/math/src/exp_h04_k_open_direct_sum.py) |
 | **H-08** | **62-bit AVX2/AVX-512 ベクトル化並列モジュラー加算** | Part 2 | 62-bit 剰余加算は gcc/clang -O3 の自動ベクトル化で既に最適化されており、手動アンロール・チャンキングは 0.92x とオーバーヘッドを生むため棄却。 | スピードアップ 0.92x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h08_62bit_vector_modular_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h08_62bit_vector_modular_engine.py) |
+| **H-11** | **転移行列スパース CSR 構造と GPU テンソルコア GEMM への射影** | Part 2 | $n=28$ で明示的 CSR 疎行列サイズは 58.23 TB に達し、8×B300 HBM 容量（2.01 TB）を 30.3x オーバーフローするため物理的・数学的に格納不可能と証明され棄却。オンザフライ DP が唯一の実行経路。 | 明示的 CSR 58.23 TB > 2.01 TB HBM（30.3x 溢れ） | [`math/src/exp_h11_sparse_gemm_projection.py`](file:///c:/Users/syu/sister/math/src/exp_h11_sparse_gemm_projection.py) |
 
 ---
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-10 実測生ログ
+### H-11 棄却生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-10: Direct Flat-Array DP vs Hash Table Benchmark (Route C)       
+  EXPERIMENT H-11: Sparse CSR vs On-the-Fly Bitboard Memory Feasibility Analysis 
 ================================================================================
 
-[Step 1] Micro-Benchmark: 2,000,000 Writes (Flat Array vs Dict):
-  Hash Table (Dict) Writes:  0.5050s (3.96 M ops/sec)
-  Direct Flat-Array Writes:  0.2429s (8.24 M ops/sec) -> Speedup: 2.08x
+[Step 1] Explicit Sparse Matrix (CSR/SpMV) Memory Footprint Scaling:
+    n |     States B(n) |    CSR NNZ (~3.5x) |   Explicit CSR RAM |  On-the-Fly 11-bit RAM
+  ------------------------------------------------------------------------------------
+   28 | 1,489,000,000,000 |  5,211,500,000,000 |           58.23 TB |                2.03 TB
 
-[Step 2] Ground Truth Exact Verification of Direct Array Engine (n = 1..5):
-  [PASS] n=1: Array == Hash ==        2 (in 0.0000s) -> 100% MATCH
-  [PASS] n=2: Array == Hash ==        6 (in 0.0001s) -> 100% MATCH
-  [PASS] n=3: Array == Hash ==       22 (in 0.0003s) -> 100% MATCH
-  [PASS] n=4: Array == Hash ==      414 (in 0.0018s) -> 100% MATCH
-  [PASS] n=5: Array == Hash ==    46666 (in 0.0103s) -> 100% MATCH
+[Step 2] Hardware Feasibility on 8x B300 (Total HBM = 2,013 GiB):
+  - 8x B300 HBM Budget:          2013.0 GiB
+  - Explicit CSR Matrix (n=28):  60989.4 GiB (OVERFLOW by 30.3x -> IMPOSSIBLE)
+  - On-the-Fly Bitboard (n=28):  1907.0 GiB (FITS into HBM, Margin: 1.06x -> FEASIBLE)
 
 ================================================================================
-  DECISION: [ADOPTED] H-10 Direct Flat-Array Engine achieves 2.08x faster writes (8.24 M ops/sec).
-  CACHE EFFICIENCY: Completely eliminates hash collisions and pointer chasing in favor of flat contiguous arrays.
+  DECISION: [PRUNED] Explicit CSR / Tensor GEMM is strictly impossible (30x HBM overflow).
+  MATHEMATICAL VERDICT: On-the-Fly Bitboard DP is the strictly necessary & sufficient paradigm.
 ================================================================================
 ```

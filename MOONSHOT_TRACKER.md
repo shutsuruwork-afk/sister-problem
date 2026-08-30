@@ -6,7 +6,7 @@
   - **2軸多層分類**:
     - **Part 1（普遍的数学定理・大域アルゴリズム）** vs **Part 2（$n \le 28$ / ハードウェア特化）**
     - **【A級: 予算を閉じる】** / **【B級: 運転を成立させる】** / **【C級: スループット層】** / **【D級: PRUNED / この定式化には効かない】**
-  - **品質保証スイートの毎回全数実行**: `python math/src/verify_all.py` (Zero-Regression Baseline)
+  - **品質保証スイートの毎回全数実行**: `python math/src/verify_baseline.py` (Zero-Regression Baseline)
   - **アクティブキューの健全な維持と 50% での補充**（アクティブ $\le 7$ 件で次世代自動補充）。
   - サイクルごとにコミットと `git push` を実行。
 

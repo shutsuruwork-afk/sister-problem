@@ -11,7 +11,7 @@ This project aims to conquer the unsolved frontier of counting self-avoiding wal
    - Strictly classify discoveries into **Part 1 (Universal for all $n \in \mathbb{N}$)** and **Part 2 (Specific to $n \le 28$ / hardware)**.
 
 2. **Mandatory 5-Tier Verification Baseline**:
-   - Every code change, algorithmic implementation, and theoretical claim MUST satisfy all 5 tiers defined in `VERIFICATION.md` via `python math/src/verify_all.py`.
+   - Every code change, algorithmic implementation, and theoretical claim MUST satisfy all 5 tiers defined in `VERIFICATION.md` via `python math/src/verify_baseline.py`.
    - Zero regression and zero untested code allowed.
 
 3. **Branch Hygiene & Continuous Push**:

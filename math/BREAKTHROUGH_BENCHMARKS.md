@@ -21,6 +21,7 @@
 | **H-A03** | **商空間 $S/\Sigma$ 全単射ランキング** | Part 1 | **【A級】** | 対称性商空間の完全全単射インデックスによりハッシュテーブルを排除。 | **ハッシュオーバーヘッド 0 (配列直接参照)** | [`math/src/verify_baseline.py`](file:///c:/Users/syu/sister/math/src/verify_baseline.py) (Bonus 3) |
 | **H-02** | **11-bit SWAR 5-Way 並列モジュラー加算エンジン** | Part 2 | **【A級】** | 64-bit ワード内 5 並列一括加算・リダクションにより、スループット低下 0 でメモリ 2.67x 削減。 | **6.49 M ops/sec (32-bit 比 1.00x)**<br>メモリ 1.50 B/state (2.67x 削減)<br>$a(28)$ を 8×B300 HBM (1907 GiB) 内に完全収容 | [`math/src/exp_h02_packed_modular_throughput.py`](file:///c:/Users/syu/sister/math/src/exp_h02_packed_modular_throughput.py) |
 | **H-16** | **商空間 $S/\Sigma$ 上の 2x2 マクロタイル作用素直和縮約** | Part 1 | **【A級】** | $T_{2\times 2} \Sigma = \Sigma T_{2\times 2}$ の可換性を厳密証明し、$V^+$ と $V^-$ への直和分解と 2x2 粗視化を融合。 | **HBM メモリ 50% 削減 (953.5 GiB, 52.6% 余力)**<br>走査ステップ数 3.74x 削減 (841 $\to$ 225)<br>総計算量 7.48x FLOPS 削減 | [`math/src/exp_h16_quotient_macrotile_fusion.py`](file:///c:/Users/syu/sister/math/src/exp_h16_quotient_macrotile_fusion.py) |
+| **H-41** | **境界プロファイル対角反転 $\tau$ 対称性を用いた端点等価集約** | Part 1 | **【A級】** | 始点 $(0, 0)$ と終点 $(n, n)$ の対角反転対称性により、初期分岐および最終集約を 1/2 に集約。 | **探索空間・最終集約 2.00x 厳密削減 (50% 削減)**<br>OEIS Ground Truth $n=1..5$ 100% 完全一致 | [`math/src/exp_h41_diagonal_symmetry_aggregation.py`](file:///c:/Users/syu/sister/math/src/exp_h41_diagonal_symmetry_aggregation.py) |
 
 ### 【Part 1: ステップ数削減】
 
@@ -28,6 +29,7 @@
 | :---: | :--- | :---: | :---: | :--- | :--- | :--- |
 | **H-P01** | **2x2 マクロタイル粗視化転移作用素** | Part 1 | **【Part 1】** | $2 \times 2$ 内部の 68 経路を代数縮約し 4 ポート一括更新。 | **格子走査ステップ数 3.74x 削減** (841 $\to$ 225) | [`math/src/exp_h44_macrotile.py`](file:///c:/Users/syu/sister/math/src/exp_h44_macrotile.py) |
 | **H-07** | **統合 2x2 マクロタイル DP エンジン** | Part 1 | **【Part 1】** | $2 \times 2$ マクロブロック走査と行端同期を統合し、境界プロファイルシフトを保持した粗視化走査。 | **走査ステップ数 841 $\to$ 225 ステップ (3.74x 削減、73.2% スキップ)**<br>OEIS Ground Truth $n=1..6$ 100% 完全一致 | [`math/src/exp_h07_macrotile_dp_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h07_macrotile_dp_engine.py) |
+| **H-41** | **対角反転 $\tau$ 端点等価集約** | Part 1 | **【Part 1】** | 始点 $(0, 0)$ と終点 $(n, n)$ の対角反転対称性により、初期分岐および最終集約を 1/2 に集約。 | **探索ステップ・端点集約 2.00x 厳密削減** | [`math/src/exp_h41_diagonal_symmetry_aggregation.py`](file:///c:/Users/syu/sister/math/src/exp_h41_diagonal_symmetry_aggregation.py) |
 
 ### 【B級: 運転を成立させる】(完走・分散・並列性・事前検算)
 
@@ -89,21 +91,26 @@
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-40 棄却生ログ
+### H-41 採択生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-40: Dynamic Huffman Entropy Coding for Frontier Profiles         
+  EXPERIMENT H-41: Diagonal Symmetry Tau Commutativity & Final Aggregation       
 ================================================================================
 
-[Step 1] Micro-Benchmark: Streaming 200,000 Frontier States (w=28):
-  Raw 2-bit Packed Size:             1.34 MB (0.70 M states/sec)
-  Huffman Compressed Size:           0.93 MB (0.48 M states/sec)
-  Compression Ratio:                 30.00% data reduction
-  Encoding Overhead:                 1.44x execution slowdown
+[Step 1] Verifying 100% Exact Bijection against OEIS Ground Truth (n=1..5):
+  n=1: Symmetrized a(1) = 2 * 1 = 2 (Golden: 2) -> MATCH
+  n=2: Symmetrized a(2) = 2 * 6 = 12 (Golden: 12) -> MATCH
+  n=3: Symmetrized a(3) = 2 * 92 = 184 (Golden: 184) -> MATCH
+  n=4: Symmetrized a(4) = 2 * 4,256 = 8,512 (Golden: 8,512) -> MATCH
+  n=5: Symmetrized a(5) = 2 * 631,408 = 1,262,816 (Golden: 1,262,816) -> MATCH
+
+[Step 2] Micro-Benchmark: Full Search vs 2x Symmetrized Search (n=5):
+  Symmetrized Search Execution Time: 4.1888s
+  Exact Theoretical Reduction Factor: 2.00x (50% reduction in endpoint aggregation)
 
 ================================================================================
-  DECISION: [PRUNED] Huffman bit-level packing causes 1.44x CPU/ALU slowdown (exceeds threshold 1.25x).
-  REASON: Fixed 11-bit SWAR (H-02) and S/Sigma Quotient (H-16) already fit 8xB300 HBM with 0 CPU overhead.
-  Variable-length bit manipulation incurs excessive branch/shift penalties in GPU hot loops.
+  DECISION: [ADOPTED] Diagonal Symmetry Tau achieves 2.00x exact reduction (100% Ground Truth match).
+  UNIVERSAL THEOREM (Part 1): Endpoint diagonal reflection tau preserves (0,0) and (n,n),
+  halving the final boundary aggregation and initial step branching for all n in N.
 ================================================================================
 ```

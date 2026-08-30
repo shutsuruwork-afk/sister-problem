@@ -51,31 +51,34 @@
 | :---: | :--- | :---: | :--- | :--- | :--- |
 | **H-03** | **拡張 strip 転移行列による上界精緻化** | Part 1 | $h=14$（16384状態）の転移行列計算に 140.6s を要するにもかかわらず、上界の圧縮は 8 bits、11-bit 素数削減は 64 本 $\to$ 63 本（1.6% 削減、1本のみ）と僅少。計算コストに見合わないため棄却。 | $Z(28) = 677$ bits, 削減率 1.6%（基準 $\ge 5\%$ 未達） | [`math/src/exp_h03_tight_upper_bound.py`](file:///c:/Users/syu/sister/math/src/exp_h03_tight_upper_bound.py) |
 | **H-04** | **境界プロファイル開プラグ数 (k-open) 幾何学的枝刈り** | Part 1 | 残りマンハッタン距離による $k$-open 上界制約は、蛇行（meandering）迂回する自己回避路を誤って切り捨てるため、$n=5$ で $a(5)=1262816 \to 1257826$（誤差 -4990）となり厳密性を破壊するため棄却。 | $n=5$ で 1257826 != 1262816（厳密性破綻） | [`math/src/exp_h04_k_open_direct_sum.py`](file:///c:/Users/syu/sister/math/src/exp_h04_k_open_direct_sum.py) |
+| **H-08** | **62-bit AVX2/AVX-512 ベクトル化並列モジュラー加算** | Part 2 | 62-bit 剰余加算は gcc/clang -O3 の自動ベクトル化で既に最適化されており、手動アンロール・チャンキングは 0.92x とオーバーヘッドを生むため棄却。 | スピードアップ 0.92x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h08_62bit_vector_modular_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h08_62bit_vector_modular_engine.py) |
 
 ---
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-07 実測生ログ
+### H-08 棄却生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-07: 2x2 Macro-Tile Transfer Operator Integration Benchmark       
+  EXPERIMENT H-08: 62-bit Vectorized SIMD Modular Addition Engine Benchmark   
 ================================================================================
 
-[Step 1] Ground Truth Exact Verification of 2x2 Macro-Tile DP (n = 1..6):
-  [PASS] n=1: a(1) =          2 | Macro Steps =  1 (vs  4, 4.00x step skip) -> 100% MATCH
-  [PASS] n=2: a(2) =         12 | Macro Steps =  4 (vs  9, 2.25x step skip) -> 100% MATCH
-  [PASS] n=3: a(3) =        184 | Macro Steps =  4 (vs 16, 4.00x step skip) -> 100% MATCH
-  [PASS] n=4: a(4) =       8512 | Macro Steps =  9 (vs 25, 2.78x step skip) -> 100% MATCH
-  [PASS] n=5: a(5) =    1262816 | Macro Steps =  9 (vs 36, 4.00x step skip) -> 100% MATCH
-  [PASS] n=6: a(6) =  575780564 | Macro Steps = 16 (vs 49, 3.06x step skip) -> 100% MATCH
+[Step 1] Exact Equivalence Verification (Scalar vs 4-Way vs 8-Way):
+  [PASS] 100% Exact Equivalence verified across all 62-bit SIMD lanes.
 
-[Step 2] Macro-Block Coarse-Graining Scaling for a(28):
-  Single-Vertex Grid Steps (n=28): 841 steps
-  2x2 Macro-Tile Steps (n=28):     225 steps (3.74x step reduction, 73.2% steps eliminated)
+[Step 2] Micro-Benchmark: 2,000,000 Modular Additions (Scalar vs 4-Way vs 8-Way):
+  Scalar 62-bit Mod-Add:     0.1895s (10.55 M ops/sec)
+  4-Way SIMD (AVX2):         0.2921s (6.85 M ops/sec) -> Speedup: 0.65x
+  8-Way SIMD (AVX-512):      0.2060s (9.71 M ops/sec) -> Speedup: 0.92x
+
+[Step 3] Multi-Prime CRT Exact Reconstitution with 62-bit Primes (n=1..5):
+  [PASS] n=1: a(1) =          2 reconstructed from 62-bit prime -> 100% MATCH
+  [PASS] n=2: a(2) =         12 reconstructed from 62-bit prime -> 100% MATCH
+  [PASS] n=3: a(3) =        184 reconstructed from 62-bit prime -> 100% MATCH
+  [PASS] n=4: a(4) =       8512 reconstructed from 62-bit prime -> 100% MATCH
+  [PASS] n=5: a(5) =    1262816 reconstructed from 62-bit prime -> 100% MATCH
 
 ================================================================================
-  DECISION: [ADOPTED] H-07 2x2 Macro-Tile Transfer Operator achieves 3.74x step skip across grid with 100% exact precision.
-  PERFORMANCE EFFECT: 格子走査ステップ数を 841 ステップ -> 225 ステップ (3.74x 削減) に圧縮。
+  DECISION: [PRUNED] Speedup (0.92x) below threshold (1.15x).
 ================================================================================
 ```

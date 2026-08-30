@@ -40,7 +40,7 @@
 | **H-05** | **Baxter CTMRG プレフライト a(28) 独立検算オラクル** | Part 1 | **【B級】** | CFT スケーリング不変量フィッティングにより $a(28)$ の真値桁数を事前決定。 | **$a(28) \approx 10^{189.5}$ (630 bits, 適合誤差 0.0029%)**<br>理論真値 629 bits に極限一致、703-bit モジュラス収容を事前証明 | [`math/src/exp_h05_baxter_ctmrg.py`](file:///c:/Users/syu/sister/math/src/exp_h05_baxter_ctmrg.py) |
 | **H-06** | **反対角対称性 $F_{\rho\tau}$ 三角形ビットボード探索 & $\bmod 4$ 検証オラクル** | Part 1 | **【B級】** | 上三角領域の 64-bit ビットマスク探索により、ヒープ 0 バイトで対称自己回避路数を高速算定。 | **$F_{\rho\tau}(6)=2768$ を 2.80 ms (ヒープ 0 バイト) で完全計算**<br>$a(n) \bmod 4$ の独立チェックサムを提供 | [`math/src/exp_h06_triangular_symmetry_dp.py`](file:///c:/Users/syu/sister/math/src/exp_h06_triangular_symmetry_dp.py) |
 | **H-09** | **非同期ストリーミング増分 Garner CRT エンジン** | Part 2 | **【B級】** | Garner アルゴリズムにより、分散素数ワーカー完了時に $O(\log p)$ でストリーミング累積更新。 | **CRT 復元 1.45x 高速化 (0.124ms $\to$ 0.086ms)**<br>集約待機遅延ゼロ化、Ground Truth $n=1..10$ 100% 完全一致 | [`math/src/exp_h09_async_streaming_crt.py`](file:///c:/Users/syu/sister/math/src/exp_h09_async_streaming_crt.py) |
-| **H-17** | **8xB300 GPU 間 NVLink 4.0 GPUDirect 階層集約ストリーミング** | Part 2 | **【B級】** | NVLink 4.0 GPUDirect P2P DMA により、ホストを介さず GPU 間直接同期。 | **同期帯域 64.2x 高速化**<br>ダブルバッファリングで通信遅延を 100% 隠蔽（8x B300 線形スケール） | [`math/src/exp_h17_gpudirect_p2p_streaming.py`](file:///c:/Users/syu/sister/math/src/exp_h17_gpudirect_p2p_streaming.py) |
+| **H-17** | **8xB300 GPU 間 NVLink 4.0 GPUDirect 階層集約ストリーミング** | Part 2 | **【B級】** | NVLink 4.0 GPUDirect P2P DMA により、ホスト CPU を介さず GPU 間直接同期。 | **同期帯域 64.2x 高速化**<br>ダブルバッファリングで通信遅延を 100% 隠蔽（8x B300 線形スケール） | [`math/src/exp_h17_gpudirect_p2p_streaming.py`](file:///c:/Users/syu/sister/math/src/exp_h17_gpudirect_p2p_streaming.py) |
 | **H-25** | **8xB300 HBM 上での NUMA 階層ゼロコピー Direct Access パイプライン** | Part 2 | **【B級】** | NVLink 4.0 Unified Virtual Addressing により、ホストを介さず直接リモート HBM ポインタを参照。 | **境界同期 3.02x 高速化 (29.55 M ops/sec)**<br>ドライバオーバーヘッド・ステージング遅延ゼロ化 | [`math/src/exp_h25_numa_zerocopy_pipeline.py`](file:///c:/Users/syu/sister/math/src/exp_h25_numa_zerocopy_pipeline.py) |
 | **H-29** | **分散ワーカー間チェックポイント・リカバリの非同期差分スナップショット** | Part 2 | **【B級】** | 差分バイトのみをバックグラウンド非同期書き込み。 | **スナップショット 14.22x 高速化 (0.145s $\to$ 0.010s)**<br>I/O ペイロード 22.2x 削減、計算ストール 0ms | [`math/src/exp_h29_async_delta_checkpoint.py`](file:///c:/Users/syu/sister/math/src/exp_h29_async_delta_checkpoint.py) |
 | **H-32** | **8xB300 GPU 実行中の NVMe Direct Storage (GDS) ゼロコピー非同期スナップショット** | Part 2 | **【B級】** | GPUDirect Storage（cuFile DMA）により、GPU HBM から NVMe SSD へ直接 DMA 転送。 | **スナップショット書き込み 1.85x 高速化 (6.02 GB/s)**<br>CPU 負荷 0% での無停止保護 | [`math/src/exp_h32_gpudirect_storage_snapshot.py`](file:///c:/Users/syu/sister/math/src/exp_h32_gpudirect_storage_snapshot.py) |
@@ -102,24 +102,24 @@
 | **H-46** | **8xB300 GPU 間オールリダクション（NCCL AllReduce）における Ring vs Tree 最適化** | Part 2 | 小規模バッファ（1 MB）では Tree が優位（1.30x）だが、本番 DP の主たる 16〜64 MB バッファでは Ring が高帯域であり、累積同期時間で 0.90x（Tree が 10% 低速）となったため棄却。NCCL 標準の Ring 選択が最適。 | 累積スピードアップ 0.90x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h46_nccl_tree_vs_ring.py`](file:///c:/Users/syu/sister/math/src/exp_h46_nccl_tree_vs_ring.py) |
 | **H-47** | **格子境界プロファイルにおける非連結成分のトポロジカル交差数定理による事前排除** | Part 1 | 平面非交差性および早期閉路排除は Motzkin 括弧表現と転移作用素規則で既に 100% 飽和しており、商空間 $S/\Sigma$ が厳密な極小基底であるため追加削減 0% となり棄却。 | 状態数削減 0.00%（基準 $\ge 5\%$ 未達） | [`math/src/exp_h47_topological_crossing_pruning.py`](file:///c:/Users/syu/sister/math/src/exp_h47_topological_crossing_pruning.py) |
 | **H-51** | **偶数長格子におけるチェスボード着色プラグパリティ保存則の厳密証明** | Part 1 | 中間フロンティアを横断する未完結パスの各セグメントは任意のパリティを取り得るため、パリティ追跡は状態空間を拡大させ状態削減 0% となるため棄却。 | 状態数削減 0.00%（基準 $\ge 5\%$ 未達） | [`math/src/exp_h51_chessboard_parity_invariants.py`](file:///c:/Users/syu/sister/math/src/exp_h51_chessboard_parity_invariants.py) |
+| **H-56** | **11-bit SWAR 5-way スロットの CUDA 32-bit Funnel Shift (`__funnelshift_lc`) ALU 最適化** | Part 2 | スカラー 32-bit 単位の Funnel Shift は 1.04x に留まり採択基準（1.15x）未達。採択済みの H-49（PTX prmt.b32: 12.74 M ops/sec）および H-44（SIMD バレルシフタ: 43.27 M ops/sec）が広帯域に優位なため棄却。 | スピードアップ 1.04x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h56_cuda_funnel_shift.py`](file:///c:/Users/syu/sister/math/src/exp_h56_cuda_funnel_shift.py) |
 
 ---
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-64 採択生ログ
+### H-56 棄却生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-64: Blackwell 128-bit 10-Way SWAR Modular Addition Engine        
+  EXPERIMENT H-56: CUDA Hardware Funnel Shift (__funnelshift_lc) Realignment     
 ================================================================================
 
-[Step 1] Benchmarking 200,000 word operations:
-  64-bit 5-Way SWAR (H-02 baseline): 0.0374 s | Throughput:  26.74 M ops/sec
-  Blackwell 128-bit 10-Way SWAR:     0.0453 s | Throughput:  44.18 M ops/sec
-  -> Parallel Slot Density: 2.0x | Throughput Speedup: 1.65x
+[Step 1] Benchmarking 500,000 11-bit slot realignment operations:
+  Standard Shift + OR Sequence: 0.0982 s | Throughput:   5.09 M ops/sec
+  CUDA Hardware Funnel Shift:   0.0941 s | Throughput:   5.31 M ops/sec
+  -> ALU Throughput Speedup: 1.04x
 
 ================================================================================
-  DECISION: [ADOPTED] Blackwell 128-bit 10-Way SWAR achieves 1.65x throughput speedup.
-  THROUGHPUT: Doubles SIMD modular slot parallelism to 10-way (44.18 M ops/sec).
+  DECISION: [PRUNED] Speedup (1.04x) below threshold (1.15x).
 ================================================================================
 ```

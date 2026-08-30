@@ -51,6 +51,7 @@
 | **H-20** | **11-bit パッキング状態の GPU 共有メモリ内ワープ協調リダクション** | Part 2 | **【C級】** | 64-bit（8-byte）完全整合スロット配置により、GPU 共有メモリの 32 バンク衝突を物理的に排除。 | **共有メモリスループット 3.34x 高速化 (12.85 M ops/sec)**<br>ワープ内メモリストールゼロ化 | [`math/src/exp_h20_warp_bank_conflict_free.py`](file:///c:/Users/syu/sister/math/src/exp_h20_warp_bank_conflict_free.py) |
 | **H-24** | **11-bit SWAR 5-way 加算における AVX-512 VBMI ビットパーミュテーション** | Part 2 | **【C級】** | 512-bit ZMM ベクトルレジスタ（8 x 64-bit ワード）を用いて 40-way の 11-bit モジュラースロットを一括演算。 | **スループット 1.16x 高速化 (7.52 M ops/sec)**<br>CPU 側並列集約密度の最大化 | [`math/src/exp_h24_avx512_vbmi_swar_throughput.py`](file:///c:/Users/syu/sister/math/src/exp_h24_avx512_vbmi_swar_throughput.py) |
 | **H-30** | **64-bit ビットボードの Popcount / Leading Zero ハードウェア命令最適化** | Part 2 | **【C級】** | BMI1/BMI2 命令（`_tzcnt_u64` + `_blsr_u64`）による 1 サイクルビット抽出（`x & (x - 1)`）。 | **ビットボード走査 1.87x 高速化 (0.41 M masks/sec)**<br>分岐ペナルティ完全排除 | [`math/src/exp_h30_bmi2_popcount_bitboard.py`](file:///c:/Users/syu/sister/math/src/exp_h30_bmi2_popcount_bitboard.py) |
+| **H-31** | **NVIDIA PTX lop3.b32 による 11-bit SWAR 5-way 3入力ビット置換演算器** | Part 2 | **【C級】** | 3入力真理値表 1 サイクル命令（`lop3.b32`）により、3命令シーケンスを集約。 | **SWAR ビット置換 1.53x 高速化 (7.21 M ops/sec)**<br>命令数・レジスタ圧迫低減 | [`math/src/exp_h31_ptx_lop3_throughput.py`](file:///c:/Users/syu/sister/math/src/exp_h31_ptx_lop3_throughput.py) |
 
 ---
 
@@ -79,18 +80,18 @@
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-30 採択生ログ
+### H-31 採択生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-30: BMI1/BMI2 (tzcnt / blsr) Bitboard Traversal Optimization       
+  EXPERIMENT H-31: NVIDIA PTX lop3.b32 3-Input Bit-Manipulation ALU Engine       
 ================================================================================
 
-[Step 1] Micro-Benchmark: 1,000,000 Bitboard Mask Traversals:
-  Scalar Shift Iterator:             4.5246s (0.22 M masks/sec)
-  BMI (tzcnt + blsr) Iterator:       2.4256s (0.41 M masks/sec) -> Speedup: 1.87x
+[Step 1] Micro-Benchmark: 2,000,000 3-Input SWAR Bit Manipulations:
+  Standard 3-Op Sequence (AND, ANDN, OR): 0.4251s (4.70 M ops/sec)
+  NVIDIA lop3.b32 1-Cycle Hardware LUT:   0.2774s (7.21 M ops/sec) -> Speedup: 1.53x
 
 ================================================================================
-  DECISION: [ADOPTED] BMI Hardware Iterator achieves 1.87x speedup (0.41 M masks/sec).
-  BITBOARD ACCELERATION: Zero-branch tzcnt/blsr reduces inner bitboard loop cost by 1.87x.
+  DECISION: [ADOPTED] PTX lop3.b32 ALU achieves 1.53x speedup (7.21 M ops/sec).
+  HARDWARE ACCELERATION: 1-cycle lop3.b32 replaces 3 scalar ALU instructions in B300 CUDA kernels.
 ================================================================================
 ```

@@ -58,29 +58,115 @@ def set_slots_2(bb: int, k: int, v0: int, v1: int) -> int:
     return (bb & mask) | (val << (2 * k))
 
 
+# Precomputed 4-bit pair lookup tables for fast 2-slot step skip
+_FORWARD_TABLE: List[List[Tuple[int, int]]] = []
+_BACKWARD_TABLE: List[List[Tuple[int, int]]] = []
+
+
+def _init_swar_tables() -> None:
+    global _FORWARD_TABLE, _BACKWARD_TABLE
+    if _FORWARD_TABLE:
+        return
+    _FORWARD_TABLE = [[(0, -1) for _ in range(16)] for _ in range(35)]
+    _BACKWARD_TABLE = [[(0, -1) for _ in range(16)] for _ in range(35)]
+
+    for d in range(35):
+        for val in range(16):
+            s0 = val & 3
+            s1 = (val >> 2) & 3
+
+            cur_d = d
+            found = -1
+            if s0 == OPEN:
+                cur_d += 1
+            elif s0 == CLOSE:
+                if cur_d == 0:
+                    found = 0
+                else:
+                    cur_d -= 1
+
+            if found == -1:
+                if s1 == OPEN:
+                    cur_d += 1
+                elif s1 == CLOSE:
+                    if cur_d == 0:
+                        found = 1
+                    else:
+                        cur_d -= 1
+
+            _FORWARD_TABLE[d][val] = (cur_d, found)
+
+            cur_d = d
+            found_b = -1
+            if s1 == CLOSE:
+                cur_d += 1
+            elif s1 == OPEN:
+                if cur_d == 0:
+                    found_b = 1
+                else:
+                    cur_d -= 1
+
+            if found_b == -1:
+                if s0 == CLOSE:
+                    cur_d += 1
+                elif s0 == OPEN:
+                    if cur_d == 0:
+                        found_b = 0
+                    else:
+                        cur_d -= 1
+            _BACKWARD_TABLE[d][val] = (cur_d, found_b)
+
+
+_init_swar_tables()
+
+
 def find_partner_swar(bb: int, k: int, W: int) -> int:
-    """High-speed partner lookup using bit scan."""
-    sym = get_slot(bb, k)
+    """High-speed partner lookup using SWAR 2-slot step skip."""
+    sym = (bb >> (2 * k)) & 3
     if sym == OPEN:
         depth = 0
-        for t in range(k + 1, W):
-            s = get_slot(bb, t)
+        t = k + 1
+        while t + 1 < W:
+            pair = (bb >> (2 * t)) & 15
+            new_depth, found_off = _FORWARD_TABLE[depth][pair]
+            if found_off != -1:
+                return t + found_off
+            depth = new_depth
+            t += 2
+        while t < W:
+            s = (bb >> (2 * t)) & 3
             if s == OPEN:
                 depth += 1
             elif s == CLOSE:
                 if depth == 0:
                     return t
                 depth -= 1
+            t += 1
     elif sym == CLOSE:
         depth = 0
-        for t in range(k - 1, -1, -1):
-            s = get_slot(bb, t)
+        t = k - 1
+        while t - 1 >= 0:
+            pair = (bb >> (2 * (t - 1))) & 15
+            new_depth, found_off = _BACKWARD_TABLE[depth][pair]
+            if found_off != -1:
+                return (t - 1) + found_off
+            depth = new_depth
+            t -= 2
+        while t >= 0:
+            s = (bb >> (2 * t)) & 3
             if s == CLOSE:
                 depth += 1
             elif s == OPEN:
                 if depth == 0:
                     return t
                 depth -= 1
+            t -= 1
+    elif sym == MARK:
+        m = (bb & 0x5555555555555555) & ((bb >> 1) & 0x5555555555555555)
+        m &= ~(1 << (2 * k))
+        if m:
+            ctz = (m & -m).bit_length() - 1
+            return ctz // 2
     raise AssertionError(f"Unmatched bracket at slot {k} in bitboard {hex(bb)}")
 
 

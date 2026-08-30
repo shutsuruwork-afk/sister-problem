@@ -1,7 +1,9 @@
-"""Kaggle Dual-T4 Multi-GPU Engine for A007764 (n=28).
+"""Kaggle-ready native multi-process engine for A007764 (n=28).
 
-Standalone Python script that matches the Kaggle Notebook implementation.
-Can be executed directly on Kaggle with 2x T4 GPUs or tested locally on CPU/CUDA.
+Standalone Python script that can be pasted into or executed from a Kaggle
+Notebook.  The DP kernel is native C; multiple CRT primes are evaluated in
+parallel on the Kaggle CPU workers.  CUDA is reported when available, but the
+current kernel does not claim GPU acceleration.
 """
 
 from __future__ import annotations
@@ -10,6 +12,7 @@ import ctypes
 import math
 import multiprocessing
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -197,7 +200,7 @@ u64 compute_an_mod_p(int n, u64 p, size_t init_cap_log2) {
                         tab_add(nxt, base, v, p);
                 } else if (L == EMPTY && U == EMPTY) {
                     tab_add(nxt, base, v, p);
-                    if (can_down and can_right)
+                    if (can_down && can_right)
                         tab_add(nxt, base | ((u64)OPEN << (2 * j)) | ((u64)CLOSE << (2 * j + 2)), v, p);
                 } else if (U == EMPTY) {
                     if (can_down)  tab_add(nxt, base | ((u64)L << (2 * j)), v, p);
@@ -246,10 +249,20 @@ u64 compute_an_mod_p(int n, u64 p, size_t init_cap_log2) {
 """
 
 
-def compile_c_engine() -> ctypes.CDLL:
-    """Compiles the optimized C bitboard DP kernel into a shared library."""
+def compile_c_engine() -> ctypes.CDLL | None:
+    """Compile the optimized C bitboard DP kernel into an isolated shared library.
+
+    A unique build directory is required because Kaggle workers compile/load the
+    engine concurrently.  Sharing one /tmp/dp_engine.c and one .so causes
+    occasional truncated libraries and loader errors.
+    """
     lib_name = "libdp_engine.so" if sys.platform != "win32" else "libdp_engine.dll"
-    tmp_dir = tempfile.gettempdir()
+    compiler = shutil.which("gcc") or shutil.which("cc") or shutil.which("clang")
+    if compiler is None:
+        print("[Warning] gcc/cc/clang was not found; using the Python fallback engine.")
+        return None
+
+    tmp_dir = tempfile.mkdtemp(prefix=f"a007764_dp_{os.getpid()}_")
     c_path = os.path.join(tmp_dir, "dp_engine.c")
     lib_path = os.path.join(tmp_dir, lib_name)
 
@@ -257,20 +270,125 @@ def compile_c_engine() -> ctypes.CDLL:
         f.write(C_DP_SOURCE)
 
     if sys.platform == "win32":
-        cmd = ["gcc", "-O3", "-shared", "-o", lib_path, c_path]
+        cmd = [compiler, "-O3", "-shared", "-o", lib_path, c_path]
     else:
-        cmd = ["gcc", "-O3", "-fPIC", "-shared", "-o", lib_path, c_path]
+        cmd = [compiler, "-O3", "-fPIC", "-shared", "-o", lib_path, c_path]
 
     try:
         subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     except Exception as e:
-        print(f"[Warning] gcc compilation failed: {e}. Falling back to Pure Python / Bitboard Engine.")
+        print(f"[Warning] Native compilation failed: {e}. Using the Python fallback engine.")
         return None
 
     dll = ctypes.CDLL(lib_path)
     dll.compute_an_mod_p.argtypes = [ctypes.c_int, ctypes.c_uint64, ctypes.c_size_t]
     dll.compute_an_mod_p.restype = ctypes.c_uint64
     return dll
+
+
+def _get_slot(bb: int, k: int) -> int:
+    return (bb >> (2 * k)) & 3
+
+
+def _set_slots_2(bb: int, k: int, v0: int, v1: int) -> int:
+    mask = ~(15 << (2 * k)) & 0xFFFFFFFFFFFFFFFF
+    return (bb & mask) | ((v0 & 3) << (2 * k)) | ((v1 & 3) << (2 * k + 2))
+
+
+def _find_partner(bb: int, k: int, width: int) -> int:
+    symbol = _get_slot(bb, k)
+    depth = 0
+    if symbol == 1:
+        for t in range(k + 1, width):
+            other = _get_slot(bb, t)
+            if other == 1:
+                depth += 1
+            elif other == 2:
+                if depth == 0:
+                    return t
+                depth -= 1
+    elif symbol == 2:
+        for t in range(k - 1, -1, -1):
+            other = _get_slot(bb, t)
+            if other == 2:
+                depth += 1
+            elif other == 1:
+                if depth == 0:
+                    return t
+                depth -= 1
+    raise AssertionError(f"Unmatched bracket at slot {k} in bitboard {bb:#x}")
+
+
+def _run_python_dp(n: int, p: int) -> int:
+    """Small-instance fallback used only when a C compiler is unavailable."""
+    C = n + 1
+    W = C + 1
+    layer = {0: 1}
+    for i in range(C):
+        for j in range(C):
+            is_start = i == 0 and j == 0
+            is_end = i == C - 1 and j == C - 1
+            can_down = i < C - 1
+            can_right = j < C - 1
+            nxt = {}
+
+            def add(bb: int, value: int) -> None:
+                nxt[bb] = (nxt.get(bb, 0) + value) % p
+
+            for bb, value in layer.items():
+                pair = (bb >> (2 * j)) & 15
+                left, up = pair & 3, (pair >> 2) & 3
+
+                def emit(down: int, right: int) -> None:
+                    if down and not can_down:
+                        return
+                    if right and not can_right:
+                        return
+                    add(_set_slots_2(bb, j, down, right), value)
+
+                if is_start:
+                    emit(3, 0)
+                    emit(0, 3)
+                elif is_end:
+                    if (left == 3) != (up == 3) and (left == 0 or up == 0):
+                        add(_set_slots_2(bb, j, 0, 0), value)
+                elif left == 0 and up == 0:
+                    emit(0, 0)
+                    if can_down and can_right:
+                        emit(1, 2)
+                elif up == 0:
+                    emit(left, 0)
+                    emit(0, left)
+                elif left == 0:
+                    emit(up, 0)
+                    emit(0, up)
+                elif left == 1 and up == 2:
+                    continue
+                elif left == 3:
+                    q = _find_partner(bb, j + 1, W)
+                    nb = _set_slots_2(bb, j, 0, 0)
+                    add((nb & ~(3 << (2 * q))) | (3 << (2 * q)), value)
+                elif up == 3:
+                    q = _find_partner(bb, j, W)
+                    nb = _set_slots_2(bb, j, 0, 0)
+                    add((nb & ~(3 << (2 * q))) | (3 << (2 * q)), value)
+                else:
+                    p1 = _find_partner(bb, j, W)
+                    p2 = _find_partner(bb, j + 1, W)
+                    lo, hi = sorted((p1, p2))
+                    nb = _set_slots_2(bb, j, 0, 0)
+                    nb = (nb & ~(3 << (2 * lo))) | (1 << (2 * lo))
+                    nb = (nb & ~(3 << (2 * hi))) | (2 << (2 * hi))
+                    add(nb, value)
+            layer = nxt
+
+        shifted = {}
+        for bb, value in layer.items():
+            if _get_slot(bb, C) == 0:
+                nb = (bb & ((1 << (2 * C)) - 1)) << 2
+                shifted[nb] = (shifted.get(nb, 0) + value) % p
+        layer = shifted
+    return layer.get(0, 0)
 
 
 def extended_gcd(a: int, b: int) -> Tuple[int, int, int]:
@@ -295,23 +413,33 @@ def crt_reconstruct(residues: List[int], primes: List[int]) -> Tuple[int, int]:
     return total, N
 
 
+_WORKER_DLL: ctypes.CDLL | None = None
+
+
+def _init_worker() -> None:
+    global _WORKER_DLL
+    _WORKER_DLL = compile_c_engine()
+
+
 def _worker_task(n: int, p: int, init_cap_log2: int) -> Tuple[int, int, float]:
     """Worker task executing bitboard DP modulo p."""
     t0 = time.time()
-    dll = compile_c_engine()
+    dll = _WORKER_DLL
     if dll:
         ans = dll.compute_an_mod_p(n, p, init_cap_log2)
     else:
-        from bitboard_engine import run_bitboard_dp
-        ans = run_bitboard_dp(n, p)
+        if n > 14:
+            raise RuntimeError("A native C compiler is required for n > 14 on Kaggle.")
+        ans = _run_python_dp(n, p)
     elapsed = time.time() - t0
     return p, ans, elapsed
 
 
-def solve_a28_parallel(n: int, max_workers: int = 4) -> Tuple[int, float, List[Tuple[int, int, float]]]:
-    """Solves exact a(n) using multi-process / multi-GPU CRT parallelization."""
-    # Estimated bits needed for a(n): a(28) is ~240 bits
-    est_bits = int(n * 8.5) + 30
+def solve_a28_parallel(n: int, max_workers: int | None = None) -> Tuple[int, float, List[Tuple[int, int, float]]]:
+    """Solve exact a(n) with independent CRT-prime CPU workers."""
+    # Five 62-bit primes provide a conservative ~310-bit working modulus for n=28.
+    # For smaller verification runs, select only the primes needed by the estimate.
+    est_bits = max(64, int(n * 8.5) + 30)
     primes_used: List[int] = []
     prod = 1
     for p in CRT_PRIMES_62BIT:
@@ -326,7 +454,13 @@ def solve_a28_parallel(n: int, max_workers: int = 4) -> Tuple[int, float, List[T
     results: List[Tuple[int, int, float]] = []
 
     t0 = time.time()
-    with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
+    if max_workers is None:
+        max_workers = min(len(primes_used), os.cpu_count() or 1)
+    max_workers = max(1, min(max_workers, len(primes_used)))
+    with concurrent.futures.ProcessPoolExecutor(
+        max_workers=max_workers,
+        initializer=_init_worker,
+    ) as executor:
         futures = [executor.submit(_worker_task, w[0], w[1], w[2]) for w in work_items]
         for f in concurrent.futures.as_completed(futures):
             res = f.result()
@@ -345,19 +479,18 @@ def solve_a28_parallel(n: int, max_workers: int = 4) -> Tuple[int, float, List[T
 if __name__ == "__main__":
     multiprocessing.freeze_support()
     print("=" * 80)
-    print("      KAGGLE 2x T4 MULTI-GPU & MULTI-CORE ENGINE FOR A007764 (n=28)     ")
+    print("      KAGGLE NATIVE MULTI-CORE ENGINE FOR A007764 (n=28)     ")
     print("=" * 80)
 
     # 1. Verification Suite (n = 1..6)
     print("\n[Step 1] Running 5-Tier Verification Baseline against OEIS Ground Truth...")
     dll = compile_c_engine()
-    from bitboard_engine import run_bitboard_dp
     for tn in range(1, 7):
         p = 4294967291
         if dll:
             ans = dll.compute_an_mod_p(tn, p, 10)
         else:
-            ans = run_bitboard_dp(tn, p)
+            ans = _run_python_dp(tn, p)
         expected = KNOWN_A007764[tn] % p
         assert ans == expected, f"Verification failed at n={tn}: {ans} != {expected}"
         print(f"  [PASS] n = {tn:2d}: a({tn}) = {KNOWN_A007764[tn]:>12d} -> 100% MATCH")
@@ -368,4 +501,4 @@ if __name__ == "__main__":
         assert val == KNOWN_A007764[tn], f"CRT Mismatch at n={tn}: {val} != {KNOWN_A007764[tn]}"
         print(f"  [PASS] a({tn:2d}) = {val:>20d} (in {elap:.3f}s) -> EXACT OEIS GROUND TRUTH")
 
-    print("\n[Step 3] Ready for Kaggle Dual T4 Execution for n = 28!")
+    print("\n[Step 3] Ready for Kaggle execution for n = 28!")

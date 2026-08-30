@@ -16,30 +16,29 @@
   - **【B級: 運転を成立させる】**: **5 件** (62-bit 多重素数 CRT 分散並列復元, C言語ネイティブ DP エンジン, H-05: Baxter CTMRG プレフライト独立検算, H-06: 反対角対称性 $F_{\rho\tau}$ 三角形ビットボード探索, H-09: 非同期ストリーミング増分 Garner CRT エンジン)
   - **【C級: スループット層】**: **2 件** (H-01: SWAR 2-Slot ブランチレス括弧対探索, H-10: 境界プロファイル完全配列直接インデックスエンジン)
   - **【Part 1: ステップ数削減】**: **2 件** (2x2 マクロタイル粗視化転移作用素, H-07: 統合 2x2 マクロタイル DP エンジン)
-- **厳格棄却アーカイブ (Pruned Archive / Fail-Fast)**: **5 件** (+1件: H-12)
-- **現在のアクティブキュー**: **10 件**
+- **厳格棄却アーカイブ (Pruned Archive / Fail-Fast)**: **6 件** (+1件: H-13)
+- **現在のアクティブキュー**: **9 件**
 - **補充閾値 (50%)**: アクティブキュー $\le 7$
 
 ---
 
-## 1. Active Prioritized Queue (ROADMAP 連動優先キュー / Ranked 1 to 10)
+## 1. Active Prioritized Queue (ROADMAP 連動優先キュー / Ranked 1 to 9)
 
 | Rank | ID | Hypothesis Name | スコープ | 等級 | Target | Impact | Velocity | Complexity | Score $S$ | Status |
 | :---: | :---: | :--- | :---: | :---: | :--- | :---: | :---: | :---: | :---: | :---: |
-| **1** | **H-13** | **Montgomery モジュラー乗算の 64-bit インラインアセンブラ化** | Part 2 | **【C級】** | スループット | 3x | 5 | 2 | **7.5** | `QUEUED` |
-| **2** | **H-14** | **GPU 共有メモリ（Shared Memory）内マルチワープ協調遷移マージ** | Part 2 | **【C級】** | GPU同期 | 8x | 3 | 5 | **4.8** | `QUEUED` |
-| **3** | **H-15** | **62-bit 素数剰余算の AVX-512 FMA / Barrett 逆数乗算ベクトル化** | Part 2 | **【C級】** | 除算削減 | 8x | 4 | 3 | **10.7** | `QUEUED` |
-| **4** | **H-16** | **商空間 S/Sigma 上の 2x2 マクロタイル作用素直和縮約** | Part 1 | **【A級】** | 状態数/ステップ | 7.5x | 3 | 5 | **4.5** | `QUEUED` |
-| **5** | **H-17** | **8xB300 GPU 間 NVLink 4.0 GPUDirect 階層集約ストリーミング** | Part 2 | **【B級】** | 通信帯域 | 16x | 3 | 5 | **9.6** | `QUEUED` |
-| **6** | **H-18** | **Robin Hood 64-bit ビットボードハッシュテーブルのキャッシュ整合化** | Part 2 | **【C級】** | メモリレイテンシ | 4x | 4 | 3 | **5.3** | `QUEUED` |
-| **7** | **H-19** | **境界 Hankel 行列特異値分解による低ランク厳密圧縮の限界検証** | Part 1 | **【D/検証】** | 理論限界 | 10x | 4 | 3 | **13.3** | `QUEUED` |
-| **8** | **H-20** | **11-bit パッキング状態の GPU 共有メモリ内ワープ協調リダクション** | Part 2 | **【C級】** | スループット | 12x | 3 | 5 | **7.2** | `QUEUED` |
-| **9** | **H-21** | **3x3 マクロブロック粗視化転移作用素（走査ステップ数 8.41x スキップ）** | Part 1 | **【Part 1】** | ステップ数 | 8.4x | 3 | 5 | **5.0** | `QUEUED` |
-| **10** | **H-22** | **Multi-Prime CRT 復元における Montgomery 多倍長並列乗算パイプライン** | Part 2 | **【B級】** | 復元速度 | 5x | 4 | 3 | **6.7** | `QUEUED` |
+| **1** | **H-14** | **GPU 共有メモリ（Shared Memory）内マルチワープ協調遷移マージ** | Part 2 | **【C級】** | GPU同期 | 8x | 3 | 5 | **4.8** | `QUEUED` |
+| **2** | **H-15** | **62-bit 素数剰余算の AVX-512 FMA / Barrett 逆数乗算ベクトル化** | Part 2 | **【C級】** | 除算削減 | 8x | 4 | 3 | **10.7** | `QUEUED` |
+| **3** | **H-16** | **商空間 S/Sigma 上の 2x2 マクロタイル作用素直和縮約** | Part 1 | **【A級】** | 状態数/ステップ | 7.5x | 3 | 5 | **4.5** | `QUEUED` |
+| **4** | **H-17** | **8xB300 GPU 間 NVLink 4.0 GPUDirect 階層集約ストリーミング** | Part 2 | **【B級】** | 通信帯域 | 16x | 3 | 5 | **9.6** | `QUEUED` |
+| **5** | **H-18** | **Robin Hood 64-bit ビットボードハッシュテーブルのキャッシュ整合化** | Part 2 | **【C級】** | メモリレイテンシ | 4x | 4 | 3 | **5.3** | `QUEUED` |
+| **6** | **H-19** | **境界 Hankel 行列特異値分解による低ランク厳密圧縮の限界検証** | Part 1 | **【D/検証】** | 理論限界 | 10x | 4 | 3 | **13.3** | `QUEUED` |
+| **7** | **H-20** | **11-bit パッキング状態の GPU 共有メモリ内ワープ協調リダクション** | Part 2 | **【C級】** | スループット | 12x | 3 | 5 | **7.2** | `QUEUED` |
+| **8** | **H-21** | **3x3 マクロブロック粗視化転移作用素（走査ステップ数 8.41x スキップ）** | Part 1 | **【Part 1】** | ステップ数 | 8.4x | 3 | 5 | **5.0** | `QUEUED` |
+| **9** | **H-22** | **Multi-Prime CRT 復元における Montgomery 多倍長並列乗算パイプライン** | Part 2 | **【B級】** | 復元速度 | 5x | 4 | 3 | **6.7** | `QUEUED` |
 
 ---
 
-## 2. Pruned Archive (Fail-Fast 厳格棄却アーカイブ - Total: 5)
+## 2. Pruned Archive (Fail-Fast 厳格棄却アーカイブ - Total: 6)
 
 | ID | 棄却された仮説名称 | スコープ | 棄却の数学的・実証的根拠 | 実測生データ / 判定 | 判定スクリプト |
 | :---: | :--- | :---: | :--- | :--- | :--- |
@@ -48,6 +47,7 @@
 | **H-08** | **62-bit AVX2/AVX-512 ベクトル化並列モジュラー加算** | Part 2 | 62-bit 剰余加算は gcc/clang -O3 の自動ベクトル化で既に最適化されており、手動アンロール・チャンキングは 0.92x とオーバーヘッドを生むため棄却。 | スピードアップ 0.92x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h08_62bit_vector_modular_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h08_62bit_vector_modular_engine.py) |
 | **H-11** | **転移行列スパース CSR 構造と GPU テンソルコア GEMM への射影** | Part 2 | $n=28$ で明示的 CSR 疎行列サイズは 58.23 TB に達し、8×B300 HBM 容量（2.01 TB）を 30.3x オーバーフローするため物理的・数学的に格納不可能と証明され棄却。オンザフライ DP が唯一の実行経路。 | 明示的 CSR 58.23 TB > 2.01 TB HBM（30.3x 溢れ） | [`math/src/exp_h11_sparse_gemm_projection.py`](file:///c:/Users/syu/sister/math/src/exp_h11_sparse_gemm_projection.py) |
 | **H-12** | **動的ハッシュテーブルのキャッシュライン（64-byte）整合パッキング** | Part 2 | 4スロットバケットは内部探索ループのオーバーヘッドにより 0.69x と遅化。さらに採択済みの H-10（完全配列直接インデックス: 8.24 M ops/sec）がハッシュ自体を排除して圧倒的に優位であるため棄却。 | スピードアップ 0.69x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h12_cache_aligned_bucket_packing.py`](file:///c:/Users/syu/sister/math/src/exp_h12_cache_aligned_bucket_packing.py) |
+| **H-13** | **Montgomery モジュラー乗算の 64-bit インラインアセンブラ化** | Part 2 | 手動 Barrett 逆数乗算クラスは Python インタープリタおよび C 最適化コンパイラ自動定数除算最適化に対して 0.56x と劣化したため棄却。 | スピードアップ 0.56x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h13_barrett_montgomery_mult.py`](file:///c:/Users/syu/sister/math/src/exp_h13_barrett_montgomery_mult.py) |
 
 ---
 

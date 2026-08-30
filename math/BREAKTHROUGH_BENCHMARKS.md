@@ -96,23 +96,33 @@
 | **H-45** | **格子グラフの 2部グラフ性（Bipartite Vertex Coloring）を用いた奇数長閉路排除** | Part 1 | 頂点パリティ交互律は単一頂点フロンティア DP の各ステップ $(r, c)$ の幾何学的進行によって既に 100% 暗黙的に完全に保存（Algebraic Tautology）されており、追加フィルタによる状態数削減は 0%（削減数 0）のため棄却。 | 状態数削減 0.00%（基準 $\ge 5\%$ 未達） | [`math/src/exp_h45_bipartite_coloring_pruning.py`](file:///c:/Users/syu/sister/math/src/exp_h45_bipartite_coloring_pruning.py) |
 | **H-46** | **8xB300 GPU 間オールリダクション（NCCL AllReduce）における Ring vs Tree 最適化** | Part 2 | 小規模バッファ（1 MB）では Tree が優位（1.30x）だが、本番 DP の主たる 16〜64 MB バッファでは Ring が高帯域であり、累積同期時間で 0.90x（Tree が 10% 低速）となったため棄却。NCCL 標準の Ring 選択が最適。 | 累積スピードアップ 0.90x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h46_nccl_tree_vs_ring.py`](file:///c:/Users/syu/sister/math/src/exp_h46_nccl_tree_vs_ring.py) |
 | **H-47** | **格子境界プロファイルにおける非連結成分のトポロジカル交差数定理による事前排除** | Part 1 | 平面非交差性および早期閉路排除は Motzkin 括弧表現と転移作用素規則で既に 100% 飽和しており、商空間 $S/\Sigma$ が厳密な極小基底であるため追加削減 0% となり棄却。 | 状態数削減 0.00%（基準 $\ge 5\%$ 未達） | [`math/src/exp_h47_topological_crossing_pruning.py`](file:///c:/Users/syu/sister/math/src/exp_h47_topological_crossing_pruning.py) |
+| **H-51** | **偶数長格子におけるチェスボード着色プラグパリティ保存則の厳密証明** | Part 1 | 中間フロンティアを横断する未完結パスの各セグメントは任意のパリティを取り得るため、パリティ追跡は状態空間を拡大させ状態削減 0% となるため棄却。 | 状態数削減 0.00%（基準 $\ge 5\%$ 未達） | [`math/src/exp_h51_chessboard_parity_invariants.py`](file:///c:/Users/syu/sister/math/src/exp_h51_chessboard_parity_invariants.py) |
 
 ---
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-50 採択生ログ
+### H-51 棄却生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-50: AVX-512 IFMA 52-bit Integer FMA for CRT Reconstruction       
+  EXPERIMENT H-51: Chessboard Coloring Plug Parity Invariant Analysis          
 ================================================================================
 
-[Step 1] Multi-Precision CRT Reconstruction of 630-bit integer (10,000 iterations):
-  Scalar Multi-Precision Garner:     0.3421 s |  29232.4 recons/sec
-  AVX-512 IFMA Vectorized Garner:    0.1329 s |  75231.3 recons/sec -> Speedup: 2.57x
+[Step 1] State Dimension on Even Grids (n=2, 4):
+  n=2 (Even Grid): Valid Final States:    4 | Intermediate States:      9
+  n=4 (Even Grid): Valid Final States:   20 | Intermediate States:    217
+
+[Step 2] Bipartite Parity Conservation Theorem Proof:
+  * In a square grid, every step connects adjacent vertices of opposite colors (B <-> W).
+  * A path of length L starting at B has endpoints at B (if L is even) or W (if L is odd).
+  * For n even, destination (n, n) is Black, hence all complete paths have even length L.
+  * However, intermediate frontier cuts can intersect paths of any parity as long as
+    the total boundary pairing is valid.
+  * Tracking individual path lengths adds an extraneous parameter to the state,
+    increasing rather than decreasing state dimensions.
 
 ================================================================================
-  DECISION: [ADOPTED] AVX-512 IFMA Multi-Limb Vectorization achieves 2.57x speedup.
-  RECONSTRUCTION ACCELERATION: Multi-precision CRT reconstruction throughput boosted by 2.57x.
+  DECISION: [PRUNED] Chessboard bipartite parity does not reduce frontier state dimension.
+  MATHEMATICAL INSIGHT: Boundary Motzkin rank is already minimal and unconstrained by path length.
 ================================================================================
 ```

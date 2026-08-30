@@ -61,31 +61,24 @@
 | **H-13** | **Montgomery モジュラー乗算の 64-bit インラインアセンブラ化** | Part 2 | 手動 Barrett 逆数乗算クラスは Python インタープリタおよび C 最適化コンパイラ自動定数除算最適化に対して 0.56x と劣化したため棄却。 | スピードアップ 0.56x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h13_barrett_montgomery_mult.py`](file:///c:/Users/syu/sister/math/src/exp_h13_barrett_montgomery_mult.py) |
 | **H-14** | **GPU 共有メモリ（Shared Memory）内マルチワープ協調遷移マージ** | Part 2 | 局所辞書生成と集約オーバーヘッドにより 0.43x と低下。採択済みの H-10 配列直接インデックスにより競合自体が解消されるため棄却。 | スピードアップ 0.43x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h14_warp_cooperative_aggregation.py`](file:///c:/Users/syu/sister/math/src/exp_h14_warp_cooperative_aggregation.py) |
 | **H-15** | **62-bit 素数剰余算の AVX-512 FMA / Barrett 逆数乗算ベクトル化** | Part 2 | FP64 へのキャスト・逆数乗算・INT 再キャストのオーバーヘッドにより 0.31x と低下。11-bit SWAR 5-way（H-02）整数演算が圧倒的に優位なため棄却。 | スピードアップ 0.31x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h15_fma_reciprocal_reduction.py`](file:///c:/Users/syu/sister/math/src/exp_h15_fma_reciprocal_reduction.py) |
+| **H-18** | **Robin Hood 64-bit ビットボードハッシュテーブルのキャッシュ整合化** | Part 2 | Robin Hood ハッシュはスワップと PSL 追跡オーバーヘッドにより 2.18 M ops/sec（H-10 直接配列比 3.09x 遅い）となり、完全配列直接インデックスが圧倒的に優位なため棄却。 | 直接配列比 3.09x 低速（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h18_robin_hood_vs_direct_array.py`](file:///c:/Users/syu/sister/math/src/exp_h18_robin_hood_vs_direct_array.py) |
 
 ---
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-17 採択生ログ
+### H-18 棄却生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-17: 8x B300 NVLink GPUDirect P2P Asynchronous Streaming Engine  
+  EXPERIMENT H-18: Robin Hood Hash Table vs Direct Flat Array Benchmark         
 ================================================================================
 
-[Step 1] Multi-GPU Synchronization Latency across Frontier Buffer Sizes:
-  Buffer (MB) |   Host PCIe 5.0   |   NVLink 4.0 P2P  |  Bandwidth Speedup | Overlap Margin
-  -------------------------------------------------------------------------------------
-       500.0 |      244.461 ms   |        3.808 ms   |             64.2x    |         5.3x (Hides in kernel)
-      1024.0 |      500.320 ms   |        7.788 ms   |             64.2x    |         2.6x (Hides in kernel)
-
-[Step 2] Full Production Multi-GPU Synchronization for n=28:
-  n=28 Peak Slice Buffer:         512.0 MB
-  Host Staged Sync Latency:       250.32 ms (Stalls DP computation by 68%)
-  NVLink P2P Sync Latency:        3.90 ms (100% Hidden behind computation)
-  P2P Inter-GPU Speedup:          64.2x Bandwidth Acceleration
+[Step 1] Micro-Benchmark: 2,000,000 Key-Value Insertions & Accumulations:
+  Direct Flat Array (H-10 Baseline): 0.2963s (6.75 M ops/sec)
+  Robin Hood Hash Table (H-18):      0.9168s (2.18 M ops/sec) -> Direct Speedup: 3.09x
 
 ================================================================================
-  DECISION: [ADOPTED] H-17 GPUDirect NVLink 4.0 Streaming achieves 64.2x bandwidth acceleration.
-  MULTI-GPU VIABILITY: Eliminates communication bottlenecks, enabling linear 8x B300 scaling.
+  DECISION: [PRUNED] Direct Flat Array is 3.09x faster than Robin Hood Hash.
+  MATHEMATICAL VERDICT: H-10 Bijective Direct Array completely renders hash tables obsolete.
 ================================================================================
 ```

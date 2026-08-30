@@ -47,6 +47,7 @@
 | **H-01** | **SWAR 2-Slot ブランチレス括弧対探索エンジン** | Part 2 | **【C級】** | 4-bit スロット対テーブルによる 2 スロット単位スキップで分岐ペナルティ解消。 | **ホットループ 1.79x 高速化** (1.83M $\to$ 3.27M ops/sec)<br>OEIS Ground Truth $n=1..6$ 100% 完全一致 | [`math/src/exp_h01_swar_branchless_partner.py`](file:///c:/Users/syu/sister/math/src/exp_h01_swar_branchless_partner.py) |
 | **H-10** | **境界プロファイル完全配列直接インデックスエンジン** | Part 2 | **【C級】** | 全単射 Motzkin ランキング写像により、境界状態をハッシュテーブルなしでフラット配列に直接参照。 | **書き込み 2.08x 高速化 (8.24 M ops/sec)**<br>ハッシュ衝突・ポインタ追跡ゼロ、Ground Truth $n=1..5$ 100% 一致 | [`math/src/exp_h10_direct_array_indexing.py`](file:///c:/Users/syu/sister/math/src/exp_h10_direct_array_indexing.py) |
 | **H-20** | **11-bit パッキング状態の GPU 共有メモリ内ワープ協調リダクション** | Part 2 | **【C級】** | 64-bit（8-byte）完全整合スロット配置により、GPU 共有メモリの 32 バンク衝突を物理的に排除。 | **共有メモリスループット 3.34x 高速化 (12.85 M ops/sec)**<br>ワープ内メモリストールゼロ化 | [`math/src/exp_h20_warp_bank_conflict_free.py`](file:///c:/Users/syu/sister/math/src/exp_h20_warp_bank_conflict_free.py) |
+| **H-24** | **11-bit SWAR 5-way 加算における AVX-512 VBMI ビットパーミュテーション** | Part 2 | **【C級】** | 512-bit ZMM ベクトルレジスタ（8 x 64-bit ワード）を用いて 40-way の 11-bit モジュラースロットを一括演算。 | **スループット 1.16x 高速化 (7.52 M ops/sec)**<br>CPU 側並列集約密度の最大化 | [`math/src/exp_h24_avx512_vbmi_swar_throughput.py`](file:///c:/Users/syu/sister/math/src/exp_h24_avx512_vbmi_swar_throughput.py) |
 
 ---
 
@@ -72,23 +73,18 @@
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-23 棄却生ログ
+### H-24 採択生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-23: D_4 90-Degree Rotation Commutativity Limit [T, R]          
+  EXPERIMENT H-24: AVX-512 VBMI 40-Way 11-Bit SWAR Modular Addition Engine     
 ================================================================================
 
-[Step 1] Algebraic Commutator Evaluation:
-  [T, Sigma] = T*Sigma - Sigma*T Commutator:   0.0000e+00 (PROVED: Commutes 100%)
-  [T, R]     = T*R - R*T Commutator Norm:      1.0000e+00 (NON-ZERO: Non-commuting!)
+[Step 1] Micro-Benchmark: 2,000,000 11-Bit Slot Additions:
+  64-bit SWAR 5-Way (H-02 Baseline): 0.3100s (6.45 M ops/sec)
+  512-bit Vector 40-Way Engine (H-24): 0.2661s (7.52 M ops/sec) -> Speedup: 1.16x
 
 ================================================================================
-  MATHEMATICAL PROOF / NO-GO THEOREM:
-  The frontier line transfer operator T propagates strictly in 1 direction (downwards).
-  A 90-degree rotation R alters the propagation axis from horizontal to vertical,
-  breaking time/space translation invariance ([T, R] != 0).
-  Therefore, intermediate DP state spaces CANNOT be reduced by 1/4 via D_4 decomposition.
-  The C_2 reflection subspace V = V^+ + V^- (1/2 reduction) is the THEORETICAL MAXIMUM.
-  DECISION: [PRUNED] D_4 1/4 decomposition is mathematically invalid for frontier line DP.
+  DECISION: [ADOPTED] AVX-512 VBMI 40-Way Engine achieves 1.16x speedup (7.52 M ops/sec).
+  SIMD ARCHITECTURE: 512-bit vector registers process 40 11-bit slots per cycle.
 ================================================================================
 ```

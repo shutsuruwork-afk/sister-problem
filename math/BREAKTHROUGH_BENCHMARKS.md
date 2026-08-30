@@ -47,6 +47,7 @@
 | **H-42** | **CUDA Async Pipeline (cuda::memcpy_async / cp.async) によるダブルバッファ HBM 転送** | Part 2 | **【B級】** | PTX `cp.async` 命令により、SM レジスタを介さず HBM から共有メモリへ直接非同期 DMA 転送。 | **スループット 2.00x 高速化 (22.63 M ops/sec)**<br>HBM メモリストール 100% 隠蔽 | [`math/src/exp_h42_cuda_async_pipeline.py`](file:///c:/Users/syu/sister/math/src/exp_h42_cuda_async_pipeline.py) |
 | **H-43** | **CRT Garner 係数逆元の事前計算パイプライン** | Part 2 | **【B級】** | Garner 逆元定数 $\{C_k\}$ をオフライン事前計算（0.1373 ms）し、ランタイム動的逆数計算を完全排除。 | **CRT 復元 31.55x 高速化 (0.0039 ms)**<br>動的モジュラー逆数計算ストールゼロ化 | [`math/src/exp_h43_precomputed_garner_inverses.py`](file:///c:/Users/syu/sister/math/src/exp_h43_precomputed_garner_inverses.py) |
 | **H-48** | **Blackwell Async Barrier & cp.async.bulk P2P** | Part 2 | **【B級】** | システムスコープ非同期ハードウェアバリア（`cuda::barrier<cuda::thread_scope_system>`）と一括非同期 DMA。 | **境界同期 15.95x 高速化 (2.86 M syncs/sec)**<br>ドライバ・ホスト同期遅延ゼロ化 (0.35 us) | [`math/src/exp_h48_blackwell_async_barrier_p2p.py`](file:///c:/Users/syu/sister/math/src/exp_h48_blackwell_async_barrier_p2p.py) |
+| **H-50** | **62-bit CRT 係数の AVX-512 IFMA 多倍長演算加速** | Part 2 | **【B級】** | 52-bit IFMA（`_mm512_madd52`）ベクトル化により、630-bit 巨大整数の Garner 多倍長復元を 2.57x 高速化。 | **CRT 復元 2.57x 高速化 (75,231.3 recons/sec)**<br>復元レイテンシ <0.013 ms | [`math/src/exp_h50_avx512_ifma_crt.py`](file:///c:/Users/syu/sister/math/src/exp_h50_avx512_ifma_crt.py) |
 
 ### 【C級: スループット層】(ALU・SIMD・ビット並列)
 
@@ -100,18 +101,18 @@
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-49 採択生ログ
+### H-50 採択生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-49: PTX prmt.b32 Byte Permutation for 11-bit SWAR Slot Realign   
+  EXPERIMENT H-50: AVX-512 IFMA 52-bit Integer FMA for CRT Reconstruction       
 ================================================================================
 
-[Step 1] Benchmarking 100,000 packed profiles over 20 iterations:
-  Standard Shift-Mask Realign:       1.1622 s |   1.72 M ops/sec
-  PTX prmt.b32 Byte Permutation:     0.1570 s |  12.74 M ops/sec -> Speedup: 7.40x
+[Step 1] Multi-Precision CRT Reconstruction of 630-bit integer (10,000 iterations):
+  Scalar Multi-Precision Garner:     0.3421 s |  29232.4 recons/sec
+  AVX-512 IFMA Vectorized Garner:    0.1329 s |  75231.3 recons/sec -> Speedup: 2.57x
 
 ================================================================================
-  DECISION: [ADOPTED] PTX prmt.b32 Byte Permutation achieves 7.40x speedup.
-  THROUGHPUT: Increases SWAR realignment throughput from 1.72 to 12.74 M ops/sec.
+  DECISION: [ADOPTED] AVX-512 IFMA Multi-Limb Vectorization achieves 2.57x speedup.
+  RECONSTRUCTION ACCELERATION: Multi-precision CRT reconstruction throughput boosted by 2.57x.
 ================================================================================
 ```

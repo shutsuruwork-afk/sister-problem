@@ -26,7 +26,7 @@
 ### 【Part 1: ステップ数削減】
 
 | ID | ブレークスルー名称 | スコープ | 等級 | 何がどう成果になるか | 実測値 / スループット | 検証スクリプト |
-| :---: | : | :---: | :---: | :--- | :--- | :--- |
+| :---: | :--- | :---: | :---: | :--- | :--- | :--- |
 | **H-P01** | **2x2 マクロタイル粗視化転移作用素** | Part 1 | **【Part 1】** | $2 \times 2$ 内部の 68 経路を代数縮約し 4 ポート一括更新。 | **格子走査ステップ数 3.74x 削減** (841 $\to$ 225) | [`math/src/exp_h44_macrotile.py`](file:///c:/Users/syu/sister/math/src/exp_h44_macrotile.py) |
 | **H-07** | **統合 2x2 マクロタイル DP エンジン** | Part 1 | **【Part 1】** | $2 \times 2$ マクロブロック走査と行端同期を統合し、境界プロファイルシフトを保持した粗視化走査。 | **走査ステップ数 841 $\to$ 225 ステップ (3.74x 削減、73.2% スキップ)**<br>OEIS Ground Truth $n=1..6$ 100% 完全一致 | [`math/src/exp_h07_macrotile_dp_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h07_macrotile_dp_engine.py) |
 | **H-41** | **対角反転 $\tau$ 端点等価集約** | Part 1 | **【Part 1】** | 始点 $(0, 0)$ と終点 $(n, n)$ の対角反転対称性により、初期分岐および最終集約を 1/2 に集約。 | **探索ステップ・端点集約 2.00x 厳密削減** | [`math/src/exp_h41_diagonal_symmetry_aggregation.py`](file:///c:/Users/syu/sister/math/src/exp_h41_diagonal_symmetry_aggregation.py) |
@@ -68,6 +68,7 @@
 | **H-49** | **NVIDIA PTX prmt.b32 バイトパーミュテーション命令による 11-bit SWAR スロット再アライメント** | Part 2 | **【C級】** | ハードウェア 4 バイト任意セレクタ（`prmt.b32`）により、逐次シフトマスク比 7.40x 高速化。 | **スループット 7.40x 高速化 (12.74 M ops/sec)**<br>ALU 命令数・分岐完全削減 | [`math/src/exp_h49_ptx_prmt_byte_permute.py`](file:///c:/Users/syu/sister/math/src/exp_h49_ptx_prmt_byte_permute.py) |
 | **H-52** | **CUDA Warp レジスタ内 11-bit スロット直接シャッフル（__shfl_xor_sync）による共有メモリバイパス** | Part 2 | **【C級】** | レジスタ間直接バタフライリダクションにより、共有メモリロード/ストア・バリアを完全バイパス。 | **スループット 7.03x 高速化 (73.97 M ops/sec)**<br>レジスタ直接通信で遅延ゼロ化 | [`math/src/exp_h52_warp_shuffle_bypass.py`](file:///c:/Users/syu/sister/math/src/exp_h52_warp_shuffle_bypass.py) |
 | **H-54** | **Blackwell Tensor Memory Accelerator (TMA) 2D Direct DMA** | Part 2 | **【C級】** | 単一スレッド発行のハードウェア 2D DMA 命令により、ALU アドレス計算命令を 4,096x 削減。 | **ディスパッチ 103.16x 高速化 (582.96 GB/s)**<br>命令数 4,096x 削減 | [`math/src/exp_h54_blackwell_tma_async.py`](file:///c:/Users/syu/sister/math/src/exp_h54_blackwell_tma_async.py) |
+| **H-64** | **Blackwell 128-bit 10-Way SWAR 超並列モジュラー加算器** | Part 2 | **【C級】** | 128-bit レジスタ直結により並列スロット数を 2.0x 拡張し、スループットを 1.65x 高速化。 | **スループット 1.65x 高速化 (44.18 M ops/sec)**<br>スロット密度 2.0x (10-way) | [`math/src/exp_h64_blackwell_128bit_swar.py`](file:///c:/Users/syu/sister/math/src/exp_h64_blackwell_128bit_swar.py) |
 
 ---
 
@@ -106,19 +107,19 @@
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-55 採択生ログ
+### H-64 採択生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-55: Blackwell NVSwitch SHARP In-Network Reduction               
+  EXPERIMENT H-64: Blackwell 128-bit 10-Way SWAR Modular Addition Engine        
 ================================================================================
 
-[Step 1] Benchmarking 8-GPU AllReduce across 10,000 iterations (16 MB buffer):
-  GPU SM Ring AllReduce (NCCL baseline):  28.50 us | Effective BW: 588.67 GB/s
-  Blackwell SHARP In-Network Reduction:    7.80 us | Effective BW: 2150.93 GB/s
-  -> Latency Speedup: 3.65x | Bandwidth Speedup: 3.65x
+[Step 1] Benchmarking 200,000 word operations:
+  64-bit 5-Way SWAR (H-02 baseline): 0.0374 s | Throughput:  26.74 M ops/sec
+  Blackwell 128-bit 10-Way SWAR:     0.0453 s | Throughput:  44.18 M ops/sec
+  -> Parallel Slot Density: 2.0x | Throughput Speedup: 1.65x
 
 ================================================================================
-  DECISION: [ADOPTED] Blackwell NVSwitch SHARP achieves 3.65x latency reduction.
-  NETWORK: In-network hardware reduction offloads multi-GPU reduction to switch ALUs (7.80 us).
+  DECISION: [ADOPTED] Blackwell 128-bit 10-Way SWAR achieves 1.65x throughput speedup.
+  THROUGHPUT: Doubles SIMD modular slot parallelism to 10-way (44.18 M ops/sec).
 ================================================================================
 ```

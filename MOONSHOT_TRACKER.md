@@ -16,29 +16,28 @@
   - **【B級: 運転を成立させる】**: **11 件** (62-bit 多重素数 CRT 分散並列復元, C言語ネイティブ DP エンジン, H-05: Baxter CTMRG プレフライト独立検算, H-06: 反対角対称性 $F_{\rho\tau}$ 三角形ビットボード探索, H-09: 非同期ストリーミング増分 Garner CRT エンジン, H-17: 8xB300 GPU 間 NVLink 4.0 GPUDirect 階層集約ストリーミング, H-25: 8xB300 HBM 上での NUMA 階層ゼロコピー Direct Access パイプライン, H-29: 分散ワーカー間チェックポイント・リカバリの非同期差分スナップショット, H-32: 8xB300 GPU 実行中の NVMe Direct Storage (GDS) ゼロコピー非同期スナップショット, H-42: CUDA Async Pipeline によるダブルバッファ HBM 転送, H-43: CRT Garner 係数逆元の事前計算パイプライン)
   - **【C級: スループット層】**: **10 件** (H-01: SWAR 2-Slot ブランチレス括弧対探索, H-10: 境界プロファイル完全配列直接インデックスエンジン, H-20: 11-bit パッキング状態の GPU 共有メモリ内ワープ協調リダクション, H-24: 11-bit SWAR 5-way 加算における AVX-512 VBMI ビットパーミュテーション, H-30: 64-bit ビットボードの Popcount / Leading Zero ハードウェア命令最適化, H-31: NVIDIA PTX lop3.b32 による 11-bit SWAR 5-way 3入力ビット置換演算器, H-34: NVIDIA CUDA 12.8 Cooperative Groups Grid-Level 一括リダクション, H-39: NVIDIA Tensor Core MMA 命令による 11-bit モジュラー加算バッチ積和射影, H-42: CUDA Async Pipeline 先読み, H-44: SIMD バレルシフタによる 11-bit SWAR 5-way 括弧対一括再配置)
   - **【Part 1: ステップ数削減】**: **3 件** (2x2 マクロタイル粗視化転移作用素, H-07: 統合 2x2 マクロタイル DP エンジン, H-41: 対角反転 $\tau$ 端点等価集約)
-- **厳格棄却アーカイブ (Pruned Archive / Fail-Fast)**: **23 件** (+1件: H-45)
-- **現在のアクティブキュー**: **9 件**
+- **厳格棄却アーカイブ (Pruned Archive / Fail-Fast)**: **24 件** (+1件: H-46)
+- **現在のアクティブキュー**: **8 件**
 - **補充閾値 (50%)**: アクティブキュー $\le 7$
 
 ---
 
-## 1. Active Prioritized Queue (ROADMAP 連動優先キュー / Ranked 1 to 9)
+## 1. Active Prioritized Queue (ROADMAP 連動優先キュー / Ranked 1 to 8)
 
 | Rank | ID | Hypothesis Name | スコープ | 等級 | Target | Impact | Velocity | Complexity | Score $S$ | Status |
 | :---: | :---: | :--- | :---: | :---: | :--- | :---: | :---: | :---: | :---: | :---: |
-| **1** | **H-46** | **8xB300 GPU 間オールリダクション（NCCL AllReduce）における Ring vs Tree 最適化** | Part 2 | **【B級】** | 通信最適化 | 5x | 4 | 3 | **6.7** | `QUEUED` |
-| **2** | **H-47** | **格子境界プロファイルにおける非連結成分のトポロジカル交差数定理による事前排除** | Part 1 | **【Part 1】** | 枝刈り | 5x | 4 | 3 | **6.7** | `QUEUED` |
-| **3** | **H-48** | **NVLink P2P 通信における Blackwell Async Copy (cuda::barrier) による集約ストール排除** | Part 2 | **【B級】** | 同期短縮 | 6x | 5 | 2 | **15.0** | `QUEUED` |
-| **4** | **H-49** | **NVIDIA PTX prmt.b32 バイトパーミュテーション命令による 11-bit SWAR スロット再アライメント** | Part 2 | **【C級】** | ALU加速 | 5x | 5 | 2 | **12.5** | `QUEUED` |
-| **5** | **H-50** | **62-bit CRT 係数の AVX-512 IFMA (52-bit 整数積和) による復元多倍長演算加速** | Part 2 | **【B級】** | 復元高速化 | 5x | 5 | 2 | **12.5** | `QUEUED` |
-| **6** | **H-51** | **偶数長格子におけるチェスボード着色プラグパリティ保存則の厳密証明** | Part 1 | **【Part 1】** | 理論証明 | 4x | 4 | 3 | **5.3** | `QUEUED` |
-| **7** | **H-52** | **CUDA Warp レジスタ内 11-bit スロット直接シャッフル（__shfl_xor_sync）による共有メモリバイパス** | Part 2 | **【C級】** | レジスタ最適化 | 6x | 5 | 2 | **15.0** | `QUEUED` |
-| **8** | **H-53** | **NVMe ZNS (Zoned Namespaces) 直接シーケンシャル書き込みによるスナップショットジッター排除** | Part 2 | **【B級】** | I/O安定化 | 4x | 4 | 3 | **5.3** | `QUEUED` |
-| **9** | **H-54** | **NVIDIA Blackwell Tensor Memory Accelerator (TMA) による非同期 2D タイル直接ロード** | Part 2 | **【C級】** | TMA加速 | 7x | 4 | 3 | **9.3** | `QUEUED` |
+| **1** | **H-47** | **格子境界プロファイルにおける非連結成分のトポロジカル交差数定理による事前排除** | Part 1 | **【Part 1】** | 枝刈り | 5x | 4 | 3 | **6.7** | `QUEUED` |
+| **2** | **H-48** | **NVLink P2P 通信における Blackwell Async Copy (cuda::barrier) による集約ストール排除** | Part 2 | **【B級】** | 同期短縮 | 6x | 5 | 2 | **15.0** | `QUEUED` |
+| **3** | **H-49** | **NVIDIA PTX prmt.b32 バイトパーミュテーション命令による 11-bit SWAR スロット再アライメント** | Part 2 | **【C級】** | ALU加速 | 5x | 5 | 2 | **12.5** | `QUEUED` |
+| **4** | **H-50** | **62-bit CRT 係数の AVX-512 IFMA (52-bit 整数積和) による復元多倍長演算加速** | Part 2 | **【B級】** | 復元高速化 | 5x | 5 | 2 | **12.5** | `QUEUED` |
+| **5** | **H-51** | **偶数長格子におけるチェスボード着色プラグパリティ保存則の厳密証明** | Part 1 | **【Part 1】** | 理論証明 | 4x | 4 | 3 | **5.3** | `QUEUED` |
+| **6** | **H-52** | **CUDA Warp レジスタ内 11-bit スロット直接シャッフル（__shfl_xor_sync）による共有メモリバイパス** | Part 2 | **【C級】** | レジスタ最適化 | 6x | 5 | 2 | **15.0** | `QUEUED` |
+| **7** | **H-53** | **NVMe ZNS (Zoned Namespaces) 直接シーケンシャル書き込みによるスナップショットジッター排除** | Part 2 | **【B級】** | I/O安定化 | 4x | 4 | 3 | **5.3** | `QUEUED` |
+| **8** | **H-54** | **NVIDIA Blackwell Tensor Memory Accelerator (TMA) による非同期 2D タイル直接ロード** | Part 2 | **【C級】** | TMA加速 | 7x | 4 | 3 | **9.3** | `QUEUED` |
 
 ---
 
-## 2. Pruned Archive (Fail-Fast 厳格棄却アーカイブ - Total: 23)
+## 2. Pruned Archive (Fail-Fast 厳格棄却アーカイブ - Total: 24)
 
 | ID | 棄却された仮説名称 | スコープ | 棄却の数学的・実証的根拠 | 実測生データ / 判定 | 判定スクリプト |
 | :---: | :--- | :---: | :--- | :--- | :--- |
@@ -54,7 +53,7 @@
 | **H-19** | **境界 Hankel 行列特異値分解による低ランク厳密圧縮の限界検証** | Part 1 | 大域的非閉路接続性により境界 Hankel 行列は厳密にフルランク（Rank = Dim(V)）。特異値の切り捨ては非ゼロ誤差（>0.1）を生み厳密整数解を破壊するため不可能性を証明し棄却。 | 全特異値 $\sigma_k > 0$ (フルランク) / 厳密解打ち切り不可 | [`math/src/exp_h19_hankel_low_rank_verification.py`](file:///c:/Users/syu/sister/math/src/exp_h19_hankel_low_rank_verification.py) |
 | **H-21** | **3x3 マクロブロック粗視化転移作用素（走査ステップ数 8.41x スキップ）** | Part 1 | 3x3 タイルの内部パス構成数が 41,820 通り（2x2 の 615 倍）へ指数爆発し、ステップ削減（8.41x）を大きく上回る 273.3x の演算低速化を生むため棄却。2x2 が唯一の最適スケール。 | 2x2 比 273.3x 低速（基準 $\ge 1.00x$ 未達） | [`math/src/exp_h21_3x3_macrotile_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h21_3x3_macrotile_engine.py) |
 | **H-22** | **Multi-Prime CRT 復元における Montgomery 多倍長並列乗算パイプライン** | Part 2 | 630 bits（10 limbs）では Karatsuba 分割統治の再帰オーバーヘッドが支配的となり、ネイティブ C-level 多倍長乗算に対して 25.9x 低速化するため棄却。H-09 ストリーミング Garner CRT が最適。 | ネイティブ C 比 25.9x 低速（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h22_multiprecision_crt_pipeline.py`](file:///c:/Users/syu/sister/math/src/exp_h22_multiprecision_crt_pipeline.py) |
-| **H-23** | **境界プロファイル 90度回転直和分解による次元 1/4 縮約可能性検証** | Part 1 | フロンティア転移作用素 $T$ は一次元伝搬のため 90度回転 $R$ と非可換（$[T, R] \ne 0$）。中間 DP 状態の $D_4$ 1/4 分解は数学的に不可能と証明され棄却（$C_2$ 1/2 分解が理論限界）。 | $[T, R] = 1.00$（非可換証明） | [`math/src/exp_h23_d4_rotation_commutativity.py`](file:///c:/Users/syu/sister/math/src/exp_h23_d4_rotation_commutativity.py) |
+| **H-23** | **境界プロファイル 90度回転直和分解による次元 1/4 縮約可能性検証** | Part 1 | フロンティア転移作用素 $T$ は一次元伝搬のため 90度回転 $R$ と non-commutative（$[T, R] \ne 0$）。中間 DP 状態の $D_4$ 1/4 分解は数学的に不可能と証明され棄却（$C_2$ 1/2 分解が理論限界）。 | $[T, R] = 1.00$（非可換証明） | [`math/src/exp_h23_d4_rotation_commutativity.py`](file:///c:/Users/syu/sister/math/src/exp_h23_d4_rotation_commutativity.py) |
 | **H-26** | **4x4 マクロブロック粗視化作用素（走査ステップ数 16x スキップ）** | Part 1 | 4x4 内部構成数が 3,584 万通りへ天文学的爆発し、ステップ削減（15.8x）を圧倒する 124,151.6x の低速化を生むため棄却。2x2 粗視化が唯一のパレート最適解。 | 2x2 比 124,151.6x 低速（基準 $\ge 1.00x$ 未達） | [`math/src/exp_h26_4x4_macrotile_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h26_4x4_macrotile_engine.py) |
 | **H-27** | **GPU Warp 投票命令（__ballot_sync）による非ゼロ遷移の一括フィルタリング** | Part 2 | 全レーン無効となる確率が極小のため早期 Exit が効かず、マスク生成・テストオーバーヘッドにより 0.56x と低速化するため棄却。H-20 共有メモリ直接書き込みが優位。 | スピードアップ 0.56x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h27_warp_ballot_filtering.py`](file:///c:/Users/syu/sister/math/src/exp_h27_warp_ballot_filtering.py) |
 | **H-28** | **幾何学的マンハッタン距離タイリングの厳密等価性検証** | Part 1 | 対角線フロンティア幅が $\sqrt{2}(n+1)$ へ拡大し、$n=28$ で 917,231 倍の状態数メモリ爆発を引き起こすため棄却。水平行走査が唯一の大域的最適幾何走査順序。 | $n=28$ で 917,231x 状態数爆発（基準 $\le 1.00x$ 未達） | [`math/src/exp_h28_manhattan_diagonal_tiling.py`](file:///c:/Users/syu/sister/math/src/exp_h28_manhattan_diagonal_tiling.py) |
@@ -65,6 +64,7 @@
 | **H-38** | **64 素数ワーカーに対する動的負荷分散・投機的再実行スケジューラ** | Part 2 | 各素数の DP 計算量は均一であるため、投機的再実行による完了時間短縮は 1.13x（基準 $\ge 1.15x$ 未達）に留まり、リソース浪費のため棄却。 | スピードアップ 1.13x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h38_speculative_crt_scheduler.py`](file:///c:/Users/syu/sister/math/src/exp_h38_speculative_crt_scheduler.py) |
 | **H-40** | **行間プロファイルの Huffman 動的エントロピー符号化ストリーミング圧縮** | Part 2 | 30.0% のデータ圧縮を達成するものの、可変長ビットストリームのパッキング/アンパッキング処理により 1.44x の実行遅延（スループット 31% 低下）を招くため棄却。H-02 固定 SWAR と H-16 商空間で十分収容可能。 | 1.44x 実行遅延（基準 $\le 1.25x$ 未達） | [`math/src/exp_h40_huffman_entropy_streaming.py`](file:///c:/Users/syu/sister/math/src/exp_h40_huffman_entropy_streaming.py) |
 | **H-45** | **格子グラフの 2部グラフ性（Bipartite Vertex Coloring）を用いた奇数長閉路排除** | Part 1 | 頂点パリティ交互律は単一頂点フロンティア DP の各ステップ $(r, c)$ の幾何学的進行によって既に 100% 暗黙的に完全に保存（Algebraic Tautology）されており、追加フィルタによる状態数削減は 0%（削減数 0）のため棄却。 | 状態数削減 0.00%（基準 $\ge 5\%$ 未達） | [`math/src/exp_h45_bipartite_coloring_pruning.py`](file:///c:/Users/syu/sister/math/src/exp_h45_bipartite_coloring_pruning.py) |
+| **H-46** | **8xB300 GPU 間オールリダクション（NCCL AllReduce）における Ring vs Tree 最適化** | Part 2 | 小規模バッファ（1 MB）では Tree が優位（1.30x）だが、本番 DP の主たる 16〜64 MB バッファでは Ring が高帯域であり、累積同期時間で 0.90x（Tree が 10% 低速）となったため棄却。NCCL 標準の Ring 選択が最適。 | 累積スピードアップ 0.90x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h46_nccl_tree_vs_ring.py`](file:///c:/Users/syu/sister/math/src/exp_h46_nccl_tree_vs_ring.py) |
 
 ---
 

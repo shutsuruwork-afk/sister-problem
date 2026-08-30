@@ -91,32 +91,27 @@
 | **H-38** | **64 素数ワーカーに対する動的負荷分散・投機的再実行スケジューラ** | Part 2 | 各素数の DP 計算量は均一であるため、投機的再実行による完了時間短縮は 1.13x（基準 $\ge 1.15x$ 未達）に留まり、リソース浪費のため棄却。 | スピードアップ 1.13x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h38_speculative_crt_scheduler.py`](file:///c:/Users/syu/sister/math/src/exp_h38_speculative_crt_scheduler.py) |
 | **H-40** | **行間プロファイルの Huffman 動的エントロピー符号化ストリーミング圧縮** | Part 2 | 30.0% のデータ圧縮を達成するものの、可変長ビットストリームのパッキング/アンパッキング処理により 1.44x の実行遅延（スループット 31% 低下）を招くため棄却。H-02 固定 SWAR と H-16 商空間で十分収容可能。 | 1.44x 実行遅延（基準 $\le 1.25x$ 未達） | [`math/src/exp_h40_huffman_entropy_streaming.py`](file:///c:/Users/syu/sister/math/src/exp_h40_huffman_entropy_streaming.py) |
 | **H-45** | **格子グラフの 2部グラフ性（Bipartite Vertex Coloring）を用いた奇数長閉路排除** | Part 1 | 頂点パリティ交互律は単一頂点フロンティア DP の各ステップ $(r, c)$ の幾何学的進行によって既に 100% 暗黙的に完全に保存（Algebraic Tautology）されており、追加フィルタによる状態数削減は 0%（削減数 0）のため棄却。 | 状態数削減 0.00%（基準 $\ge 5\%$ 未達） | [`math/src/exp_h45_bipartite_coloring_pruning.py`](file:///c:/Users/syu/sister/math/src/exp_h45_bipartite_coloring_pruning.py) |
+| **H-46** | **8xB300 GPU 間オールリダクション（NCCL AllReduce）における Ring vs Tree 最適化** | Part 2 | 小規模バッファ（1 MB）では Tree が優位（1.30x）だが、本番 DP の主たる 16〜64 MB バッファでは Ring が高帯域であり、累積同期時間で 0.90x（Tree が 10% 低速）となったため棄却。NCCL 標準の Ring 選択が最適。 | 累積スピードアップ 0.90x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h46_nccl_tree_vs_ring.py`](file:///c:/Users/syu/sister/math/src/exp_h46_nccl_tree_vs_ring.py) |
 
 ---
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-45 棄却生ログ
+### H-46 棄却生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-45: Bipartite Vertex Coloring & Path Parity State Pruning        
+  EXPERIMENT H-46: NCCL Double Binary Tree vs Ring AllReduce on 8xB300 NVLink 4.0 
 ================================================================================
 
-[Step 1] Verifying Bipartite Invariant on Grid SAW (n=1..5):
-  n=1: Standard States Explored:      1 | Bipartite Pruned:      0 (0.00%)
-  n=2: Standard States Explored:      9 | Bipartite Pruned:      0 (0.00%)
-  n=3: Standard States Explored:     52 | Bipartite Pruned:      0 (0.00%)
-  n=4: Standard States Explored:    281 | Bipartite Pruned:      0 (0.00%)
-  n=5: Standard States Explored:   1490 | Bipartite Pruned:      0 (0.00%)
+[Step 1] AllReduce Latency & Effective Bandwidth Comparison across Buffer Sizes:
+  Buffer  1.0 MB | Ring:  31.99 us ( 30.53 GB/s) | Tree:  24.56 us ( 39.76 GB/s) -> Speedup: 1.30x
+  Buffer  4.0 MB | Ring:  77.56 us ( 50.36 GB/s) | Tree:  76.64 us ( 50.97 GB/s) -> Speedup: 1.01x
+  Buffer 16.0 MB | Ring: 259.86 us ( 60.13 GB/s) | Tree: 284.98 us ( 54.83 GB/s) -> Speedup: 0.91x
+  Buffer 64.0 MB | Ring: 989.02 us ( 63.19 GB/s) | Tree: 1118.31 us ( 55.89 GB/s) -> Speedup: 0.88x
 
-[Step 2] Theoretical Analysis:
-  * Coordinate (r, c) parity is uniquely fixed at every step of Row-by-Row DP.
-  * Every valid single-vertex transition automatically preserves bipartite alternation.
-  * Additional runtime parity checking provides 0% state reduction while adding CPU branch checks.
+[Step 2] Overall Workload Cumulative Sync Latency Speedup: 0.90x
 
 ================================================================================
-  DECISION: [PRUNED] Bipartite parity is an algebraic tautology of single-vertex DP (0% state reduction).
-  MATHEMATICAL INSIGHT: Bipartite alternating property is already 100% implicitly preserved by
-  standard Motzkin transfer operators without extra runtime filtering overhead.
+  DECISION: [PRUNED] Speedup (0.90x) below threshold (1.15x).
 ================================================================================
 ```

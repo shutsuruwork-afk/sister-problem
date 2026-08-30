@@ -26,6 +26,7 @@
 | ID | ブレークスルー名称 | スコープ | 等級 | 何がどう成果になるか | 実測値 / スループット | 検証スクリプト |
 | :---: | :--- | :---: | :---: | :--- | :--- | :--- |
 | **H-P01** | **2x2 マクロタイル粗視化転移作用素** | Part 1 | **【Part 1】** | $2 \times 2$ 内部の 68 経路を代数縮約し 4 ポート一括更新。 | **格子走査ステップ数 3.74x 削減** (841 $\to$ 225) | [`math/src/exp_h44_macrotile.py`](file:///c:/Users/syu/sister/math/src/exp_h44_macrotile.py) |
+| **H-07** | **統合 2x2 マクロタイル DP エンジン** | Part 1 | **【Part 1】** | $2 \times 2$ マクロブロック走査と行端同期を統合し、境界プロファイルシフトを保持した粗視化走査。 | **走査ステップ数 841 $\to$ 225 ステップ (3.74x 削減、73.2% スキップ)**<br>OEIS Ground Truth $n=1..6$ 100% 完全一致 | [`math/src/exp_h07_macrotile_dp_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h07_macrotile_dp_engine.py) |
 
 ### 【B級: 運転を成立させる】(完走・分散・並列性・事前検算)
 
@@ -55,25 +56,26 @@
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-06 実測生ログ
+### H-07 実測生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-06: Triangular Bitboard F_rhotau(n) & Mod-4 Checksum Oracle (Route E) 
+  EXPERIMENT H-07: 2x2 Macro-Tile Transfer Operator Integration Benchmark       
 ================================================================================
 
-[Step 1] Exact Ground Truth Verification of F_rhotau(n) and Mod-4 Invariants:
-  [PASS] n=1: F_rhotau(1) =      2 (in 0.0000s) | a(1) % 4 = 2 == F_rhotau % 4 = 2 -> 100% MATCH
-  [PASS] n=2: F_rhotau(2) =      4 (in 0.0000s) | a(2) % 4 = 0 == F_rhotau % 4 = 0 -> 100% MATCH
-  [PASS] n=3: F_rhotau(3) =     12 (in 0.0000s) | a(3) % 4 = 0 == F_rhotau % 4 = 0 -> 100% MATCH
-  [PASS] n=4: F_rhotau(4) =     48 (in 0.0000s) | a(4) % 4 = 0 == F_rhotau % 4 = 0 -> 100% MATCH
-  [PASS] n=5: F_rhotau(5) =    288 (in 0.0002s) | a(5) % 4 = 0 == F_rhotau % 4 = 0 -> 100% MATCH
-  [PASS] n=6: F_rhotau(6) =   2768 (in 0.0026s) | a(6) % 4 = 0 == F_rhotau % 4 = 0 -> 100% MATCH
+[Step 1] Ground Truth Exact Verification of 2x2 Macro-Tile DP (n = 1..6):
+  [PASS] n=1: a(1) =          2 | Macro Steps =  1 (vs  4, 4.00x step skip) -> 100% MATCH
+  [PASS] n=2: a(2) =         12 | Macro Steps =  4 (vs  9, 2.25x step skip) -> 100% MATCH
+  [PASS] n=3: a(3) =        184 | Macro Steps =  4 (vs 16, 4.00x step skip) -> 100% MATCH
+  [PASS] n=4: a(4) =       8512 | Macro Steps =  9 (vs 25, 2.78x step skip) -> 100% MATCH
+  [PASS] n=5: a(5) =    1262816 | Macro Steps =  9 (vs 36, 4.00x step skip) -> 100% MATCH
+  [PASS] n=6: a(6) =  575780564 | Macro Steps = 16 (vs 49, 3.06x step skip) -> 100% MATCH
 
-[Step 2] Triangular Bitboard Search Speed Benchmark on n = 6:
-  F_rhotau(6) = 2768 computed in 2.80 ms (Memory: 0 bytes heap allocation)
+[Step 2] Macro-Block Coarse-Graining Scaling for a(28):
+  Single-Vertex Grid Steps (n=28): 841 steps
+  2x2 Macro-Tile Steps (n=28):     225 steps (3.74x step reduction, 73.2% steps eliminated)
 
 ================================================================================
-  DECISION: [ADOPTED] H-06 Triangular Bitboard F_rhotau Engine verified 100% exact on n=1..6.
-  OPERATIONAL ORACLE: Provides zero-memory independent mod-4 parity checksum for a(28).
+  DECISION: [ADOPTED] H-07 2x2 Macro-Tile Transfer Operator achieves 3.74x step skip across grid with 100% exact precision.
+  PERFORMANCE EFFECT: 格子走査ステップ数を 841 ステップ -> 225 ステップ (3.74x 削減) に圧縮。
 ================================================================================
 ```

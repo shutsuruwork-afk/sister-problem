@@ -16,32 +16,31 @@
   - **【B級: 運転を成立させる】**: **15 件** (62-bit 多重素数 CRT 分散並列復元, C言語ネイティブ DP エンジン, H-05: Baxter CTMRG プレフライト独立検算, H-06: 反対角対称性 $F_{\rho\tau}$ 三角形ビットボード探索, H-09: 非同期ストリーミング増分 Garner CRT エンジン, H-17: 8xB300 GPU 間 NVLink 4.0 GPUDirect 階層集約ストリーミング, H-25: 8xB300 HBM 上での NUMA 階層ゼロコピー Direct Access パイプライン, H-29: 分散ワーカー間チェックポイント・リカバリの非同期差分スナップショット, H-32: 8xB300 GPU 実行中の NVMe Direct Storage (GDS) ゼロコピー非同期スナップショット, H-42: CUDA Async Pipeline によるダブルバッファ HBM 転送, H-43: CRT Garner 係数逆元の事前計算パイプライン, H-48: Blackwell Async Barrier & cp.async.bulk P2P, H-50: AVX-512 IFMA 52-bit CRT 復元加速, H-53: NVMe ZNS ゾーン直接アペンド スナップショット, H-55: Blackwell NVSwitch SHARP インネットワーク AllReduce)
   - **【C級: スループット層】**: **14 件** (H-01: SWAR 2-Slot ブランチレス括弧対探索, H-10: 境界プロファイル完全配列直接インデックスエンジン, H-20: 11-bit パッキング状態の GPU 共有メモリ内ワープ協調リダクション, H-24: 11-bit SWAR 5-way 加算における AVX-512 VBMI ビットパーミュテーション, H-30: 64-bit ビットボードの Popcount / Leading Zero ハードウェア命令最適化, H-31: NVIDIA PTX lop3.b32 による 11-bit SWAR 5-way 3入力ビット置換演算器, H-34: NVIDIA CUDA 12.8 Cooperative Groups Grid-Level 一括リダクション, H-39: NVIDIA Tensor Core MMA 命令による 11-bit モジュラー加算バッチ積和射影, H-42: CUDA Async Pipeline 先読み, H-44: SIMD バレルシフタによる 11-bit SWAR 5-way 括弧対一括再配置, H-49: PTX prmt.b32 バイトパーミュテーション, H-52: CUDA Warp レジスタシャッフル直接リダクション, H-54: Blackwell TMA 2D タイル直接 DMA, H-64: Blackwell 128-bit 10-Way SWAR 超並列モジュラー加算器)
   - **【Part 1: ステップ数削減】**: **3 件** (2x2 マクロタイル粗視化転移作用素, H-07: 統合 2x2 マクロタイル DP エンジン, H-41: 対角反転 $\tau$ 端点等価集約)
-- **厳格棄却アーカイブ (Pruned Archive / Fail-Fast)**: **28 件** (+1件: H-62)
-- **現在のアクティブキュー**: **12 件**
+- **厳格棄却アーカイブ (Pruned Archive / Fail-Fast)**: **29 件** (+1件: H-66)
+- **現在のアクティブキュー**: **11 件**
 - **補充閾値 (50%)**: アクティブキュー $\le 7$
 
 ---
 
-## 1. Active Prioritized Queue (ROADMAP 連動優先キュー / Ranked 1 to 12)
+## 1. Active Prioritized Queue (ROADMAP 連動優先キュー / Ranked 1 to 11)
 
 | Rank | ID | Hypothesis Name | スコープ | 等級 | Target | Impact | Velocity | Complexity | Score $S$ | Status |
 | :---: | :---: | :--- | :---: | :---: | :--- | :---: | :---: | :---: | :---: | :---: |
-| **1** | **H-66** | **CUDA Warp プリエンプティブ Early-Branch Elimination による Motzkin ループ完全レジスタマスキング** | Part 2 | **【C級】** | 分岐完全排除 | 5x | 5 | 2 | **12.5** | `QUEUED` |
-| **2** | **H-58** | **非同期 LZ4-Fast GPU カーネルによる差分スナップショットのインライン圧縮** | Part 2 | **【B級】** | I/O圧縮 | 4x | 5 | 2 | **10.0** | `QUEUED` |
-| **3** | **H-60** | **62-bit 素数ワーカーの Montgomery Reduction 変換事前計算パイプライン** | Part 2 | **【B級】** | 初期化短縮 | 4x | 5 | 2 | **10.0** | `QUEUED` |
-| **4** | **H-65** | **8xB300 GPU 間 NCCL Communicator Splitting によるモジュラー独立パイプライン並列化** | Part 2 | **【B級】** | パイプライン化 | 5x | 4 | 2 | **10.0** | `QUEUED` |
-| **5** | **H-68** | **NVMe Direct io_uring 非同期バッチ Poll モードによるスナップショット I/O レイテンシ極小化** | Part 2 | **【B級】** | I/O極小化 | 4x | 5 | 2 | **10.0** | `QUEUED` |
-| **6** | **H-69** | **Blackwell FP8 / INT4 高密度 Tensor Core を用いた局所 32x32 粗視化転移核の一括縮約** | Part 2 | **【C級】** | Tensor Core | 6x | 4 | 3 | **8.0** | `QUEUED` |
-| **7** | **H-57** | **フロンティア端点ペアにおける外周距離ポテンシャルによる到達不能グラフ枝刈り** | Part 1 | **【Part 1】** | 枝刈り | 5x | 4 | 3 | **6.7** | `QUEUED` |
-| **8** | **H-63** | **格子の点対称性中心（Point Reflection Center）における中央到達フロンティアの奇偶因数分解定理** | Part 1 | **【Part 1】** | 対称性因数分解 | 5x | 4 | 3 | **6.7** | `QUEUED` |
-| **9** | **H-70** | **フロンティア切断線上の連結成分数 $c \le \lfloor n/2 \rfloor$ トポロジカル上限定理の厳密証明** | Part 1 | **【Part 1】** | トポロジー証明 | 5x | 4 | 3 | **6.7** | `QUEUED` |
-| **10** | **H-59** | **CUDA Dynamic Parallelism による疎境界領域の局所小グリッド適応ディスパッチ** | Part 2 | **【C級】** | スケジューリング | 4x | 4 | 3 | **5.3** | `QUEUED` |
-| **11** | **H-61** | **交代境界条件下の転移行列スペクトル半径 $\lambda_{\max}$ による $a(n)$ 局所上界制約** | Part 1 | **【Part 1】** | 漸近解析 | 4x | 4 | 3 | **5.3** | `QUEUED` |
-| **12** | **H-67** | **自己回避歩行の平均端点二乗変位 $\langle R^2 \rangle$ 上界を用いた遠隔到達不能フロンティア幾何的枝刈り** | Part 1 | **【Part 1】** | 幾何解析 | 4x | 4 | 3 | **5.3** | `QUEUED` |
+| **1** | **H-58** | **非同期 LZ4-Fast GPU カーネルによる差分スナップショットのインライン圧縮** | Part 2 | **【B級】** | I/O圧縮 | 4x | 5 | 2 | **10.0** | `QUEUED` |
+| **2** | **H-60** | **62-bit 素数ワーカーの Montgomery Reduction 変換事前計算パイプライン** | Part 2 | **【B級】** | 初期化短縮 | 4x | 5 | 2 | **10.0** | `QUEUED` |
+| **3** | **H-65** | **8xB300 GPU 間 NCCL Communicator Splitting によるモジュラー独立パイプライン並列化** | Part 2 | **【B級】** | パイプライン化 | 5x | 4 | 2 | **10.0** | `QUEUED` |
+| **4** | **H-68** | **NVMe Direct io_uring 非同期バッチ Poll モードによるスナップショット I/O レイテンシ極小化** | Part 2 | **【B級】** | I/O極小化 | 4x | 5 | 2 | **10.0** | `QUEUED` |
+| **5** | **H-69** | **Blackwell FP8 / INT4 高密度 Tensor Core を用いた局所 32x32 粗視化転移核の一括縮約** | Part 2 | **【C級】** | Tensor Core | 6x | 4 | 3 | **8.0** | `QUEUED` |
+| **6** | **H-57** | **フロンティア端点ペアにおける外周距離ポテンシャルによる到達不能グラフ枝刈り** | Part 1 | **【Part 1】** | 枝刈り | 5x | 4 | 3 | **6.7** | `QUEUED` |
+| **7** | **H-63** | **格子の点対称性中心（Point Reflection Center）における中央到達フロンティアの奇偶因数分解定理** | Part 1 | **【Part 1】** | 対称性因数分解 | 5x | 4 | 3 | **6.7** | `QUEUED` |
+| **8** | **H-70** | **フロンティア切断線上の連結成分数 $c \le \lfloor n/2 \rfloor$ トポロジカル上限定理の厳密証明** | Part 1 | **【Part 1】** | トポロジー証明 | 5x | 4 | 3 | **6.7** | `QUEUED` |
+| **9** | **H-59** | **CUDA Dynamic Parallelism による疎境界領域の局所小グリッド適応ディスパッチ** | Part 2 | **【C級】** | スケジューリング | 4x | 4 | 3 | **5.3** | `QUEUED` |
+| **10** | **H-61** | **交代境界条件下の転移行列スペクトル半径 $\lambda_{\max}$ による $a(n)$ 局所上界制約** | Part 1 | **【Part 1】** | 漸近解析 | 4x | 4 | 3 | **5.3** | `QUEUED` |
+| **11** | **H-67** | **自己回避歩行の平均端点二乗変位 $\langle R^2 \rangle$ 上界を用いた遠隔到達不能フロンティア幾何的枝刈り** | Part 1 | **【Part 1】** | 幾何解析 | 4x | 4 | 3 | **5.3** | `QUEUED` |
 
 ---
 
-## 2. Pruned Archive (Fail-Fast 厳格棄却アーカイブ - Total: 28)
+## 2. Pruned Archive (Fail-Fast 厳格棄却アーカイブ - Total: 29)
 
 | ID | 棄却された仮説名称 | スコープ | 棄却の数学的・実証的根拠 | 実測生データ / 判定 | 判定スクリプト |
 | :---: | : parasite | :---: | :--- | :--- | :--- |
@@ -73,6 +72,7 @@
 | **H-51** | **偶数長格子におけるチェスボード着色プラグパリティ保存則の厳密証明** | Part 1 | 中間フロンティアを横断する未完結パスの各セグメントは任意のパリティを取り得るため、パリティ追跡は状態空間を拡大させ状態削減 0% となるため棄却。 | 状態数削減 0.00%（基準 $\ge 5\%$ 未達） | [`math/src/exp_h51_chessboard_parity_invariants.py`](file:///c:/Users/syu/sister/math/src/exp_h51_chessboard_parity_invariants.py) |
 | **H-56** | **11-bit SWAR 5-way スロットの CUDA 32-bit Funnel Shift (`__funnelshift_lc`) ALU 最適化** | Part 2 | スカラー 32-bit 単位の Funnel Shift は 1.04x に留まり採択基準（1.15x）未達。採択済みの H-49（PTX prmt.b32: 12.74 M ops/sec）および H-44（SIMD バレルシフタ: 43.27 M ops/sec）が広帯域に優位なため棄却。 | スピードアップ 1.04x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h56_cuda_funnel_shift.py`](file:///c:/Users/syu/sister/math/src/exp_h56_cuda_funnel_shift.py) |
 | **H-62** | **NVIDIA PTX bfe / bfi 命令による 11-bit SWAR スロット抽出・挿入 1 サイクル化** | Part 2 | スカラー bfe/bfi スロット展開・再パック（3.72 M ops/sec）は、採用済みの 5-way / 10-way SWAR 一括演算（27.92 M ops/sec）に対して 7.51x 圧倒的に遅く、インプレース SWAR が確立されたアーキテクチャにおいて不要なため棄却。 | SWAR 比 7.51x 低速（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h62_ptx_bfe_bfi_slots.py`](file:///c:/Users/syu/sister/math/src/exp_h62_ptx_bfe_bfi_slots.py) |
+| **H-66** | **CUDA Warp プリエンプティブ Early-Branch Elimination による Motzkin ループ完全レジスタマスキング** | Part 2 | 手動ビットワイズ・レジスタマスキングは演算命令数の 4 倍増とレジスタ圧迫により 2.71x 低速化。CUDA コンパイラ（nvcc）のハードウェア Predicate レジスタ（`@p0..@p7`）による自動最適化が圧倒的に優位なため棄却。 | スピードアップ 0.37x（2.71x 低速 / 基準 $\ge 1.15x$ 未達） | [`math/src/exp_h66_warp_early_branch_elimination.py`](file:///c:/Users/syu/sister/math/src/exp_h66_warp_early_branch_elimination.py) |
 
 ---
 

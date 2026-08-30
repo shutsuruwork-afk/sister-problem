@@ -45,6 +45,7 @@
 | **H-29** | **分散ワーカー間チェックポイント・リカバリの非同期差分スナップショット** | Part 2 | **【B級】** | 差分バイトのみをバックグラウンド非同期書き込み。 | **スナップショット 14.22x 高速化 (0.145s $\to$ 0.010s)**<br>I/O ペイロード 22.2x 削減、計算ストール 0ms | [`math/src/exp_h29_async_delta_checkpoint.py`](file:///c:/Users/syu/sister/math/src/exp_h29_async_delta_checkpoint.py) |
 | **H-32** | **8xB300 GPU 実行中の NVMe Direct Storage (GDS) ゼロコピー非同期スナップショット** | Part 2 | **【B級】** | GPUDirect Storage（cuFile DMA）により、GPU HBM から NVMe SSD へ直接 DMA 転送。 | **スナップショット書き込み 1.85x 高速化 (6.02 GB/s)**<br>CPU 負荷 0% での無停止保護 | [`math/src/exp_h32_gpudirect_storage_snapshot.py`](file:///c:/Users/syu/sister/math/src/exp_h32_gpudirect_storage_snapshot.py) |
 | **H-42** | **CUDA Async Pipeline (cuda::memcpy_async / cp.async) によるダブルバッファ HBM 転送** | Part 2 | **【B級】** | PTX `cp.async` 命令により、SM レジスタを介さず HBM から共有メモリへ直接非同期 DMA 転送。 | **スループット 2.00x 高速化 (22.63 M ops/sec)**<br>HBM メモリストール 100% 隠蔽 | [`math/src/exp_h42_cuda_async_pipeline.py`](file:///c:/Users/syu/sister/math/src/exp_h42_cuda_async_pipeline.py) |
+| **H-43** | **CRT Garner 係数逆元の事前計算パイプライン** | Part 2 | **【B級】** | Garner 逆元定数 $\{C_k\}$ をオフライン事前計算（0.1373 ms）し、ランタイム動的逆数計算を完全排除。 | **CRT 復元 31.55x 高速化 (0.0039 ms)**<br>動的モジュラー逆数計算ストールゼロ化 | [`math/src/exp_h43_precomputed_garner_inverses.py`](file:///c:/Users/syu/sister/math/src/exp_h43_precomputed_garner_inverses.py) |
 
 ### 【C級: スループット層】(ALU・SIMD・ビット並列)
 
@@ -93,18 +94,21 @@
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-42 採択生ログ
+### H-43 採択生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-42: CUDA Async Pipeline (cp.async) Double-Buffered HBM Transfer   
+  EXPERIMENT H-43: Precomputed Garner Inverses for CRT Reconstruction             
 ================================================================================
 
-[Step 1] Micro-Benchmark: 100,000 Boundary Buffer Steps (16-way batch):
-  Synchronous HBM Load Pipeline:     0.1417s (11.29 M ops/sec)
-  cuda::memcpy_async Pipeline:       0.0707s (22.63 M ops/sec) -> Speedup: 2.00x
+[Step 1] Precomputing Garner Inverse Constants:
+  Precomputed 12 constants in 0.1373 ms.
+
+[Step 2] Micro-Benchmark: 2,000 Mixed-Radix CRT Reconstructions:
+  Dynamic Inversion CRT:             0.2439s (0.1220 ms/reconstruction)
+  Precomputed Constant CRT:          0.0077s (0.0039 ms/reconstruction) -> Speedup: 31.55x
 
 ================================================================================
-  DECISION: [ADOPTED] Async Pipeline achieves 2.00x speedup (22.63 M ops/sec).
-  HARDWARE ACCELERATION: Exploits PTX cp.async to bypass SM registers and completely hide HBM latency.
+  DECISION: [ADOPTED] Precomputed Garner Inverses achieve 31.55x speedup.
+  INFRASTRUCTURE ACCELERATION: Completely eliminates runtime Extended GCD latency stalls.
 ================================================================================
 ```

@@ -17,6 +17,7 @@ description: お姉さん問題（OEIS A007764 / n×n 格子の自己回避経�
 | :--- | :--- |
 | 最終目標 | $a(28)$ の完全計算（$n \times n$ 格子の自己回避経路数） |
 | 品質保証コマンド | `python math/src/verify_all.py` |
+| **参照実装（照合の土台）** | `python math/src/verify_baseline.py --sheet` — 速度でなく明白な正しさを優先した独立実装。最適化エンジンはここと一致することで正当性を主張する。**実寸表の実測アンカーもここから取る。** |
 | Tier 定義の正本 | `VERIFICATION.md` / `QUALITY_ASSURANCE.md` |
 | Ground Truth | OEIS A007764 の既知値 $a(1) \dots a(10)$（Tier 1 で完全一致を照合） |
 | 仮説トラッカー | `MOONSHOT_TRACKER.md` |

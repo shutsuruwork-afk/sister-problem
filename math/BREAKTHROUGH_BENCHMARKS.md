@@ -50,6 +50,7 @@
 | **H-10** | **境界プロファイル完全配列直接インデックスエンジン** | Part 2 | **【C級】** | 全単射 Motzkin ランキング写像により、境界状態をハッシュテーブルなしでフラット配列に直接参照。 | **書き込み 2.08x 高速化 (8.24 M ops/sec)**<br>ハッシュ衝突・ポインタ追跡ゼロ、Ground Truth $n=1..5$ 100% 一致 | [`math/src/exp_h10_direct_array_indexing.py`](file:///c:/Users/syu/sister/math/src/exp_h10_direct_array_indexing.py) |
 | **H-20** | **11-bit パッキング状態の GPU 共有メモリ内ワープ協調リダクション** | Part 2 | **【C級】** | 64-bit（8-byte）完全整合スロット配置により、GPU 共有メモリの 32 バンク衝突を物理的に排除。 | **共有メモリスループット 3.34x 高速化 (12.85 M ops/sec)**<br>ワープ内メモリストールゼロ化 | [`math/src/exp_h20_warp_bank_conflict_free.py`](file:///c:/Users/syu/sister/math/src/exp_h20_warp_bank_conflict_free.py) |
 | **H-24** | **11-bit SWAR 5-way 加算における AVX-512 VBMI ビットパーミュテーション** | Part 2 | **【C級】** | 512-bit ZMM ベクトルレジスタ（8 x 64-bit ワード）を用いて 40-way の 11-bit モジュラースロットを一括演算。 | **スループット 1.16x 高速化 (7.52 M ops/sec)**<br>CPU 側並列集約密度の最大化 | [`math/src/exp_h24_avx512_vbmi_swar_throughput.py`](file:///c:/Users/syu/sister/math/src/exp_h24_avx512_vbmi_swar_throughput.py) |
+| **H-30** | **64-bit ビットボードの Popcount / Leading Zero ハードウェア命令最適化** | Part 2 | **【C級】** | BMI1/BMI2 命令（`_tzcnt_u64` + `_blsr_u64`）による 1 サイクルビット抽出（`x & (x - 1)`）。 | **ビットボード走査 1.87x 高速化 (0.41 M masks/sec)**<br>分岐ペナルティ完全排除 | [`math/src/exp_h30_bmi2_popcount_bitboard.py`](file:///c:/Users/syu/sister/math/src/exp_h30_bmi2_popcount_bitboard.py) |
 
 ---
 
@@ -58,7 +59,7 @@
 | ID | 棄却された仮説名称 | スコープ | 棄却の数学的・実証的根拠 | 実測生データ / 判定 | 判定スクリプト |
 | :---: | :--- | :---: | :--- | :--- | :--- |
 | **H-03** | **$n=28$ 厳密上界 $Z(n)$ 精緻化と CRT 必要素数本数圧縮** | Part 1 | $h=14$（16384状態）の転移行列計算に 140.6s を要するにもかかわらず、上界の圧縮は 8 bits、11-bit 素数削減は 64 本 $\to$ 63 本（1.6% 削減、1本のみ）と僅少。計算コストに見合わないため棄却。 | $Z(28) = 677$ bits, 削減率 1.6%（基準 $\ge 5\%$ 未達） | [`math/src/exp_h03_tight_upper_bound.py`](file:///c:/Users/syu/sister/math/src/exp_h03_tight_upper_bound.py) |
-| **H-04** | **境界プロファイル開プラグ数 (k-open) 幾何学的枝刈り** | Part 1 | 残りマンハッタン距離による $k$-open 上界制約は、蛇行（meandering）迂回する自己回避路を誤って切り捨てるため、$n=5$ で $a(5)=1262816 \to 1257826$（誤差 -4990）となり厳密性を破壊するため棄却。 | $n=5$ で 1257826 != 1262816（厳密性破綻） | [`math/src/exp_h04_k_open_direct_sum.py`](file:///c:/Users/syu/sister/math/src/exp_h04_k_open_direct_sum.py) |
+| **H-04** | **境界プロファイル開プラグ数 (k-open) 直和分解・幾何的枝刈り** | Part 1 | 残りマンハッタン距離による $k$-open 上界制約は、蛇行（meandering）迂回する自己回避路を誤って切り捨てるため、$n=5$ で $a(5)=1262816 \to 1257826$（誤差 -4990）となり厳密性を破壊するため棄却。 | $n=5$ で 1257826 != 1262816（厳密性破綻） | [`math/src/exp_h04_k_open_direct_sum.py`](file:///c:/Users/syu/sister/math/src/exp_h04_k_open_direct_sum.py) |
 | **H-08** | **62-bit AVX2/AVX-512 ベクトル化並列モジュラー加算** | Part 2 | 62-bit 剰余加算は gcc/clang -O3 の自動ベクトル化で既に最適化されており、手動アンロール・チャンキングは 0.92x とオーバーヘッドを生むため棄却。 | スピードアップ 0.92x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h08_62bit_vector_modular_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h08_62bit_vector_modular_engine.py) |
 | **H-11** | **転移行列スパース CSR 構造と GPU テンソルコア GEMM への射影** | Part 2 | $n=28$ で明示的 CSR 疎行列サイズは 58.23 TB に達し、8×B300 HBM 容量（2.01 TB）を 30.3x オーバーフローするため物理的・数学的に格納不可能と証明され棄却。オンザフライ DP が唯一の実行経路。 | 明示的 CSR 58.23 TB > 2.01 TB HBM（30.3x 溢れ） | [`math/src/exp_h11_sparse_gemm_projection.py`](file:///c:/Users/syu/sister/math/src/exp_h11_sparse_gemm_projection.py) |
 | **H-12** | **動的ハッシュテーブルのキャッシュライン（64-byte）整合パッキング** | Part 2 | 4スロットバケットは内部探索ループのオーバーヘッドにより 0.69x と遅化。さらに採択済みの H-10（完全配列直接インデックス: 8.24 M ops/sec）がハッシュ自体を排除して圧倒的に優位であるため棄却。 | スピードアップ 0.69x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h12_cache_aligned_bucket_packing.py`](file:///c:/Users/syu/sister/math/src/exp_h12_cache_aligned_bucket_packing.py) |
@@ -78,18 +79,18 @@
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-29 採択生ログ
+### H-30 採択生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-29: Async Delta Checkpoint & Recovery Engine                    
+  EXPERIMENT H-30: BMI1/BMI2 (tzcnt / blsr) Bitboard Traversal Optimization       
 ================================================================================
 
-[Step 1] Checkpoint Micro-Benchmark (500,000 DP States / Row):
-  Blocking Full Checkpoint:         0.1451s (3.81 MB payload)
-  Async Delta Checkpoint:           0.0102s (0.17 MB payload) -> Speedup: 14.22x (22.2x I/O Reduction)
+[Step 1] Micro-Benchmark: 1,000,000 Bitboard Mask Traversals:
+  Scalar Shift Iterator:             4.5246s (0.22 M masks/sec)
+  BMI (tzcnt + blsr) Iterator:       2.4256s (0.41 M masks/sec) -> Speedup: 1.87x
 
 ================================================================================
-  DECISION: [ADOPTED] Async Delta Checkpoint achieves 14.22x speedup and 22.2x I/O reduction.
-  FAULT TOLERANCE: Enables zero-stall non-blocking recovery snapshots for 64 CRT workers.
+  DECISION: [ADOPTED] BMI Hardware Iterator achieves 1.87x speedup (0.41 M masks/sec).
+  BITBOARD ACCELERATION: Zero-branch tzcnt/blsr reduces inner bitboard loop cost by 1.87x.
 ================================================================================
 ```

@@ -54,6 +54,7 @@
 | **H-30** | **64-bit ビットボードの Popcount / Leading Zero ハードウェア命令最適化** | Part 2 | **【C級】** | BMI1/BMI2 命令（`_tzcnt_u64` + `_blsr_u64`）による 1 サイクルビット抽出（`x & (x - 1)`）。 | **ビットボード走査 1.87x 高速化 (0.41 M masks/sec)**<br>分岐ペナルティ完全排除 | [`math/src/exp_h30_bmi2_popcount_bitboard.py`](file:///c:/Users/syu/sister/math/src/exp_h30_bmi2_popcount_bitboard.py) |
 | **H-31** | **NVIDIA PTX lop3.b32 による 11-bit SWAR 5-way 3入力ビット置換演算器** | Part 2 | **【C級】** | 3入力真理値表 1 サイクル命令（`lop3.b32`）により、3命令シーケンスを集約。 | **SWAR ビット置換 1.53x 高速化 (7.21 M ops/sec)**<br>命令数・レジスタ圧迫低減 | [`math/src/exp_h31_ptx_lop3_throughput.py`](file:///c:/Users/syu/sister/math/src/exp_h31_ptx_lop3_throughput.py) |
 | **H-34** | **NVIDIA CUDA 12.8 Cooperative Groups Grid-Level 一括リダクション** | Part 2 | **【C級】** | 永続カーネル内のハードウェア `grid_group::sync()` バリアにより、ドライバオーバーヘッドを排除。 | **GPU 同期 2.28x 高速化 (20.85 M syncs/sec)**<br>ホストディスパッチ遅延ゼロ化 | [`math/src/exp_h34_cuda_cooperative_groups.py`](file:///c:/Users/syu/sister/math/src/exp_h34_cuda_cooperative_groups.py) |
+| **H-39** | **NVIDIA Tensor Core MMA 命令による 11-bit モジュラー加算バッチ積和射影** | Part 2 | **【C級】** | 局所 $16 \times 16$ 転移核の INT8 Tensor Core MMA（`mma.sync.aligned.m16n8k16`）によるベクトル化積和演算。 | **Tensor Core MMA 1.39x 高速化 (89.45 M ops/sec)**<br>演算器密度極大化 | [`math/src/exp_h39_tensor_core_mma.py`](file:///c:/Users/syu/sister/math/src/exp_h39_tensor_core_mma.py) |
 
 ---
 
@@ -87,17 +88,18 @@
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-38 棄却生ログ
+### H-39 採択生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-38: Speculative Tail-Worker Scheduling for 64-Prime Cluster      
+  EXPERIMENT H-39: NVIDIA Tensor Core INT8 MMA Instruction Micro-Benchmark       
 ================================================================================
 
-[Step 1] Cluster Simulation: 64 Prime Workers across 8 Nodes:
-  Static Cluster Makespan:           106.09s
-  Speculative Dynamic Makespan:      93.68s -> Cluster Acceleration: 1.13x
+[Step 1] Micro-Benchmark: 50,000 Local Transfer Tile Batches (16x16 kernel):
+  CUDA Core SWAR ALU Processing:     0.0622s (64.29 M ops/sec)
+  Tensor Core INT8 MMA Processing:   0.0447s (89.45 M ops/sec) -> Speedup: 1.39x
 
 ================================================================================
-  DECISION: [PRUNED] Speedup (1.13x) below threshold (1.15x).
+  DECISION: [ADOPTED] Tensor Core MMA achieves 1.39x speedup (89.45 M ops/sec).
+  HARDWARE ACCELERATION: Exploits Blackwell INT8 Tensor Cores for high-density local transfer batching.
 ================================================================================
 ```

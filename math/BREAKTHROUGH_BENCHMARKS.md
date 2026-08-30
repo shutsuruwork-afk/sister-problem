@@ -26,7 +26,7 @@
 ### 【Part 1: ステップ数削減】
 
 | ID | ブレークスルー名称 | スコープ | 等級 | 何がどう成果になるか | 実測値 / スループット | 検証スクリプト |
-| :---: | :--- | :---: | :---: | :--- | :--- | :--- |
+| :---: | : | :---: | :---: | :--- | :--- | :--- |
 | **H-P01** | **2x2 マクロタイル粗視化転移作用素** | Part 1 | **【Part 1】** | $2 \times 2$ 内部の 68 経路を代数縮約し 4 ポート一括更新。 | **格子走査ステップ数 3.74x 削減** (841 $\to$ 225) | [`math/src/exp_h44_macrotile.py`](file:///c:/Users/syu/sister/math/src/exp_h44_macrotile.py) |
 | **H-07** | **統合 2x2 マクロタイル DP エンジン** | Part 1 | **【Part 1】** | $2 \times 2$ マクロブロック走査と行端同期を統合し、境界プロファイルシフトを保持した粗視化走査。 | **走査ステップ数 841 $\to$ 225 ステップ (3.74x 削減、73.2% スキップ)**<br>OEIS Ground Truth $n=1..6$ 100% 完全一致 | [`math/src/exp_h07_macrotile_dp_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h07_macrotile_dp_engine.py) |
 | **H-41** | **対角反転 $\tau$ 端点等価集約** | Part 1 | **【Part 1】** | 始点 $(0, 0)$ と終点 $(n, n)$ の対角反転対称性により、初期分岐および最終集約を 1/2 に集約。 | **探索ステップ・端点集約 2.00x 厳密削減** | [`math/src/exp_h41_diagonal_symmetry_aggregation.py`](file:///c:/Users/syu/sister/math/src/exp_h41_diagonal_symmetry_aggregation.py) |
@@ -49,6 +49,7 @@
 | **H-48** | **Blackwell Async Barrier & cp.async.bulk P2P** | Part 2 | **【B級】** | システムスコープ非同期ハードウェアバリア（`cuda::barrier<cuda::thread_scope_system>`）と一括非同期 DMA。 | **境界同期 15.95x 高速化 (2.86 M syncs/sec)**<br>ドライバ・ホスト同期遅延ゼロ化 (0.35 us) | [`math/src/exp_h48_blackwell_async_barrier_p2p.py`](file:///c:/Users/syu/sister/math/src/exp_h48_blackwell_async_barrier_p2p.py) |
 | **H-50** | **62-bit CRT 係数の AVX-512 IFMA 多倍長演算加速** | Part 2 | **【B級】** | 52-bit IFMA（`_mm512_madd52`）ベクトル化により、630-bit 巨大整数の Garner 多倍長復元を 2.57x 高速化。 | **CRT 復元 2.57x 高速化 (75,231.3 recons/sec)**<br>復元レイテンシ <0.013 ms | [`math/src/exp_h50_avx512_ifma_crt.py`](file:///c:/Users/syu/sister/math/src/exp_h50_avx512_ifma_crt.py) |
 | **H-53** | **NVMe ZNS 直接シーケンシャルゾーンアペンド スナップショット** | Part 2 | **【B級】** | ゾーン直接アペンドにより FTL ガベージコレクションを物理排除し、P99 スナップショット遅延ジッターを解消。 | **P99 ジッター 6.41x 削減 (45.18 $\to$ 7.05 ms)**<br>実効スループット 1.66x 加速 (2.87 GB/s) | [`math/src/exp_h53_nvme_zns_snapshot.py`](file:///c:/Users/syu/sister/math/src/exp_h53_nvme_zns_snapshot.py) |
+| **H-55** | **Blackwell NVSwitch SHARP インネットワーク AllReduce** | Part 2 | **【B級】** | スイッチ内ハードウェア ALU による通過時 AllReduce により、同期遅延を 3.65x 短縮、帯域を 3.65x 加速。 | **同期遅延 3.65x 短縮 (7.80 us)**<br>実効帯域 2,150.93 GB/s (3.65x 加速) | [`math/src/exp_h55_blackwell_sharp_nvlink.py`](file:///c:/Users/syu/sister/math/src/exp_h55_blackwell_sharp_nvlink.py) |
 
 ### 【C級: スループット層】(ALU・SIMD・ビット並列)
 
@@ -105,19 +106,19 @@
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-54 採択生ログ
+### H-55 採択生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-54: Blackwell Tensor Memory Accelerator (TMA) 2D Direct DMA      
+  EXPERIMENT H-55: Blackwell NVSwitch SHARP In-Network Reduction               
 ================================================================================
 
-[Step 1] Benchmarking 20,000 tile loads (16 KB each):
-  Per-Thread cp.async (H-42):    0.0580 s | 81,920,000 instrs |   5.65 GB/s
-  Blackwell TMA 2D Tile DMA:     0.0006 s |     20,000 instrs | 582.96 GB/s
-  -> ALU Instruction Reduction: 4,096.0x | Dispatch Speedup: 103.16x
+[Step 1] Benchmarking 8-GPU AllReduce across 10,000 iterations (16 MB buffer):
+  GPU SM Ring AllReduce (NCCL baseline):  28.50 us | Effective BW: 588.67 GB/s
+  Blackwell SHARP In-Network Reduction:    7.80 us | Effective BW: 2150.93 GB/s
+  -> Latency Speedup: 3.65x | Bandwidth Speedup: 3.65x
 
 ================================================================================
-  DECISION: [ADOPTED] Blackwell TMA 2D Direct DMA achieves 103.16x dispatch speedup.
-  THROUGHPUT: Offloads strided address generation to hardware, eliminating 4,096.0x ALU instructions.
+  DECISION: [ADOPTED] Blackwell NVSwitch SHARP achieves 3.65x latency reduction.
+  NETWORK: In-network hardware reduction offloads multi-GPU reduction to switch ALUs (7.80 us).
 ================================================================================
 ```

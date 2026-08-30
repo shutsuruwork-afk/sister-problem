@@ -103,23 +103,25 @@
 | **H-47** | **格子境界プロファイルにおける非連結成分のトポロジカル交差数定理による事前排除** | Part 1 | 平面非交差性および早期閉路排除は Motzkin 括弧表現と転移作用素規則で既に 100% 飽和しており、商空間 $S/\Sigma$ が厳密な極小基底であるため追加削減 0% となり棄却。 | 状態数削減 0.00%（基準 $\ge 5\%$ 未達） | [`math/src/exp_h47_topological_crossing_pruning.py`](file:///c:/Users/syu/sister/math/src/exp_h47_topological_crossing_pruning.py) |
 | **H-51** | **偶数長格子におけるチェスボード着色プラグパリティ保存則の厳密証明** | Part 1 | 中間フロンティアを横断する未完結パスの各セグメントは任意のパリティを取り得るため、パリティ追跡は状態空間を拡大させ状態削減 0% となるため棄却。 | 状態数削減 0.00%（基準 $\ge 5\%$ 未達） | [`math/src/exp_h51_chessboard_parity_invariants.py`](file:///c:/Users/syu/sister/math/src/exp_h51_chessboard_parity_invariants.py) |
 | **H-56** | **11-bit SWAR 5-way スロットの CUDA 32-bit Funnel Shift (`__funnelshift_lc`) ALU 最適化** | Part 2 | スカラー 32-bit 単位の Funnel Shift は 1.04x に留まり採択基準（1.15x）未達。採択済みの H-49（PTX prmt.b32: 12.74 M ops/sec）および H-44（SIMD バレルシフタ: 43.27 M ops/sec）が広帯域に優位なため棄却。 | スピードアップ 1.04x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h56_cuda_funnel_shift.py`](file:///c:/Users/syu/sister/math/src/exp_h56_cuda_funnel_shift.py) |
+| **H-62** | **NVIDIA PTX bfe / bfi 命令による 11-bit SWAR スロット抽出・挿入 1 サイクル化** | Part 2 | スカラー bfe/bfi スロット展開・再パック（3.72 M ops/sec）は、採用済みの 5-way / 10-way SWAR 一括演算（27.92 M ops/sec）に対して 7.51x 圧倒的に遅く、インプレース SWAR が確立されたアーキテクチャにおいて不要なため棄却。 | SWAR 比 7.51x 低速（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h62_ptx_bfe_bfi_slots.py`](file:///c:/Users/syu/sister/math/src/exp_h62_ptx_bfe_bfi_slots.py) |
 
 ---
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-56 棄却生ログ
+### H-62 棄却生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-56: CUDA Hardware Funnel Shift (__funnelshift_lc) Realignment     
+  EXPERIMENT H-62: Scalar PTX bfe/bfi vs SIMD SWAR 5-Way Parallel Engine        
 ================================================================================
 
-[Step 1] Benchmarking 500,000 11-bit slot realignment operations:
-  Standard Shift + OR Sequence: 0.0982 s | Throughput:   5.09 M ops/sec
-  CUDA Hardware Funnel Shift:   0.0941 s | Throughput:   5.31 M ops/sec
-  -> ALU Throughput Speedup: 1.04x
+[Step 1] Benchmarking 200,000 5-slot word operations:
+  Scalar bfe/bfi Loop (5 passes):    0.2690 s | Throughput:   3.72 M ops/sec
+  SIMD 5-Way SWAR (H-02 baseline):   0.0358 s | Throughput:  27.92 M ops/sec
+  -> SIMD SWAR Superiority: 7.51x faster than scalar bfe/bfi
 
 ================================================================================
-  DECISION: [PRUNED] Speedup (1.04x) below threshold (1.15x).
+  DECISION: [PRUNED] Scalar bfe/bfi unpacking is 7.51x slower than SIMD SWAR.
+  ARCHITECTURE: 5-way SWAR (H-02) and 10-way SWAR (H-64) operate in-place, making scalar bfe/bfi obsolete.
 ================================================================================
 ```

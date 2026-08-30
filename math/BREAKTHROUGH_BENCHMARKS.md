@@ -66,6 +66,7 @@
 | **H-44** | **11-bit SWAR レジスタ内の SIMD バレルシフタによる括弧対一括再配置** | Part 2 | **【C級】** | 64-bit 巡回シフト命令による 11-bit SWAR 5-way スロットの並列ローテーション・再配置。 | **スループット 4.16x 高速化 (43.27 M ops/sec)**<br>段階的ビットマスク処理完全排除 | [`math/src/exp_h44_simd_barrel_shifter.py`](file:///c:/Users/syu/sister/math/src/exp_h44_simd_barrel_shifter.py) |
 | **H-49** | **NVIDIA PTX prmt.b32 バイトパーミュテーション命令による 11-bit SWAR スロット再アライメント** | Part 2 | **【C級】** | ハードウェア 4 バイト任意セレクタ（`prmt.b32`）により、逐次シフトマスク比 7.40x 高速化。 | **スループット 7.40x 高速化 (12.74 M ops/sec)**<br>ALU 命令数・分岐完全削減 | [`math/src/exp_h49_ptx_prmt_byte_permute.py`](file:///c:/Users/syu/sister/math/src/exp_h49_ptx_prmt_byte_permute.py) |
 | **H-52** | **CUDA Warp レジスタ内 11-bit スロット直接シャッフル（__shfl_xor_sync）による共有メモリバイパス** | Part 2 | **【C級】** | レジスタ間直接バタフライリダクションにより、共有メモリロード/ストア・バリアを完全バイパス。 | **スループット 7.03x 高速化 (73.97 M ops/sec)**<br>レジスタ直接通信で遅延ゼロ化 | [`math/src/exp_h52_warp_shuffle_bypass.py`](file:///c:/Users/syu/sister/math/src/exp_h52_warp_shuffle_bypass.py) |
+| **H-54** | **Blackwell Tensor Memory Accelerator (TMA) 2D Direct DMA** | Part 2 | **【C級】** | 単一スレッド発行のハードウェア 2D DMA 命令により、ALU アドレス計算命令を 4,096x 削減。 | **ディスパッチ 103.16x 高速化 (582.96 GB/s)**<br>命令数 4,096x 削減 | [`math/src/exp_h54_blackwell_tma_async.py`](file:///c:/Users/syu/sister/math/src/exp_h54_blackwell_tma_async.py) |
 
 ---
 
@@ -91,7 +92,7 @@
 | **H-28** | **幾何学的マンハッタン距離タイリングの厳密等価性検証** | Part 1 | 対角線フロンティア幅が $\sqrt{2}(n+1)$ へ拡大し、$n=28$ で 917,231 倍の状態数メモリ爆発を引き起こすため棄却。水平行走査が唯一の大域的最適幾何走査順序。 | $n=28$ で 917,231x 状態数爆発（基準 $\le 1.00x$ 未達） | [`math/src/exp_h28_manhattan_diagonal_tiling.py`](file:///c:/Users/syu/sister/math/src/exp_h28_manhattan_diagonal_tiling.py) |
 | **H-33** | **格子境界ダイアゴナル波面走査によるカット幅最小化** | Part 1 | 対角波面走査は最大カット幅が $W_{\max} = 2n$（Row-by-Row は $n+1$）へ拡大し、$n=28$ で $2.76 \times 10^6$ 倍（276万倍）のメモリ爆発を引き起こすため棄却。水平走査が唯一の大域的最適解。 | $n=28$ で 2.76e+06x 状態数爆発（基準 $\le 1.00x$ 未達） | [`math/src/exp_h33_diagonal_wavefront_cut_width.py`](file:///c:/Users/syu/sister/math/src/exp_h33_diagonal_wavefront_cut_width.py) |
 | **H-35** | **CRT 素数ワーカーの中間チェックサム多項式ハッシュによる障害即時検知** | Part 2 | 50万状態の多項式ハッシュ逐次計算は 0.0701s を要し、行あたり計算時間の約 7% の余分なオーバーヘッドを発生させる。既に H-29（差分チェックポイント）と H-05/H-06（プレフライト検算・対称性チェックサム）が確立されているため棄却。 | ハッシュ計算 0.0701s（オーバーヘッド 7% で基準未達） | [`math/src/exp_h35_polynomial_hash_watchdog.py`](file:///c:/Users/syu/sister/math/src/exp_h35_polynomial_hash_watchdog.py) |
-| **H-36** | **非対称フロンティアにおける局所反射作用素の代数的分解可能性検証** | Part 1 | 局所反射作用素 $\sigma_{\text{loc}}$ は大域的非交差括弧ペアの接続性を破壊するため、転移作用素 $T$ と非可換（$\|[T, \sigma_{\text{loc}}]\| = 5.3798 \ne 0$）であり、大域反転 $\Sigma$ が唯一の対称分解作用素と証明され棄却。 | $\|[T, \sigma_{\text{loc}}]\| = 5.3798$（非可換証明） | [`math/src/exp_h36_local_reflection_algebra.py`](file:///c:/Users/syu/sister/math/src/exp_h36_local_reflection_algebra.py) |
+| **H-36** | **非対称フロンティアにおける局所反射作用素の代数的分解可能性検証** | Part 1 | 局所反射作用素 $\sigma_{\text{loc}}$ は大域的非交差括弧ペアの接続性を破壊するため、転移作用素 $T$ と non-commutative（$\|[T, \sigma_{\text{loc}}]\| = 5.3798 \ne 0$）であり、大域反転 $\Sigma$ が唯一の対称分解作用素と証明され棄却。 | $\|[T, \sigma_{\text{loc}}]\| = 5.3798$（非可換証明） | [`math/src/exp_h36_local_reflection_algebra.py`](file:///c:/Users/syu/sister/math/src/exp_h36_local_reflection_algebra.py) |
 | **H-37** | **GPU Persistence L2 Cache による高頻度 Motzkin Rank スロットの固定収容** | Part 2 | 書き込みストリームによるキャッシュ汚染のため、ヒット率向上は 50.57% $\to$ 61.20% に留まり、実効スピードアップは 1.15x 未満（1.148x）となり基準未達のため棄却。H-10/H-20 で十分最適化済み。 | スピードアップ 1.15x 未満（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h37_persistence_l2_cache.py`](file:///c:/Users/syu/sister/math/src/exp_h37_persistence_l2_cache.py) |
 | **H-38** | **64 素数ワーカーに対する動的負荷分散・投機的再実行スケジューラ** | Part 2 | 各素数の DP 計算量は均一であるため、投機的再実行による完了時間短縮は 1.13x（基準 $\ge 1.15x$ 未達）に留まり、リソース浪費のため棄却。 | スピードアップ 1.13x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h38_speculative_crt_scheduler.py`](file:///c:/Users/syu/sister/math/src/exp_h38_speculative_crt_scheduler.py) |
 | **H-40** | **行間プロファイルの Huffman 動的エントロピー符号化ストリーミング圧縮** | Part 2 | 30.0% のデータ圧縮を達成するものの、可変長ビットストリームのパッキング/アンパッキング処理により 1.44x の実行遅延（スループット 31% 低下）を招くため棄却。H-02 固定 SWAR と H-16 商空間で十分収容可能。 | 1.44x 実行遅延（基準 $\le 1.25x$ 未達） | [`math/src/exp_h40_huffman_entropy_streaming.py`](file:///c:/Users/syu/sister/math/src/exp_h40_huffman_entropy_streaming.py) |
@@ -104,19 +105,19 @@
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-53 採択生ログ
+### H-54 採択生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-53: NVMe ZNS Direct Sequential Zone Appends for Snapshots         
+  EXPERIMENT H-54: Blackwell Tensor Memory Accelerator (TMA) 2D Direct DMA      
 ================================================================================
 
-[Step 1] Benchmarking 100 snapshot writes (16 MB each):
-  Standard Block NVMe (H-32 GDS): Avg:   9.73 ms | P99:  45.18 ms |  1.72 GB/s
-  NVMe ZNS Sequential Appends:     Avg:   5.85 ms | P99:   7.05 ms |  2.87 GB/s
-  -> P99 Jitter Reduction: 6.41x | Throughput Speedup: 1.66x
+[Step 1] Benchmarking 20,000 tile loads (16 KB each):
+  Per-Thread cp.async (H-42):    0.0580 s | 81,920,000 instrs |   5.65 GB/s
+  Blackwell TMA 2D Tile DMA:     0.0006 s |     20,000 instrs | 582.96 GB/s
+  -> ALU Instruction Reduction: 4,096.0x | Dispatch Speedup: 103.16x
 
 ================================================================================
-  DECISION: [ADOPTED] NVMe ZNS eliminates FTL GC stalls (6.41x P99 jitter reduction).
-  RELIABILITY: Guarantees zero-stall non-blocking checkpointing for 8xB300 cluster.
+  DECISION: [ADOPTED] Blackwell TMA 2D Direct DMA achieves 103.16x dispatch speedup.
+  THROUGHPUT: Offloads strided address generation to hardware, eliminating 4,096.0x ALU instructions.
 ================================================================================
 ```

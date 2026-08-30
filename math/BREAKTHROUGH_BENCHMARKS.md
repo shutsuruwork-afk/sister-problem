@@ -82,7 +82,7 @@
 | **H-22** | **Multi-Prime CRT 復元における Montgomery 多倍長並列乗算パイプライン** | Part 2 | 630 bits（10 limbs）では Karatsuba 分割統治の再帰オーバーヘッドが支配的となり、ネイティブ C-level 多倍長乗算に対して 25.9x 低速化するため棄却。H-09 ストリーミング Garner CRT が最適。 | ネイティブ C 比 25.9x 低速（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h22_multiprecision_crt_pipeline.py`](file:///c:/Users/syu/sister/math/src/exp_h22_multiprecision_crt_pipeline.py) |
 | **H-23** | **境界プロファイル 90度回転直和分解による次元 1/4 縮約可能性検証** | Part 1 | フロンティア転移作用素 $T$ は一次元伝搬のため 90度回転 $R$ と non-commutative（$[T, R] \ne 0$）。中間 DP 状態の $D_4$ 1/4 分解は数学的に不可能と証明され棄却（$C_2$ 1/2 分解が理論限界）。 | $[T, R] = 1.00$（非可換証明） | [`math/src/exp_h23_d4_rotation_commutativity.py`](file:///c:/Users/syu/sister/math/src/exp_h23_d4_rotation_commutativity.py) |
 | **H-26** | **4x4 マクロブロック粗視化作用素（走査ステップ数 16x スキップ）** | Part 1 | 4x4 内部構成数が 3,584 万通りへ天文学的爆発し、ステップ削減（15.8x）を圧倒する 124,151.6x の低速化を生むため棄却。2x2 粗視化が唯一のパレート最適解。 | 2x2 比 124,151.6x 低速（基準 $\ge 1.00x$ 未達） | [`math/src/exp_h26_4x4_macrotile_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h26_4x4_macrotile_engine.py) |
-| **H-27** | **GPU Warp 投票命令（__ballot_sync）による非ゼロ遷移の一括フィルタリング** | Part 2 | 全レーン無効となる確率が極小のため早期 Exit が効かず、マスク生成・テストオーバーヘッドにより 0.56x と低速化するため棄却。H-20 共有メモリ直接書き込みが優位。 | スピードアップ 0.56x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h27_warp_ballot_filtering.py`](file:///c:/Users/syu/sister/math/src/exp_h27_warp_ballot_filtering.py) |
+| **H-27** | **GPU Warp 投票命令（__ballot_sync）による non-zero 遷移フィルタリング** | Part 2 | 全レーン無効となる確率が極小のため早期 Exit が効かず、マスク生成・テストオーバーヘッドにより 0.56x と低速化するため棄却。H-20 共有メモリ直接書き込みが優位。 | スピードアップ 0.56x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h27_warp_ballot_filtering.py`](file:///c:/Users/syu/sister/math/src/exp_h27_warp_ballot_filtering.py) |
 | **H-28** | **幾何学的マンハッタン距離タイリングの厳密等価性検証** | Part 1 | 対角線フロンティア幅が $\sqrt{2}(n+1)$ へ拡大し、$n=28$ で 917,231 倍の状態数メモリ爆発を引き起こすため棄却。水平行走査が唯一の大域的最適幾何走査順序。 | $n=28$ で 917,231x 状態数爆発（基準 $\le 1.00x$ 未達） | [`math/src/exp_h28_manhattan_diagonal_tiling.py`](file:///c:/Users/syu/sister/math/src/exp_h28_manhattan_diagonal_tiling.py) |
 | **H-33** | **格子境界ダイアゴナル波面走査によるカット幅最小化** | Part 1 | 対角波面走査は最大カット幅が $W_{\max} = 2n$（Row-by-Row は $n+1$）へ拡大し、$n=28$ で $2.76 \times 10^6$ 倍（276万倍）のメモリ爆発を引き起こすため棄却。水平走査が唯一の大域的最適解。 | $n=28$ で 2.76e+06x 状態数爆発（基準 $\le 1.00x$ 未達） | [`math/src/exp_h33_diagonal_wavefront_cut_width.py`](file:///c:/Users/syu/sister/math/src/exp_h33_diagonal_wavefront_cut_width.py) |
 | **H-35** | **CRT 素数ワーカーの中間チェックサム多項式ハッシュによる障害即時検知** | Part 2 | 50万状態の多項式ハッシュ逐次計算は 0.0701s を要し、行あたり計算時間の約 7% の余分なオーバーヘッドを発生させる。既に H-29（差分チェックポイント）と H-05/H-06（プレフライト検算・対称性チェックサム）が確立されているため棄却。 | ハッシュ計算 0.0701s（オーバーヘッド 7% で基準未達） | [`math/src/exp_h35_polynomial_hash_watchdog.py`](file:///c:/Users/syu/sister/math/src/exp_h35_polynomial_hash_watchdog.py) |
@@ -92,26 +92,34 @@
 | **H-40** | **行間プロファイルの Huffman 動的エントロピー符号化ストリーミング圧縮** | Part 2 | 30.0% のデータ圧縮を達成するものの、可変長ビットストリームのパッキング/アンパッキング処理により 1.44x の実行遅延（スループット 31% 低下）を招くため棄却。H-02 固定 SWAR と H-16 商空間で十分収容可能。 | 1.44x 実行遅延（基準 $\le 1.25x$ 未達） | [`math/src/exp_h40_huffman_entropy_streaming.py`](file:///c:/Users/syu/sister/math/src/exp_h40_huffman_entropy_streaming.py) |
 | **H-45** | **格子グラフの 2部グラフ性（Bipartite Vertex Coloring）を用いた奇数長閉路排除** | Part 1 | 頂点パリティ交互律は単一頂点フロンティア DP の各ステップ $(r, c)$ の幾何学的進行によって既に 100% 暗黙的に完全に保存（Algebraic Tautology）されており、追加フィルタによる状態数削減は 0%（削減数 0）のため棄却。 | 状態数削減 0.00%（基準 $\ge 5\%$ 未達） | [`math/src/exp_h45_bipartite_coloring_pruning.py`](file:///c:/Users/syu/sister/math/src/exp_h45_bipartite_coloring_pruning.py) |
 | **H-46** | **8xB300 GPU 間オールリダクション（NCCL AllReduce）における Ring vs Tree 最適化** | Part 2 | 小規模バッファ（1 MB）では Tree が優位（1.30x）だが、本番 DP の主たる 16〜64 MB バッファでは Ring が高帯域であり、累積同期時間で 0.90x（Tree が 10% 低速）となったため棄却。NCCL 標準の Ring 選択が最適。 | 累積スピードアップ 0.90x（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h46_nccl_tree_vs_ring.py`](file:///c:/Users/syu/sister/math/src/exp_h46_nccl_tree_vs_ring.py) |
+| **H-47** | **格子境界プロファイルにおける非連結成分のトポロジカル交差数定理による事前排除** | Part 1 | 平面非交差性および早期閉路排除は Motzkin 括弧表現と転移作用素規則で既に 100% 飽和しており、商空間 $S/\Sigma$ が厳密な極小基底であるため追加削減 0% となり棄却。 | 状態数削減 0.00%（基準 $\ge 5\%$ 未達） | [`math/src/exp_h47_topological_crossing_pruning.py`](file:///c:/Users/syu/sister/math/src/exp_h47_topological_crossing_pruning.py) |
 
 ---
 
 # 3. 実測生ログ (Official Benchmark Raw Logs)
 
-### H-46 棄却生ログ
+### H-47 棄却生ログ
 ```text
 ================================================================================
-  EXPERIMENT H-46: NCCL Double Binary Tree vs Ring AllReduce on 8xB300 NVLink 4.0 
+  EXPERIMENT H-47: Topological Crossing & Early Loop Closure Pruning            
 ================================================================================
 
-[Step 1] AllReduce Latency & Effective Bandwidth Comparison across Buffer Sizes:
-  Buffer  1.0 MB | Ring:  31.99 us ( 30.53 GB/s) | Tree:  24.56 us ( 39.76 GB/s) -> Speedup: 1.30x
-  Buffer  4.0 MB | Ring:  77.56 us ( 50.36 GB/s) | Tree:  76.64 us ( 50.97 GB/s) -> Speedup: 1.01x
-  Buffer 16.0 MB | Ring: 259.86 us ( 60.13 GB/s) | Tree: 284.98 us ( 54.83 GB/s) -> Speedup: 0.91x
-  Buffer 64.0 MB | Ring: 989.02 us ( 63.19 GB/s) | Tree: 1118.31 us ( 55.89 GB/s) -> Speedup: 0.88x
+[Step 1] Evaluating Boundary State Enumeration across Grid Sizes (n=1..5):
+  n=1: Final Valid States:    2 | Total Intermediate States Explored:      1
+  n=2: Final Valid States:    4 | Total Intermediate States Explored:      9
+  n=3: Final Valid States:    8 | Total Intermediate States Explored:     47
+  n=4: Final Valid States:   20 | Total Intermediate States Explored:    217
+  n=5: Final Valid States:   52 | Total Intermediate States Explored:    917
 
-[Step 2] Overall Workload Cumulative Sync Latency Speedup: 0.90x
+[Step 2] Mathematical Analysis of Topological Invariants:
+  * Planar non-crossing condition is fundamentally enforced by the Motzkin bracket structure.
+  * Early isolated cycle closure is 100% prohibited by the standard condition (left != up).
+  * Every intermediate state generated by the transfer operator is topologically valid and realizable.
+  * No dead-end or self-intersecting topological configurations survive the standard operator.
 
 ================================================================================
-  DECISION: [PRUNED] Speedup (0.90x) below threshold (1.15x).
+  DECISION: [PRUNED] Topological non-crossing and loop prevention are already 100% saturated.
+  MATHEMATICAL INSIGHT: Motzkin quotient space S/Sigma represents the exact minimal basis;
+  no additional algebraic pruning can reduce the exact rank without violating exactness.
 ================================================================================
 ```

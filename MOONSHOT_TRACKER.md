@@ -11,38 +11,37 @@
   - サイクルごとにコミットと `git push` を実行。
 
 - **総追跡仮説数**: 44 件
-- **真の採択ブレークスルー (Adopted Breakthroughs)**: **18 件** (+1件: H-25)
+- **真の採択ブレークスルー (Adopted Breakthroughs)**: **18 件**
   - **【A級: 予算を閉じる】**: **5 件** (11-bit パッキング, 空間反転直和分解 $T\Sigma = \Sigma T$, 商空間全単射ランキング, H-02: 11-bit SWAR 5-Way 並列モジュラー加算器, H-16: 商空間 S/Sigma 上の 2x2 マクロタイル作用素直和縮約)
-  - **【B級: 運転を成立させる】**: **7 件** (62-bit 多重素数 CRT 分散並列復元, C言語ネイティブ DP エンジン, H-05: Baxter CTMRG プレフライト独立検算, H-06: 反対角対称性 $F_{\rho\tau}$ 三角形ビットボード探索, H-09: 非同期ストリーミング増分 Garner CRT エンジン, H-17: 8xB300 GPU 間 NVLink 4.0 GPUDirect 階層集約ストリーミング, **H-25: 8xB300 HBM 上での NUMA 階層ゼロコピー Direct Access パイプライン**)
+  - **【B級: 運転を成立させる】**: **7 件** (62-bit 多重素数 CRT 分散並列復元, C言語ネイティブ DP エンジン, H-05: Baxter CTMRG プレフライト独立検算, H-06: 反対角対称性 $F_{\rho\tau}$ 三角形ビットボード探索, H-09: 非同期ストリーミング増分 Garner CRT エンジン, H-17: 8xB300 GPU 間 NVLink 4.0 GPUDirect 階層集約ストリーミング, H-25: 8xB300 HBM 上での NUMA 階層ゼロコピー Direct Access パイプライン)
   - **【C級: スループット層】**: **4 件** (H-01: SWAR 2-Slot ブランチレス括弧対探索, H-10: 境界プロファイル完全配列直接インデックスエンジン, H-20: 11-bit パッキング状態の GPU 共有メモリ内ワープ協調リダクション, H-24: 11-bit SWAR 5-way 加算における AVX-512 VBMI ビットパーミュテーション)
   - **【Part 1: ステップ数削減】**: **2 件** (2x2 マクロタイル粗視化転移作用素, H-07: 統合 2x2 マクロタイル DP エンジン)
-- **厳格棄却アーカイブ (Pruned Archive / Fail-Fast)**: **13 件**
-- **現在のアクティブキュー**: **13 件**
+- **厳格棄却アーカイブ (Pruned Archive / Fail-Fast)**: **14 件** (+1件: H-26)
+- **現在のアクティブキュー**: **12 件**
 - **補充閾値 (50%)**: アクティブキュー $\le 7$
 
 ---
 
-## 1. Active Prioritized Queue (ROADMAP 連動優先キュー / Ranked 1 to 13)
+## 1. Active Prioritized Queue (ROADMAP 連動優先キュー / Ranked 1 to 12)
 
 | Rank | ID | Hypothesis Name | スコープ | 等級 | Target | Impact | Velocity | Complexity | Score $S$ | Status |
 | :---: | :---: | :--- | :---: | :---: | :--- | :---: | :---: | :---: | :---: | :---: |
-| **1** | **H-26** | **4x4 マクロブロック粗視化作用素（走査ステップ数 16x スキップ）** | Part 1 | **【Part 1】** | ステップ数 | 16x | 3 | 6 | **8.0** | `QUEUED` |
-| **2** | **H-27** | **GPU Warp 投票命令（__ballot_sync）による非ゼロ遷移の一括フィルタリング** | Part 2 | **【C級】** | GPU同期 | 6x | 4 | 3 | **8.0** | `QUEUED` |
-| **3** | **H-28** | **幾何学的マンハッタン距離タイリングの厳密等価性検証** | Part 1 | **【D/検証】** | 理論限界 | 8x | 4 | 3 | **10.7** | `QUEUED` |
-| **4** | **H-29** | **分散ワーカー間チェックポイント・リカバリの非同期差分スナップショット** | Part 2 | **【B級】** | 耐障害性 | 5x | 5 | 2 | **12.5** | `QUEUED` |
-| **5** | **H-30** | **64-bit ビットボードの Popcount / Leading Zero ハードウェア命令最適化** | Part 2 | **【C級】** | スループット | 4x | 5 | 2 | **10.0** | `QUEUED` |
-| **6** | **H-31** | **NVIDIA PTX lop3.b32 による 11-bit SWAR 5-way 3入力ビット置換演算器** | Part 2 | **【C級】** | ALU加速 | 8x | 5 | 2 | **20.0** | `QUEUED` |
-| **7** | **H-32** | **8xB300 GPU 実行中の NVMe Direct Storage (GDS) ゼロコピー非同期スナップショット** | Part 2 | **【B級】** | I/O隠蔽 | 6x | 5 | 2 | **15.0** | `QUEUED` |
-| **8** | **H-33** | **格子境界ダイアゴナル波面走査（Diagonal Wavefront DP）によるプロファイル幅最小化** | Part 1 | **【Part 1】** | プロファイル幅 | 7x | 4 | 4 | **7.0** | `QUEUED` |
-| **9** | **H-34** | **NVIDIA CUDA 12.8 Cooperative Groups Grid-Level 一括リダクション** | Part 2 | **【C級】** | GPU同期 | 5x | 4 | 3 | **6.7** | `QUEUED` |
-| **10** | **H-35** | **CRT 素数ワーカーの中間チェックサム多項式ハッシュによる障害即時検知** | Part 2 | **【B級】** | 信頼性 | 4x | 5 | 2 | **10.0** | `QUEUED` |
-| **11** | **H-36** | **非対称フロンティアにおける局所反射作用素の代数的分解可能性検証** | Part 1 | **【A級】** | 状態空間 | 5x | 3 | 5 | **3.0** | `QUEUED` |
-| **12** | **H-37** | **GPU Persistence L2 Cache による高頻度 Motzkin Rank スロットの固定収容** | Part 2 | **【C級】** | L2キャッシュ | 6x | 4 | 3 | **8.0** | `QUEUED` |
-| **13** | **H-38** | **64 素数ワーカーに対する動的負荷分散・投機的再実行スケジューラ** | Part 2 | **【B級】** | 運用効率 | 5x | 5 | 2 | **12.5** | `QUEUED` |
+| **1** | **H-27** | **GPU Warp 投票命令（__ballot_sync）による非ゼロ遷移の一括フィルタリング** | Part 2 | **【C級】** | GPU同期 | 6x | 4 | 3 | **8.0** | `QUEUED` |
+| **2** | **H-28** | **幾何学的マンハッタン距離タイリングの厳密等価性検証** | Part 1 | **【D/検証】** | 理論限界 | 8x | 4 | 3 | **10.7** | `QUEUED` |
+| **3** | **H-29** | **分散ワーカー間チェックポイント・リカバリの非同期差分スナップショット** | Part 2 | **【B級】** | 耐障害性 | 5x | 5 | 2 | **12.5** | `QUEUED` |
+| **4** | **H-30** | **64-bit ビットボードの Popcount / Leading Zero ハードウェア命令最適化** | Part 2 | **【C級】** | スループット | 4x | 5 | 2 | **10.0** | `QUEUED` |
+| **5** | **H-31** | **NVIDIA PTX lop3.b32 による 11-bit SWAR 5-way 3入力ビット置換演算器** | Part 2 | **【C級】** | ALU加速 | 8x | 5 | 2 | **20.0** | `QUEUED` |
+| **6** | **H-32** | **8xB300 GPU 実行中の NVMe Direct Storage (GDS) ゼロコピー非同期スナップショット** | Part 2 | **【B級】** | I/O隠蔽 | 6x | 5 | 2 | **15.0** | `QUEUED` |
+| **7** | **H-33** | **格子境界ダイアゴナル波面走査（Diagonal Wavefront DP）によるプロファイル幅最小化** | Part 1 | **【Part 1】** | プロファイル幅 | 7x | 4 | 4 | **7.0** | `QUEUED` |
+| **8** | **H-34** | **NVIDIA CUDA 12.8 Cooperative Groups Grid-Level 一括リダクション** | Part 2 | **【C級】** | GPU同期 | 5x | 4 | 3 | **6.7** | `QUEUED` |
+| **9** | **H-35** | **CRT 素数ワーカーの中間チェックサム多項式ハッシュによる障害即時検知** | Part 2 | **【B級】** | 信頼性 | 4x | 5 | 2 | **10.0** | `QUEUED` |
+| **10** | **H-36** | **非対称フロンティアにおける局所反射作用素の代数的分解可能性検証** | Part 1 | **【A級】** | 状態空間 | 5x | 3 | 5 | **3.0** | `QUEUED` |
+| **11** | **H-37** | **GPU Persistence L2 Cache による高頻度 Motzkin Rank スロットの固定収容** | Part 2 | **【C級】** | L2キャッシュ | 6x | 4 | 3 | **8.0** | `QUEUED` |
+| **12** | **H-38** | **64 素数ワーカーに対する動的負荷分散・投機的再実行スケジューラ** | Part 2 | **【B級】** | 運用効率 | 5x | 5 | 2 | **12.5** | `QUEUED` |
 
 ---
 
-## 2. Pruned Archive (Fail-Fast 厳格棄却アーカイブ - Total: 13)
+## 2. Pruned Archive (Fail-Fast 厳格棄却アーカイブ - Total: 14)
 
 | ID | 棄却された仮説名称 | スコープ | 棄却の数学的・実証的根拠 | 実測生データ / 判定 | 判定スクリプト |
 | :---: | :--- | :---: | :--- | :--- | :--- |
@@ -59,6 +58,7 @@
 | **H-21** | **3x3 マクロブロック粗視化転移作用素（走査ステップ数 8.41x スキップ）** | Part 1 | 3x3 タイルの内部パス構成数が 41,820 通り（2x2 の 615 倍）へ指数爆発し、ステップ削減（8.41x）を大きく上回る 273.3x の演算低速化を生むため棄却。2x2 が唯一の最適スケール。 | 2x2 比 273.3x 低速（基準 $\ge 1.00x$ 未達） | [`math/src/exp_h21_3x3_macrotile_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h21_3x3_macrotile_engine.py) |
 | **H-22** | **Multi-Prime CRT 復元における Montgomery 多倍長並列乗算パイプライン** | Part 2 | 630 bits（10 limbs）では Karatsuba 分割統治の再帰オーバーヘッドが支配的となり、ネイティブ C-level 多倍長乗算に対して 25.9x 低速化するため棄却。H-09 ストリーミング Garner CRT が最適。 | ネイティブ C 比 25.9x 低速（基準 $\ge 1.15x$ 未達） | [`math/src/exp_h22_multiprecision_crt_pipeline.py`](file:///c:/Users/syu/sister/math/src/exp_h22_multiprecision_crt_pipeline.py) |
 | **H-23** | **境界プロファイル 90度回転直和分解による次元 1/4 縮約可能性検証** | Part 1 | フロンティア転移作用素 $T$ は一次元伝搬のため 90度回転 $R$ と非可換（$[T, R] \ne 0$）。中間 DP 状態の $D_4$ 1/4 分解は数学的に不可能と証明され棄却（$C_2$ 1/2 分解が理論限界）。 | $[T, R] = 1.00$（非可換証明） | [`math/src/exp_h23_d4_rotation_commutativity.py`](file:///c:/Users/syu/sister/math/src/exp_h23_d4_rotation_commutativity.py) |
+| **H-26** | **4x4 マクロブロック粗視化作用素（走査ステップ数 16x スキップ）** | Part 1 | 4x4 内部構成数が 3,584 万通りへ天文学的に爆発し、ステップ削減（15.8x）を圧倒する 124,151.6x の低速化を生むため棄却。2x2 粗視化が唯一のパレート最適解。 | 2x2 比 124,151.6x 低速（基準 $\ge 1.00x$ 未達） | [`math/src/exp_h26_4x4_macrotile_engine.py`](file:///c:/Users/syu/sister/math/src/exp_h26_4x4_macrotile_engine.py) |
 
 ---
 

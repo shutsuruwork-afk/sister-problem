@@ -11,7 +11,8 @@ import json
 import os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-FILES = ["a007764_core.py", "a007764_kernel.h", "a007764_cuda.cu", "a007764_gpu.py"]
+FILES = ["a007764_core.py", "a007764_kernel.h", "a007764_cuda.cu",
+         "a007764_v2.h", "a007764_cuda_v2.cu", "a007764_gpu.py"]
 
 
 def md(text: str) -> dict:

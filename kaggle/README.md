@@ -1,4 +1,6 @@
-# A007764 — dual-T4 frontier DP
+# A007764 — frontier DP engine (v1, v2)
+
+For running on your own machine see `../local/README.md`.
 
 Self-contained Kaggle notebook plus the sources it embeds.
 
@@ -7,7 +9,11 @@ Self-contained Kaggle notebook plus the sources it embeds.
 | `a007764_core.py` | Motzkin tables, bijective profile ranking, two independent CPU reference DPs |
 | `a007764_kernel.h` | device code shared verbatim by the CPU test and the CUDA kernel |
 | `a007764_cuda.cu` | CUDA kernels (`dp_step`, `row_end`, `terminal_sum`) |
-| `a007764_gpu.py` | CuPy driver, CRT, multi-GPU prime scheduling |
+| `a007764_v2.h` | v2 device code: incremental ranking (research r05/r06), shared by CPU and CUDA |
+| `a007764_cuda_v2.cu` | CUDA entry point for v2 (`v2_step`) |
+| `a007764_cpu.c` | CPU/OpenMP driver for v2; same chunk decomposition as the GPU |
+| `a007764_gpu.py` | CuPy driver (v1 and v2), CRT, multi-GPU prime scheduling |
+| `cuda_syntax_check.py` | compiles the exact CUDA source with g++ against a shim (no GPU needed) |
 | `build_notebook.py` | regenerates the notebook by embedding the four files above |
 | `a007764_t4x2.ipynb` | the notebook to upload to Kaggle (GPU T4 x2) |
 

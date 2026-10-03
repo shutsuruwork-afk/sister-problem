@@ -18,7 +18,8 @@ from typing import Dict, List, Sequence, Tuple
 
 import numpy as np
 
-from a007764_core import KNOWN_A007764, motzkin_numbers, completion_table
+from a007764_core import (KNOWN_A007764, MARK, EMPTY, motzkin_numbers,
+                          completion_table, automaton_table, automaton_rank)
 
 # Primes below 2^31 so that (a + b) stays inside uint32 in the modular atomic.
 CRT_PRIMES_31BIT: List[int] = [
@@ -40,8 +41,22 @@ def _read(path: str) -> str:
 
 
 def cuda_source() -> str:
-    """Device header + kernels, concatenated exactly as compiled."""
-    return _read("a007764_kernel.h") + "\n" + _read("a007764_cuda.cu")
+    """v1 and v2 device code + kernels, concatenated exactly as compiled."""
+    return "\n".join(_read(f) for f in ("a007764_kernel.h", "a007764_cuda.cu",
+                                         "a007764_v2.h", "a007764_cuda_v2.cu"))
+
+
+_MODULES: Dict[int, object] = {}
+
+
+def _module(device: int):
+    """Compile once per device and reuse."""
+    import cupy as cp
+    if device not in _MODULES:
+        with cp.cuda.Device(device):
+            _MODULES[device] = cp.RawModule(code=cuda_source(), backend="nvrtc",
+                                            options=("-std=c++11",))
+    return _MODULES[device]
 
 
 # --------------------------------------------------------------------------
@@ -90,8 +105,7 @@ class GpuSweep:
         self.cp, self.n, self.device = cp, n, device
         self.block, self.grid = block, grid
         with cp.cuda.Device(device):
-            mod = cp.RawModule(code=cuda_source(), backend="nvrtc",
-                               options=("-std=c++11", "--use_fast_math"))
+            mod = _module(device)
             self.k_step = mod.get_function("dp_step")
             self.k_rowend = mod.get_function("row_end")
             self.k_term = mod.get_function("terminal_sum")
@@ -148,6 +162,75 @@ class GpuSweep:
 
 
 # --------------------------------------------------------------------------
+# v2: incremental ranking (research/r05, r06).  Same index spaces as v1.
+# --------------------------------------------------------------------------
+class GpuSweepV2:
+    def __init__(self, n: int, device: int = 0, block: int = 128,
+                 chunk: int = 64) -> None:
+        import cupy as cp
+
+        self.cp, self.n, self.device = cp, n, device
+        self.block, self.chunk = block, chunk
+        L = n + 1
+        with cp.cuda.Device(device):
+            mod = _module(device)
+            self.k_step = mod.get_function("v2_step")
+            self.k_rowend = mod.get_function("row_end")
+            Ca = automaton_table(n)
+            self.B = Ca[(L * (L + 2) + 0) * 2 + 0]
+            self.size = 2 * self.B
+            self.seed = automaton_rank([MARK] + [EMPTY] * n, Ca, n)
+            self.dCa = cp.asarray(np.array(Ca, dtype=np.uint64))
+            self.shmem = len(Ca) * 8
+            sms = cp.cuda.Device(device).attributes["MultiProcessorCount"]
+            nchunks = (self.B + chunk - 1) // chunk
+            self.grid = max(1, min((nchunks + block - 1) // block, sms * 16))
+            self.rgrid = max(1, min((self.B + 255) // 256, sms * 32))
+            self.cur = cp.zeros(self.size, dtype=cp.uint32)
+            self.nxt = cp.zeros(self.size, dtype=cp.uint32)
+            self.acc = cp.zeros(1, dtype=cp.uint64)
+
+    def run(self, p: int, progress=None) -> int:
+        cp, n = self.cp, self.n
+        with cp.cuda.Device(self.device):
+            self.cur.fill(0)
+            self.cur[2 * self.seed] = 1                # (0,0) emits MARK down
+            self.cur[2 * self.seed + 1] = 1            # ... or right
+            for i in range(n + 1):
+                for j in range(1 if i == 0 else 0, n + 1):
+                    fb = 1 if j == 0 else 0
+                    term = 1 if (i == n and j == n) else 0
+                    if term:
+                        self.acc.fill(0)
+                    else:
+                        self.nxt.fill(0)
+                    self.k_step((self.grid,), (self.block,),
+                                (self.cur, self.nxt, np.uint64(self.B),
+                                 np.uint64(self.chunk), np.int32(i), np.int32(j),
+                                 np.int32(n), np.uint32(p), np.int32(fb),
+                                 np.int32(term), self.dCa, self.acc),
+                                shared_mem=self.shmem)
+                    if term:
+                        return int(self.acc.get()[0] % p)
+                    self.cur, self.nxt = self.nxt, self.cur
+                self.nxt.fill(0)
+                self.k_rowend((self.rgrid,), (256,),
+                              (self.cur, self.nxt, np.uint64(self.B)))
+                self.cur, self.nxt = self.nxt, self.cur
+                if progress:
+                    progress(i + 1, n + 1)
+        raise RuntimeError("sweep finished without reaching the terminal vertex")
+
+
+def make_sweep(engine: str, n: int, device: int = 0, **kw):
+    if engine == "v1":
+        return GpuSweep(n, device=device)
+    if engine == "v2":
+        return GpuSweepV2(n, device=device, **kw)
+    raise ValueError(engine)
+
+
+# --------------------------------------------------------------------------
 # CRT
 # --------------------------------------------------------------------------
 def crt(residues: Sequence[int], primes: Sequence[int]) -> Tuple[int, int]:
@@ -180,7 +263,8 @@ def primes_for(n: int, margin: float = 1.30) -> List[int]:
 # multi-GPU driver
 # --------------------------------------------------------------------------
 def solve(n: int, primes: Sequence[int] | None = None,
-          devices: Sequence[int] | None = None, verbose: bool = True
+          devices: Sequence[int] | None = None, verbose: bool = True,
+          engine: str = "v2", on_residue=None, **engine_kw
           ) -> Tuple[int, Dict[int, int], float]:
     """Exact a(n) via one full sweep per CRT prime, spread over the GPUs."""
     import cupy as cp
@@ -193,16 +277,23 @@ def solve(n: int, primes: Sequence[int] | None = None,
     lock = threading.Lock()
     t0 = time.time()
 
+    errors: List[BaseException] = []
+
     def worker(dev: int, my_primes: List[int]) -> None:
-        sweep = GpuSweep(n, device=dev)
-        for p in my_primes:
-            t1 = time.time()
-            r = sweep.run(p)
-            with lock:
-                residues[p] = r
-            if verbose:
-                print(f"  [gpu{dev}] p={p}  a({n}) mod p = {r:>10d} "
-                      f"({time.time() - t1:.1f}s)", flush=True)
+        try:
+            sweep = make_sweep(engine, n, device=dev, **engine_kw)
+            for p in my_primes:
+                t1 = time.time()
+                r = sweep.run(p)
+                with lock:
+                    residues[p] = r
+                    if on_residue:
+                        on_residue(p, r, time.time() - t1, dev)
+                if verbose:
+                    print(f"  [gpu{dev}] p={p}  a({n}) mod p = {r:>10d} "
+                          f"({time.time() - t1:.1f}s)", flush=True)
+        except BaseException as e:          # surface worker failures
+            errors.append(e)
 
     buckets: List[List[int]] = [[] for _ in devices]
     for k, p in enumerate(primes):
@@ -213,6 +304,8 @@ def solve(n: int, primes: Sequence[int] | None = None,
         t.start()
     for t in threads:
         t.join()
+    if errors:
+        raise errors[0]
 
     ordered = [residues[p] for p in primes]
     value, _ = crt(ordered, list(primes))

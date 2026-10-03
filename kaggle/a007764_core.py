@@ -381,3 +381,50 @@ def a_n_dense(n: int, p: int | None = None, report: bool = False) -> int:
         print(f"    n={n:2d}: array=2*B(n)={size:<12,} peak_live={peak:<12,} "
               f"occupancy={peak / size:.4f}")
     return (sum(cur.values()) % p) if p else sum(cur.values())
+
+
+# --------------------------------------------------------------------------
+# Automaton ranking used by the v2 engine (research/r05, r06)
+#   lexicographic rank, symbol order EMPTY < OPEN < CLOSE < MARK,
+#   state = (depth, mark_seen).  Layout matches a007764_v2.h exactly.
+# --------------------------------------------------------------------------
+def _auto_step(c: int, d: int, m: int, L: int):
+    if c == EMPTY:
+        return d, m
+    if c == OPEN:
+        return (d + 1, m) if d + 1 <= L else None
+    if c == CLOSE:
+        return (d - 1, m) if d > 0 else None
+    return (0, 1) if (m == 0 and d == 0) else None
+
+
+def automaton_table(n: int) -> List[int]:
+    """Flat Ca[(rem*(L+2)+d)*2+m], L = n+1, as consumed by a007764_v2.h."""
+    L = n + 1
+    Ca = [0] * ((L + 1) * (L + 2) * 2)
+    at = lambda rem, d, m: (rem * (L + 2) + d) * 2 + m
+    Ca[at(0, 0, 1)] = 1
+    for rem in range(1, L + 1):
+        for d in range(L + 1):
+            for m in (0, 1):
+                v = 0
+                for c in (EMPTY, OPEN, CLOSE, MARK):
+                    ns = _auto_step(c, d, m, L)
+                    if ns:
+                        v += Ca[at(rem - 1, ns[0], ns[1])]
+                Ca[at(rem, d, m)] = v
+    return Ca
+
+
+def automaton_rank(word: List[int], Ca: List[int], n: int) -> int:
+    L = n + 1
+    at = lambda rem, d, m: (rem * (L + 2) + d) * 2 + m
+    r, d, m = 0, 0, 0
+    for k, c in enumerate(word):
+        rem = L - k - 1
+        for c2 in range(c):
+            ns = _auto_step(c2, d, m, L)
+            if ns:
+                r += Ca[at(rem, ns[0], ns[1])]
+        d, m = _auto_step(c, d, m, L)
+    return r

@@ -1,11 +1,12 @@
-/* a007764_cpu.c -- CPU/OpenMP driver for the v2 sweep.
+/* a007764_cpu.c -- CPU/OpenMP driver for the v2 and v3 sweeps.
  *
  * Same chunked decomposition as the CUDA launch (one odometer per chunk,
  * atomic modular scatter), so running it with several threads and small
  * chunks exercises exactly the boundary and race conditions the GPU sees.
  *
  *   gcc -O3 -march=native -fopenmp -o a007764_cpu a007764_cpu.c
- *   ./a007764_cpu N [P] [CHUNK]          -> prints "n p residue seconds"
+ *   ./a007764_cpu N [P] [CHUNK] [v2|v3]  -> prints "n p residue seconds"
+ * v3 ignores CHUNK: one index per iteration, like a GPU thread.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,6 +14,7 @@
 #include <time.h>
 #include "a007764_kernel.h"
 #include "a007764_v2.h"
+#include "a007764_v3.h"
 
 static double now(void) { struct timespec t; clock_gettime(CLOCK_MONOTONIC, &t); return t.tv_sec + 1e-9 * t.tv_nsec; }
 
@@ -35,10 +37,11 @@ static u64 *build_ca(int n)
 
 int main(int argc, char **argv)
 {
-    if (argc < 2) { fprintf(stderr, "usage: %s N [P] [CHUNK]\n", argv[0]); return 2; }
+    if (argc < 2) { fprintf(stderr, "usage: %s N [P] [CHUNK] [v2|v3]\n", argv[0]); return 2; }
     int n = atoi(argv[1]);
     u32 p = argc > 2 ? (u32)strtoul(argv[2], 0, 10) : 2147483629u;
     u64 chunk = argc > 3 ? strtoull(argv[3], 0, 10) : 64;
+    int v3 = argc > 4 && strcmp(argv[4], "v3") == 0;
     if (n < 1 || n > 29) { fprintf(stderr, "n out of range\n"); return 2; }
 
     int L = n + 1;
@@ -57,14 +60,24 @@ int main(int argc, char **argv)
         for (int j = (i ? 0 : 1); j <= n; j++) {
             int fb = (j == 0), term = (i == n && j == n);
             if (!term) memset(nxt, 0, S * sizeof(u32));
-            long long nchunks = (long long)((B + chunk - 1) / chunk);
             u64 tacc = 0;
-            #pragma omp parallel for schedule(dynamic, 64) reduction(+:tacc)
-            for (long long c = 0; c < nchunks; c++) {
-                u64 lo = (u64)c * chunk, hi = lo + chunk, local = 0;
-                if (hi > B) hi = B;
-                v2_chunk(&a, cur, nxt, lo, hi, i, j, n, p, fb, term, &local);
-                tacc += local;
+            if (v3) {
+                long long size_in = (long long)(fb ? B : S);
+                #pragma omp parallel for schedule(static) reduction(+:tacc)
+                for (long long x = 0; x < size_in; x++) {
+                    u64 local = 0;
+                    v3_index(&a, cur, nxt, (u64)x, i, j, n, p, fb, term, &local);
+                    tacc += local;
+                }
+            } else {
+                long long nchunks = (long long)((B + chunk - 1) / chunk);
+                #pragma omp parallel for schedule(dynamic, 64) reduction(+:tacc)
+                for (long long c = 0; c < nchunks; c++) {
+                    u64 lo = (u64)c * chunk, hi = lo + chunk, local = 0;
+                    if (hi > B) hi = B;
+                    v2_chunk(&a, cur, nxt, lo, hi, i, j, n, p, fb, term, &local);
+                    tacc += local;
+                }
             }
             if (term) { answer = tacc % p; goto done; }
             u32 *t = cur; cur = nxt; nxt = t;

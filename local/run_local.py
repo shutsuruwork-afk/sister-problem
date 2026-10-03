@@ -5,6 +5,11 @@
     python local/run_local.py --auto --hours 3 # ... then the largest n that fits 3 h
     python local/run_local.py --resume results/run_XXXX.json   # continue a target run
     python local/run_local.py --cpu            # force the CPU path
+    python local/run_local.py --oeis           # also check against the OEIS b-file
+
+--oeis downloads https://oeis.org/A007764/b007764.txt (public, read-only) so
+that results beyond n=12 can be checked against the published terms.  Nothing
+is sent except that one GET request.
 
 Every step is written to results/run_<UTC>.json as soon as it finishes, so an
 interrupted run still leaves its measurements behind.  No host names or user
@@ -49,6 +54,23 @@ def work(n):
 
 def bytes_needed(n):
     return 2 * state_counts(n)[1] * 4
+
+
+def fetch_oeis():
+    """Published terms from the OEIS b-file, or {} if unreachable."""
+    import urllib.request
+    try:
+        with urllib.request.urlopen("https://oeis.org/A007764/b007764.txt", timeout=20) as r:
+            text = r.read().decode()
+    except Exception as e:
+        say(f"    OEIS b-file unavailable ({type(e).__name__}); continuing with n<=12 only")
+        return {}
+    known = {}
+    for line in text.splitlines():
+        parts = line.split()
+        if len(parts) == 2 and not line.startswith("#"):
+            known[int(parts[0])] = int(parts[1])
+    return known
 
 
 class Log:
@@ -127,7 +149,12 @@ class GpuBackend:
         return self.sweep(engine, n, device).run(p)
 
     def free_bytes(self):
+        self.cp.get_default_memory_pool().free_all_blocks()
         return min(self.cp.cuda.Device(d).mem_info[0] for d in range(self.ndev))
+
+    def probe(self, engine, n):
+        self.cp.get_default_memory_pool().free_all_blocks()
+        return self.g.probe_compute(engine, n, device=0)
 
 
 class CpuBackend:
@@ -142,9 +169,9 @@ class CpuBackend:
         self.chunk = 64
 
     def run(self, engine, n, p, device=0):
-        if engine != "v2":
-            raise RuntimeError("CPU backend implements v2 only")
-        out = subprocess.run([self.bin, str(n), str(p), str(self.chunk)], check=True,
+        if engine not in ("v2", "v3"):
+            raise RuntimeError("CPU backend implements v2 and v3 only")
+        out = subprocess.run([self.bin, str(n), str(p), str(self.chunk), engine], check=True,
                              capture_output=True, text=True).stdout.split()
         return int(out[2])
 
@@ -168,9 +195,11 @@ def main():
     ap.add_argument("--target", type=int, help="compute a(N) exactly after benchmarking")
     ap.add_argument("--auto", action="store_true", help="pick the largest N fitting memory and --hours")
     ap.add_argument("--hours", type=float, default=2.0, help="time budget for --auto (default 2)")
-    ap.add_argument("--engine", choices=("v1", "v2"), default="v2", help="engine for the target run")
+    ap.add_argument("--engine", choices=("auto", "v1", "v2", "v3"), default="auto",
+                    help="engine for the target run (default: fastest measured)")
     ap.add_argument("--cpu", action="store_true", help="force the CPU/OpenMP backend")
     ap.add_argument("--quick", action="store_true", help="verification only")
+    ap.add_argument("--oeis", action="store_true", help="download the OEIS b-file for extra checks")
     ap.add_argument("--resume", help="results JSON of an interrupted target run")
     ap.add_argument("--out", default=os.path.join(ROOT, "results"), help="results directory")
     args = ap.parse_args()
@@ -201,7 +230,15 @@ def main():
         say("no GPU and no C compiler: nothing to run")
         return 1
     be = GpuBackend(env) if env["backend"] == "gpu" else CpuBackend()
-    engines = ("v1", "v2") if env["backend"] == "gpu" else ("v2",)
+    engines = ("v1", "v2", "v3") if env["backend"] == "gpu" else ("v2", "v3")
+    known = dict(KNOWN_A007764)
+    if args.oeis:
+        published = fetch_oeis()
+        known.update(published)
+        log.put("oeis_terms", sorted(published))
+
+    def expect(n):
+        return known[n] % P_CHECK if n in known else None
 
     # 2. ground truth -----------------------------------------------------
     if "verify" not in log.data:
@@ -224,52 +261,75 @@ def main():
         say(f"\ndone (quick). send {path}")
         return 0
 
-    # 3. v1 vs v2 beyond the known terms ---------------------------------
-    if "crosscheck" not in log.data and len(engines) == 2:
-        say("\n[3] cross-check: v1 and v2 are independent implementations")
+    # 3. engines against each other beyond the known terms ---------------
+    if "crosscheck" not in log.data and len(engines) >= 2:
+        say("\n[3] cross-check: " + ", ".join(engines) + " are independent implementations")
         rows = []
         for n in CROSS_N:
             if bytes_needed(n) > 0.85 * be.free_bytes():
                 break
-            r1, t1 = timed(be.run, "v1", n, P_CHECK)
-            r2, t2 = timed(be.run, "v2", n, P_CHECK)
-            rows.append({"n": n, "v1": r1, "v2": r2, "agree": r1 == r2, "t_v1": t1, "t_v2": t2})
-            say(f"    n={n}: v1={r1:>10d} ({t1:6.2f}s)  v2={r2:>10d} ({t2:6.2f}s)  "
-                f"{'agree' if r1 == r2 else 'DISAGREE'}")
+            row = {"n": n}
+            for eng in engines:
+                row[eng], row["t_" + eng] = timed(be.run, eng, n, P_CHECK)
+            vals = {row[e] for e in engines}
+            exp = expect(n)
+            row["agree"] = len(vals) == 1 and (exp is None or exp in vals)
+            row["oeis"] = exp
+            rows.append(row)
+            say(f"    n={n}: " + "  ".join(f"{e}={row[e]:>10d} ({row['t_' + e]:6.2f}s)" for e in engines)
+                + ("  agree" if row["agree"] else "  DISAGREE") + ("  =OEIS" if exp is not None and row["agree"] else ""))
             log.put("crosscheck", rows)
-            if r1 != r2:
+            if not row["agree"]:
                 say("    disagreement -- stopping")
                 return 1
 
     # 4. benchmark --------------------------------------------------------
     if "bench" not in log.data:
         say("\n[4] benchmark")
-        bench = {"chunk_tune": [], "ladder": []}
+        bench = {"chunk_tune": [], "ladder": [], "probe": []}
         if env["backend"] == "gpu":
-            tn = 17
-            best = None
-            for chunk in (16, 32, 64, 128, 256):
+            tn, best = 17, None
+            for chunk in (4, 8, 16, 32):
                 be.chunk = chunk
                 _, t = timed(be.run, "v2", tn, P_CHECK)
                 bench["chunk_tune"].append({"n": tn, "chunk": chunk, "seconds": t})
                 say(f"    v2 chunk={chunk:>3d}: n={tn} in {t:6.2f}s")
                 if best is None or t < best[1]:
                     best = (chunk, t)
-            be.chunk = best[0]
-            bench["chunk"] = best[0]
+            be.chunk = bench["chunk"] = best[0]
             say(f"    -> chunk {best[0]}")
         ladder_n = (16, 17, 18, 19) if env["backend"] == "gpu" else (13, 14, 15)
-        for eng in engines:
-            for n in ladder_n:
-                if bytes_needed(n) > 0.85 * be.free_bytes():
-                    break
-                _, t = timed(be.run, eng, n, P_CHECK)
-                rate = work(n) / t
-                bench["ladder"].append({"engine": eng, "n": n, "seconds": t, "rate": rate})
-                say(f"    {eng} n={n}: {t:8.2f}s/prime  {rate / 1e9:7.3f} G slots/s")
+        alive = list(engines)
+        for n in ladder_n:
+            if bytes_needed(n) > 0.85 * be.free_bytes() or not alive:
+                break
+            got = {}
+            for eng in list(alive):
+                r, t = timed(be.run, eng, n, P_CHECK)
+                got[eng] = r
+                bench["ladder"].append({"engine": eng, "n": n, "seconds": t,
+                                        "rate": work(n) / t, "residue": r})
+                say(f"    {eng} n={n}: {t:8.2f}s/prime  {work(n) / t / 1e9:7.3f} G slots/s")
                 log.put("bench", bench)
                 if t > 600:
-                    break
+                    alive.remove(eng)
+            exp = expect(n)
+            if len(set(got.values())) != 1 or (exp is not None and exp not in got.values()):
+                say(f"    engines DISAGREE at n={n}: {got} -- stopping")
+                log.put("bench", bench)
+                return 1
+        if env["backend"] == "gpu":
+            ladder = [r for r in bench["ladder"]]
+            pn = max((r["n"] for r in ladder if r["n"] <= 18), default=None)
+            if pn:
+                say(f"    bottleneck probe at n={pn}: same per-index work, no memory scatter")
+                for eng in ("v1", "v3"):
+                    full = next(r["seconds"] for r in ladder if r["engine"] == eng and r["n"] == pn)
+                    tc = be.probe(eng, pn)
+                    bench["probe"].append({"engine": eng, "n": pn, "compute_s": tc, "full_s": full,
+                                           "compute_share": tc / full})
+                    say(f"      {eng}: compute-only {tc:7.2f}s of {full:7.2f}s full "
+                        f"-> {100 * tc / full:5.1f}% compute, {100 * (1 - tc / full):5.1f}% memory+atomics")
         log.put("bench", bench)
     bench = log.data["bench"]
     if env["backend"] == "gpu" and "chunk" in bench:
@@ -277,23 +337,29 @@ def main():
 
     def rate_of(eng):
         rows = [r for r in bench["ladder"] if r["engine"] == eng]
-        return rows[-1]["rate"] if rows else None     # largest n measured
+        return (rows[-1]["n"], rows[-1]["rate"]) if rows else None
 
-    rates = {e: rate_of(e) for e in engines}
-    if rates.get("v1") and rates.get("v2"):
-        say(f"    v2 / v1 speed-up at the largest common n: {rates['v2'] / rates['v1']:.2f}x")
+    rates = {e: rate_of(e) for e in engines if rate_of(e)}
+    if rates:
+        top_n = min(v[0] for v in rates.values())
+        at = {e: next(r["rate"] for r in bench["ladder"] if r["engine"] == e and r["n"] == top_n)
+              for e in rates}
+        base = at.get("v1") or at[engines[0]]
+        say(f"    rate relative to {'v1' if 'v1' in at else engines[0]} at n={top_n}: "
+            + "  ".join(f"{e} {at[e] / base:.2f}x" for e in at))
+    fastest = max(rates, key=lambda e: rates[e][1]) if rates else None
 
     # 5. projection -------------------------------------------------------
     sys.path.insert(0, ENGINE)
     from a007764_gpu import primes_for
-    rate = rates.get("v2") or rates.get("v1")
+    rate = rates[fastest][1] if fastest else None
     if not rate:
         say("\nno benchmark completed (not enough memory for n=16?); stopping")
         return 1
     free = be.free_bytes()
     proj = []
-    say(f"\n[5] projection with the measured v2 rate ({rate / 1e9:.3f} G slots/s per device, "
-        f"{be.ndev} device(s))")
+    say(f"\n[5] projection with the fastest measured engine, {fastest} "
+        f"({rate / 1e9:.3f} G slots/s per device, {be.ndev} device(s))")
     for n in range(16, 29):
         np_ = len(primes_for(n))
         hours = work(n) / rate * (np_ + 1) / be.ndev / 3600
@@ -321,9 +387,13 @@ def main():
     primes = primes_for(target)
     from a007764_gpu import CRT_PRIMES_31BIT, crt
     extra = CRT_PRIMES_31BIT[len(primes)]
-    tgt = log.data.get("target") or {"n": target, "engine": args.engine, "residues": {}}
+    engine = fastest if args.engine == "auto" else args.engine
+    if env["backend"] == "cpu" and engine == "v1":
+        engine = "v3"
+    tgt = log.data.get("target") or {"n": target, "engine": engine, "residues": {}}
+    engine = tgt["engine"]
     log.put("target", tgt)
-    say(f"\n[6] a({target}) with {len(primes)} primes + 1 confirmation prime, engine {args.engine}")
+    say(f"\n[6] a({target}) with {len(primes)} primes + 1 confirmation prime, engine {engine}")
     todo = [p for p in primes + [extra] if str(p) not in tgt["residues"]]
     if env["backend"] == "gpu":
         import a007764_gpu as g
@@ -332,12 +402,12 @@ def main():
             tgt["residues"][str(p)] = {"r": r, "seconds": secs, "device": dev}
             log.put("target", tgt)
 
-        kw = {"chunk": be.chunk} if args.engine == "v2" else {}
-        g.solve(target, primes=todo, devices=list(range(be.ndev)), engine=args.engine,
+        kw = {"chunk": be.chunk} if engine == "v2" else {}
+        g.solve(target, primes=todo, devices=list(range(be.ndev)), engine=engine,
                 on_residue=record, **kw)
     else:
         for p in todo:
-            r, secs = timed(be.run, "v2", target, p)
+            r, secs = timed(be.run, engine, target, p)
             tgt["residues"][str(p)] = {"r": r, "seconds": secs, "device": "cpu"}
             log.put("target", tgt)
             say(f"  [cpu] p={p}  a({target}) mod p = {r:>10d} ({secs:.1f}s)")
@@ -346,8 +416,9 @@ def main():
     value2, _ = crt([res[p] for p in primes + [extra]], primes + [extra])
     tgt.update({"value": str(value), "bits": value.bit_length(), "digits": len(str(value)),
                 "confirmed_by_extra_prime": value == value2})
-    if target in KNOWN_A007764:
-        tgt["matches_known"] = value == KNOWN_A007764[target]
+    if target in known:
+        tgt["matches_known"] = value == known[target]
+        say(f"published value: {'MATCH' if value == known[target] else 'MISMATCH'}")
     log.put("target", tgt)
     say(f"\na({target}) = {value}")
     say(f"{value.bit_length()} bits, {len(str(value))} digits; extra prime "

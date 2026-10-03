@@ -40,10 +40,13 @@ def _read(path: str) -> str:
         return f.read()
 
 
+SOURCES = ("a007764_kernel.h", "a007764_cuda.cu", "a007764_v2.h", "a007764_cuda_v2.cu",
+           "a007764_v3.h", "a007764_cuda_v3.cu", "a007764_cuda_probe.cu")
+
+
 def cuda_source() -> str:
     """v1 and v2 device code + kernels, concatenated exactly as compiled."""
-    return "\n".join(_read(f) for f in ("a007764_kernel.h", "a007764_cuda.cu",
-                                         "a007764_v2.h", "a007764_cuda_v2.cu"))
+    return "\n".join(_read(f) for f in SOURCES)
 
 
 _MODULES: Dict[int, object] = {}
@@ -222,12 +225,113 @@ class GpuSweepV2:
         raise RuntimeError("sweep finished without reaching the terminal vertex")
 
 
+# --------------------------------------------------------------------------
+# v3: v1's one-index-per-thread layout + v2's O(1) local output rank
+# --------------------------------------------------------------------------
+class GpuSweepV3:
+    def __init__(self, n: int, device: int = 0, block: int = 256) -> None:
+        import cupy as cp
+
+        self.cp, self.n, self.device, self.block = cp, n, device, block
+        L = n + 1
+        with cp.cuda.Device(device):
+            mod = _module(device)
+            self.k_step = mod.get_function("v3_step")
+            self.k_rowend = mod.get_function("row_end")
+            Ca = automaton_table(n)
+            self.B = Ca[(L * (L + 2) + 0) * 2 + 0]
+            self.size = 2 * self.B
+            self.seed = automaton_rank([MARK] + [EMPTY] * n, Ca, n)
+            self.dCa = cp.asarray(np.array(Ca, dtype=np.uint64))
+            self.shmem = len(Ca) * 8
+            sms = cp.cuda.Device(device).attributes["MultiProcessorCount"]
+            self.grid = max(1, min((self.size + block - 1) // block, sms * 32))
+            self.cur = cp.zeros(self.size, dtype=cp.uint32)
+            self.nxt = cp.zeros(self.size, dtype=cp.uint32)
+            self.acc = cp.zeros(1, dtype=cp.uint64)
+
+    def run(self, p: int, progress=None) -> int:
+        cp, n = self.cp, self.n
+        with cp.cuda.Device(self.device):
+            self.cur.fill(0)
+            self.cur[2 * self.seed] = 1
+            self.cur[2 * self.seed + 1] = 1
+            for i in range(n + 1):
+                for j in range(1 if i == 0 else 0, n + 1):
+                    fb = 1 if j == 0 else 0
+                    term = 1 if (i == n and j == n) else 0
+                    size_in = self.B if fb else self.size
+                    if term:
+                        self.acc.fill(0)
+                    else:
+                        self.nxt.fill(0)
+                    self.k_step((self.grid,), (self.block,),
+                                (self.cur, self.nxt, np.uint64(size_in), np.int32(i),
+                                 np.int32(j), np.int32(n), np.uint32(p), np.int32(fb),
+                                 np.int32(term), self.dCa, self.acc),
+                                shared_mem=self.shmem)
+                    if term:
+                        return int(self.acc.get()[0] % p)
+                    self.cur, self.nxt = self.nxt, self.cur
+                self.nxt.fill(0)
+                self.k_rowend((self.grid,), (self.block,),
+                              (self.cur, self.nxt, np.uint64(self.B)))
+                self.cur, self.nxt = self.nxt, self.cur
+                if progress:
+                    progress(i + 1, n + 1)
+        raise RuntimeError("sweep finished without reaching the terminal vertex")
+
+
 def make_sweep(engine: str, n: int, device: int = 0, **kw):
     if engine == "v1":
         return GpuSweep(n, device=device)
     if engine == "v2":
         return GpuSweepV2(n, device=device, **kw)
+    if engine == "v3":
+        return GpuSweepV3(n, device=device)
     raise ValueError(engine)
+
+
+def probe_compute(engine: str, n: int, device: int = 0, block: int = 256) -> float:
+    """Seconds for one sweep's worth of per-index work with no scatter."""
+    import cupy as cp
+
+    with cp.cuda.Device(device):
+        mod = _module(device)
+        sms = cp.cuda.Device(device).attributes["MultiProcessorCount"]
+        sink = cp.zeros(1, dtype=cp.uint64)
+        if engine == "v1":
+            k = mod.get_function("probe_v1")
+            Tf, Mf, off, B, Tstride = build_tables(n)
+            dT, dM, dO = cp.asarray(Tf), cp.asarray(Mf), cp.asarray(off)
+            shmem = ((n + 5) * Tstride + (n + 5) + (n + 2)) * 8
+        elif engine == "v3":
+            k = mod.get_function("probe_v3")
+            Ca = automaton_table(n)
+            L = n + 1
+            B = Ca[(L * (L + 2) + 0) * 2 + 0]
+            dCa = cp.asarray(np.array(Ca, dtype=np.uint64))
+            shmem = len(Ca) * 8
+        else:
+            raise ValueError(engine)
+        cp.cuda.Device(device).synchronize()
+        t0 = time.perf_counter()
+        for i in range(n + 1):
+            for j in range(1 if i == 0 else 0, n + 1):
+                if i == n and j == n:
+                    continue
+                fb = 1 if j == 0 else 0
+                size_in = B if fb else 2 * B
+                grid = max(1, min((size_in + block - 1) // block, sms * 32))
+                if engine == "v1":
+                    args = (np.uint64(size_in), np.int32(i), np.int32(j), np.int32(n),
+                            np.int32(fb), dT, dM, dO, np.int32(Tstride), sink)
+                else:
+                    args = (np.uint64(size_in), np.int32(i), np.int32(j), np.int32(n),
+                            np.int32(fb), dCa, sink)
+                k((grid,), (block,), args, shared_mem=shmem)
+        cp.cuda.Device(device).synchronize()
+        return time.perf_counter() - t0
 
 
 # --------------------------------------------------------------------------

@@ -36,17 +36,22 @@ Then, if you want a full term:
 python local/run_local.py --target 20           # exact a(20)
 python local/run_local.py --auto --hours 3      # largest n that fits memory and 3 h
 python local/run_local.py --resume results/run_XXXX.json   # continue after Ctrl-C
+python local/run_local.py --oeis --target 20    # also compare with the published OEIS terms
 ```
+
+`--target` uses the fastest engine measured in step 4 unless `--engine` says
+otherwise.  `--oeis` makes one GET request to the public OEIS b-file and
+nothing else.
 
 ## What each step does
 
 | step | what | stops the run if |
 |---|---|---|
 | 1 | records Python, OS, CuPy/CUDA versions, GPU names and memory | — |
-| 2 | every engine reproduces OEIS a(1..12) mod p | any mismatch |
-| 3 | v1 and v2 (independent implementations) agree for n=13..16 | any disagreement |
-| 4 | tunes the v2 chunk size, then times v1 and v2 for n=16..19 | — |
-| 5 | projects memory and time for n=16..28 from the measured rate | — |
+| 2 | every engine (v1, v2, v3) reproduces OEIS a(1..12) mod p | any mismatch |
+| 3 | the engines (independent implementations) agree for n=13..16 | any disagreement |
+| 4 | tunes the v2 chunk size, times every engine for n=16..19 (they must agree at each n), then a bottleneck probe splits v1/v3 time into compute vs memory+atomics | any disagreement |
+| 5 | projects memory and time for n=16..28 from the fastest engine's rate | — |
 | 6 | (`--target`/`--auto`) one sweep per CRT prime across all GPUs, plus one extra prime that must not change the value | — |
 
 Memory per GPU for the target run is `2 × 2B(n) × 4` bytes:

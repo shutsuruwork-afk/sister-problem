@@ -1,0 +1,46 @@
+# First GPU run of this engine.  Console output as reported by the user,
+# with the Windows user name in paths redacted.  Runner at commit 24139a3.
+
+PS C:\Users\<user>\sister-problem> python local/run_local.py
+results -> C:\Users\<user>\sister-problem\results\run_20261003T160529Z.json
+
+[1] environment: backend=gpu  python 3.12.2  Windows-11-10.0.26200-SP0
+    gpu0: NVIDIA GeForce GTX 1660 SUPER  cc 7.5  22 SMs  5.0/6.0 GiB free
+
+[2] ground truth: every engine must reproduce a(1..12) mod p
+    v1: n=1..12 all match
+    v2: n=1..12 all match
+
+[3] cross-check: v1 and v2 are independent implementations
+    n=13: v1=1199697884 (  0.03s)  v2=1199697884 (  0.24s)  agree
+    n=14: v1=  91088579 (  0.10s)  v2=  91088579 (  0.41s)  agree
+    n=15: v1=1890547067 (  0.36s)  v2=1890547067 (  2.00s)  agree
+    n=16: v1=1531701953 (  1.23s)  v2=1531701953 (  5.94s)  agree
+
+[4] benchmark
+    v2 chunk= 16: n=17 in  12.72s
+    v2 chunk= 32: n=17 in  16.89s
+    v2 chunk= 64: n=17 in  18.74s
+    v2 chunk=128: n=17 in  22.05s
+    v2 chunk=256: n=17 in  22.09s
+    -> chunk 16
+    v1 n=16:     1.25s/prime    1.931 G slots/s
+    v1 n=17:     4.12s/prime    1.833 G slots/s
+    v1 n=18:    13.30s/prime    1.773 G slots/s
+    v1 n=19:    42.52s/prime    1.725 G slots/s
+    v2 n=16:     4.08s/prime    0.592 G slots/s
+    v2 n=17:    12.74s/prime    0.593 G slots/s
+    v2 n=18:    39.40s/prime    0.598 G slots/s
+    v2 n=19:   133.25s/prime    0.551 G slots/s
+    v2 / v1 speed-up at the largest common n: 0.32x
+
+[5] projection with the measured v2 rate (0.551 G slots/s per device, 1 device(s))
+    n=16:      0.06 GiB fits  11 primes          0.01 h
+    n=17:      0.17 GiB fits  12 primes          0.05 h
+    n=18:      0.49 GiB fits  13 primes          0.15 h
+    n=19:      1.37 GiB fits  15 primes          0.56 h
+    n=20:      3.85 GiB ----  16 primes          1.84 h
+    n=21:     10.86 GiB ----  17 primes          6.05 h
+    ...
+# Note: "n=20 ----" was a runner bug (CuPy memory pool not released before
+# measuring free memory); 3.85 GiB fits in 5.0 GiB.  Fixed after this run.

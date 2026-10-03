@@ -33,8 +33,8 @@ static inline unsigned long long atomicAdd(unsigned long long* a, unsigned long 
 
 def main() -> int:
     src = a007764_gpu.cuda_source()
-    for name in ("smem", "sCa"):
-        src = src.replace(f"extern __shared__ u64 {name}[];", f"static u64 {name}[65536];")
+    import re
+    src = re.sub(r"extern __shared__ u64 (\w+)\[\];", r"static u64 \1[65536];", src)
     with tempfile.TemporaryDirectory() as d:
         path = os.path.join(d, "cuda_syntax.cpp")
         with open(path, "w") as f:

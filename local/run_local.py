@@ -5,11 +5,11 @@
     python local/run_local.py --auto --hours 3 # ... then the largest n that fits 3 h
     python local/run_local.py --resume results/run_XXXX.json   # continue a target run
     python local/run_local.py --cpu            # force the CPU path
-    python local/run_local.py --oeis           # also check against the OEIS b-file
 
---oeis downloads https://oeis.org/A007764/b007764.txt (public, read-only) so
-that results beyond n=12 can be checked against the published terms.  Nothing
-is sent except that one GET request.
+Index convention: n counts EDGES per side ((n+1) x (n+1) points).  OEIS
+A007764 counts points, so OEIS a(n+1) is this script's a(n).  Every result is
+checked against data/b007764.txt (published terms through OEIS a(27), i.e.
+n <= 26); no network access is needed.  The unsolved frontier is n = 27.
 
 Every step is written to results/run_<UTC>.json as soon as it finishes, so an
 interrupted run still leaves its measurements behind.  No host names or user
@@ -34,7 +34,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ENGINE = os.path.join(ROOT, "kaggle")
 sys.path.insert(0, ENGINE)
 
-from a007764_core import KNOWN_A007764, motzkin_numbers  # noqa: E402
+from a007764_core import KNOWN_A007764, motzkin_numbers, oeis_known, oeis_index  # noqa: E402
 
 P_CHECK = 2147483629
 CROSS_N = (13, 14, 15, 16)
@@ -54,23 +54,6 @@ def work(n):
 
 def bytes_needed(n):
     return 2 * state_counts(n)[1] * 4
-
-
-def fetch_oeis():
-    """Published terms from the OEIS b-file, or {} if unreachable."""
-    import urllib.request
-    try:
-        with urllib.request.urlopen("https://oeis.org/A007764/b007764.txt", timeout=20) as r:
-            text = r.read().decode()
-    except Exception as e:
-        say(f"    OEIS b-file unavailable ({type(e).__name__}); continuing with n<=12 only")
-        return {}
-    known = {}
-    for line in text.splitlines():
-        parts = line.split()
-        if len(parts) == 2 and not line.startswith("#"):
-            known[int(parts[0])] = int(parts[1])
-    return known
 
 
 class Log:
@@ -169,8 +152,8 @@ class CpuBackend:
         self.chunk = 64
 
     def run(self, engine, n, p, device=0):
-        if engine not in ("v2", "v3"):
-            raise RuntimeError("CPU backend implements v2 and v3 only")
+        if engine not in ("v2", "v3", "v4"):
+            raise RuntimeError("CPU backend implements v2, v3 and v4 only")
         out = subprocess.run([self.bin, str(n), str(p), str(self.chunk), engine], check=True,
                              capture_output=True, text=True).stdout.split()
         return int(out[2])
@@ -199,7 +182,9 @@ def main():
                     help="engine for the target run (default: fastest measured)")
     ap.add_argument("--cpu", action="store_true", help="force the CPU/OpenMP backend")
     ap.add_argument("--quick", action="store_true", help="verification only")
-    ap.add_argument("--oeis", action="store_true", help="download the OEIS b-file for extra checks")
+    ap.add_argument("--oeis", action="store_true", help=argparse.SUPPRESS)   # now always on, offline
+    ap.add_argument("--engines", default=None,
+                    help="comma list to benchmark (default: v1,v3,v4 on GPU, v3,v4 on CPU)")
     ap.add_argument("--resume", help="results JSON of an interrupted target run")
     ap.add_argument("--out", default=os.path.join(ROOT, "results"), help="results directory")
     args = ap.parse_args()
@@ -230,25 +215,27 @@ def main():
         say("no GPU and no C compiler: nothing to run")
         return 1
     be = GpuBackend(env) if env["backend"] == "gpu" else CpuBackend()
-    engines = ("v1", "v2", "v3") if env["backend"] == "gpu" else ("v2", "v3")
-    known = dict(KNOWN_A007764)
-    if args.oeis:
-        published = fetch_oeis()
-        known.update(published)
-        log.put("oeis_terms", sorted(published))
+    if args.engines:
+        engines = tuple(e.strip() for e in args.engines.split(","))
+    else:
+        engines = ("v1", "v3", "v4") if env["backend"] == "gpu" else ("v3", "v4")
+    known = oeis_known()
+    log.put("published_terms_n", [n for n in sorted(known) if n >= 1])
+    say(f"    published terms available for n=1..{max(known)} "
+        f"(OEIS a(2)..a({oeis_index(max(known))}))")
 
     def expect(n):
         return known[n] % P_CHECK if n in known else None
 
     # 2. ground truth -----------------------------------------------------
     if "verify" not in log.data:
-        say("\n[2] ground truth: every engine must reproduce a(1..12) mod p")
+        say("\n[2] ground truth: every engine must reproduce a(1..12) mod p  (OEIS a(2)..a(13))")
         verify = {}
         for eng in engines:
             rows = []
             for n in range(1, 13):
                 got = be.run(eng, n, P_CHECK)
-                exp = KNOWN_A007764[n] % P_CHECK
+                exp = known[n] % P_CHECK
                 rows.append({"n": n, "got": got, "expected": exp, "ok": got == exp})
                 if got != exp:
                     log.put("verify", {eng: rows, "failed": True})
@@ -287,7 +274,7 @@ def main():
     if "bench" not in log.data:
         say("\n[4] benchmark")
         bench = {"chunk_tune": [], "ladder": [], "probe": []}
-        if env["backend"] == "gpu":
+        if env["backend"] == "gpu" and "v2" in engines:
             tn, best = 17, None
             for chunk in (4, 8, 16, 32):
                 be.chunk = chunk
@@ -323,7 +310,7 @@ def main():
             pn = max((r["n"] for r in ladder if r["n"] <= 18), default=None)
             if pn:
                 say(f"    bottleneck probe at n={pn}: same per-index work, no memory scatter")
-                for eng in ("v1", "v3"):
+                for eng in [e for e in ("v1", "v3", "v4") if e in engines]:
                     full = next(r["seconds"] for r in ladder if r["engine"] == eng and r["n"] == pn)
                     tc = be.probe(eng, pn)
                     bench["probe"].append({"engine": eng, "n": pn, "compute_s": tc, "full_s": full,
@@ -365,8 +352,9 @@ def main():
         hours = work(n) / rate * (np_ + 1) / be.ndev / 3600
         fits = bytes_needed(n) < 0.9 * free
         proj.append({"n": n, "bytes": bytes_needed(n), "fits": fits, "primes": np_ + 1, "hours": hours})
-        say(f"    n={n:2d}: {bytes_needed(n) / 2**30:9.2f} GiB {'fits' if fits else '----'}  "
-            f"{np_ + 1:2d} primes  {hours:12.2f} h")
+        tag = "  <- unsolved frontier" if n == 27 else ("  (published)" if n in known else "")
+        say(f"    n={n:2d} (OEIS a({oeis_index(n)})): {bytes_needed(n) / 2**30:9.2f} GiB "
+            f"{'fits' if fits else '----'}  {np_ + 1:2d} primes  {hours:12.2f} h{tag}")
     log.put("projection", proj)
 
     target = args.target
@@ -390,6 +378,8 @@ def main():
     engine = fastest if args.engine == "auto" else args.engine
     if env["backend"] == "cpu" and engine == "v1":
         engine = "v3"
+    if engine == "v4" and target > 22:
+        engine = "v1" if env["backend"] == "gpu" else "v3"      # v4 is 32-bit only
     tgt = log.data.get("target") or {"n": target, "engine": engine, "residues": {}}
     engine = tgt["engine"]
     log.put("target", tgt)
@@ -416,11 +406,12 @@ def main():
     value2, _ = crt([res[p] for p in primes + [extra]], primes + [extra])
     tgt.update({"value": str(value), "bits": value.bit_length(), "digits": len(str(value)),
                 "confirmed_by_extra_prime": value == value2})
+    tgt["oeis_index"] = oeis_index(target)
     if target in known:
         tgt["matches_known"] = value == known[target]
-        say(f"published value: {'MATCH' if value == known[target] else 'MISMATCH'}")
+        say(f"published OEIS a({oeis_index(target)}): {'MATCH' if value == known[target] else 'MISMATCH'}")
     log.put("target", tgt)
-    say(f"\na({target}) = {value}")
+    say(f"\na({target}) [OEIS a({oeis_index(target)})] = {value}")
     say(f"{value.bit_length()} bits, {len(str(value))} digits; extra prime "
         f"{'confirms' if value == value2 else 'DISAGREES -- more primes needed'}")
     say(f"\ndone. send {path}")

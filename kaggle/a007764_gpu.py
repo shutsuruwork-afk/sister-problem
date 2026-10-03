@@ -41,7 +41,8 @@ def _read(path: str) -> str:
 
 
 SOURCES = ("a007764_kernel.h", "a007764_cuda.cu", "a007764_v2.h", "a007764_cuda_v2.cu",
-           "a007764_v3.h", "a007764_cuda_v3.cu", "a007764_cuda_probe.cu")
+           "a007764_v3.h", "a007764_cuda_v3.cu", "a007764_cuda_probe.cu",
+           "a007764_v4.h", "a007764_cuda_v4.cu")
 
 
 def cuda_source() -> str:
@@ -282,6 +283,106 @@ class GpuSweepV3:
         raise RuntimeError("sweep finished without reaching the terminal vertex")
 
 
+# --------------------------------------------------------------------------
+# v4: v1's layout and MARK-split ranking, 32-bit arithmetic, no division,
+#     O(1) output rank for transitions that keep the MARK and touch no partner
+# --------------------------------------------------------------------------
+V4_MAX_N = 22          # every rank, table entry and index stays below 2^32
+
+
+def build_tables_v4(n: int):
+    if n > V4_MAX_N:
+        raise ValueError(f"v4 supports n <= {V4_MAX_N}")
+    Ts = n + 3
+    T = completion_table(n + 4)
+    T32 = np.zeros((n + 1) * Ts, dtype=np.uint32)
+    for rem in range(n + 1):
+        for d in range(Ts):
+            assert T[rem][d] < 2**32
+            T32[rem * Ts + d] = T[rem][d]
+    M = motzkin_numbers(n + 1)
+    M32 = np.array(M[:n + 1], dtype=np.uint32)
+    off = np.zeros(n + 2, dtype=np.uint32)
+    acc = 0
+    for a in range(n + 1):
+        off[a] = acc
+        acc += M[a] * M[n - a]
+    off[n + 1] = acc
+    minv = np.array([(1 << 32) // M[b] for b in range(n + 1)], dtype=np.uint64)
+    return T32, M32, off, minv, acc
+
+
+class GpuSweepV4:
+    def __init__(self, n: int, device: int = 0, block: int = 256) -> None:
+        import cupy as cp
+
+        self.cp, self.n, self.device, self.block = cp, n, device, block
+        T32, M32, off, minv, B = build_tables_v4(n)
+        with cp.cuda.Device(device):
+            mod = _module(device)
+            self.k_step = mod.get_function("v4_step")
+            self.k_rowend = mod.get_function("row_end")
+            self.B, self.size = B, 2 * B
+            self.dT, self.dM = cp.asarray(T32), cp.asarray(M32)
+            self.dO, self.dI = cp.asarray(off), cp.asarray(minv)
+            self.shmem = (n + 1) * 8 + ((n + 1) * (n + 3) + (n + 1) + (n + 2)) * 4
+            sms = cp.cuda.Device(device).attributes["MultiProcessorCount"]
+            self.sms = sms
+            self.grid = max(1, min((self.size + block - 1) // block, sms * 32))
+            self.cur = cp.zeros(self.size, dtype=cp.uint32)
+            self.nxt = cp.zeros(self.size, dtype=cp.uint32)
+            self.acc = cp.zeros(1, dtype=cp.uint64)
+
+    def _launch(self, size_in, i, j, p, fb, term, dry):
+        self.k_step((self.grid,), (self.block,),
+                    (self.cur, self.nxt, np.uint64(size_in), np.int32(i), np.int32(j),
+                     np.int32(self.n), np.uint32(p), np.int32(fb), np.int32(term),
+                     np.int32(dry), self.dT, self.dM, self.dO, self.dI, self.acc),
+                    shared_mem=self.shmem)
+
+    def run(self, p: int, progress=None) -> int:
+        cp, n = self.cp, self.n
+        with cp.cuda.Device(self.device):
+            self.cur.fill(0)
+            self.cur[0] = 1                    # profile M0..0 has split rank 0:
+            self.cur[1] = 1                    # MARK emitted down (b=0) / right (b=1)
+            for i in range(n + 1):
+                for j in range(1 if i == 0 else 0, n + 1):
+                    fb = 1 if j == 0 else 0
+                    term = 1 if (i == n and j == n) else 0
+                    size_in = self.B if fb else self.size
+                    if term:
+                        self.acc.fill(0)
+                    else:
+                        self.nxt.fill(0)
+                    self._launch(size_in, i, j, p, fb, term, 0)
+                    if term:
+                        return int(self.acc.get()[0] % p)
+                    self.cur, self.nxt = self.nxt, self.cur
+                self.nxt.fill(0)
+                self.k_rowend((self.grid,), (self.block,),
+                              (self.cur, self.nxt, np.uint64(self.B)))
+                self.cur, self.nxt = self.nxt, self.cur
+                if progress:
+                    progress(i + 1, n + 1)
+        raise RuntimeError("sweep finished without reaching the terminal vertex")
+
+    def probe(self) -> float:
+        """Same launches with dry=1: per-index work only, no scatter."""
+        cp, n = self.cp, self.n
+        with cp.cuda.Device(self.device):
+            cp.cuda.Device(self.device).synchronize()
+            t0 = time.perf_counter()
+            for i in range(n + 1):
+                for j in range(1 if i == 0 else 0, n + 1):
+                    if i == n and j == n:
+                        continue
+                    fb = 1 if j == 0 else 0
+                    self._launch(self.B if fb else self.size, i, j, 2147483629, fb, 0, 1)
+            cp.cuda.Device(self.device).synchronize()
+            return time.perf_counter() - t0
+
+
 def make_sweep(engine: str, n: int, device: int = 0, **kw):
     if engine == "v1":
         return GpuSweep(n, device=device)
@@ -289,6 +390,8 @@ def make_sweep(engine: str, n: int, device: int = 0, **kw):
         return GpuSweepV2(n, device=device, **kw)
     if engine == "v3":
         return GpuSweepV3(n, device=device)
+    if engine == "v4":
+        return GpuSweepV4(n, device=device)
     raise ValueError(engine)
 
 
@@ -296,6 +399,8 @@ def probe_compute(engine: str, n: int, device: int = 0, block: int = 256) -> flo
     """Seconds for one sweep's worth of per-index work with no scatter."""
     import cupy as cp
 
+    if engine == "v4":
+        return GpuSweepV4(n, device=device, block=block).probe()
     with cp.cuda.Device(device):
         mod = _module(device)
         sms = cp.cuda.Device(device).attributes["MultiProcessorCount"]

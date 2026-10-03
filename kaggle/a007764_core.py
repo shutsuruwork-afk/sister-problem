@@ -25,6 +25,9 @@ from typing import Dict, List, Tuple
 
 EMPTY, OPEN, CLOSE, MARK = 0, 1, 2, 3
 
+# Index convention: n = EDGES per side, i.e. an (n+1) x (n+1) grid of points.
+# OEIS A007764 counts POINTS per side, so OEIS a(m) == KNOWN_A007764[m - 1].
+# The unsolved frontier, OEIS a(28), is n = 27 here.
 KNOWN_A007764: Dict[int, int] = {
     1: 2,
     2: 12,
@@ -39,6 +42,35 @@ KNOWN_A007764: Dict[int, int] = {
     11: 182413291514248049241470885236,
     12: 64528039343270018963357185158482118,
 }
+
+
+def oeis_index(n: int) -> int:
+    """OEIS A007764 index of this module's a(n)."""
+    return n + 1
+
+
+def oeis_known(path: str | None = None) -> Dict[int, int]:
+    """Published terms keyed by this module's n (OEIS index minus one).
+
+    Reads data/b007764.txt when it is present (repository checkout) and falls
+    back to the twelve embedded terms otherwise (e.g. a standalone notebook).
+    """
+    import os
+    if path is None:
+        here = os.path.dirname(os.path.abspath(__file__))
+        path = os.path.join(here, "..", "data", "b007764.txt")
+    known = dict(KNOWN_A007764)
+    try:
+        with open(path) as f:
+            for line in f:
+                parts = line.split()
+                if len(parts) == 2 and not line.startswith("#"):
+                    m, v = int(parts[0]), int(parts[1])
+                    if m >= 2:
+                        known[m - 1] = v
+    except OSError:
+        pass
+    return known
 
 
 # --------------------------------------------------------------------------

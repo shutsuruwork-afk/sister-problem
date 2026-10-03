@@ -1,0 +1,59 @@
+# Second GPU run: three engines, bottleneck probe, exact a(20).
+# Console output as reported by the user, Windows user name redacted.
+# Runner at commit dc730e7.  NOTE (found afterwards): this repository's n counts
+# edges per side, so "a(20)" below is OEIS A007764 a(21).  It matches the
+# published b-file entry 21 in all 97 digits (data/b007764.txt).  The OEIS
+# download failed here, which was lucky: the runner then mapped b-file indices
+# to n without the shift and would have flagged a false mismatch.  Fixed.
+
+results -> C:\Users\<user>\sister-problem\results\run_20261003T172343Z.json
+
+[1] environment: backend=gpu  python 3.12.2  Windows-11-10.0.26200-SP0
+    gpu0: NVIDIA GeForce GTX 1660 SUPER  cc 7.5  22 SMs  5.0/6.0 GiB free
+    OEIS b-file unavailable (HTTPError); continuing with n<=12 only
+
+[2] ground truth: every engine must reproduce a(1..12) mod p
+    v1: n=1..12 all match
+    v2: n=1..12 all match
+    v3: n=1..12 all match
+
+[3] cross-check: v1, v2, v3 are independent implementations
+    n=13: v1=1199697884 (  0.04s)  v2=1199697884 (  0.24s)  v3=1199697884 (  0.05s)  agree
+    n=14: v1=  91088579 (  0.10s)  v2=  91088579 (  0.41s)  v3=  91088579 (  0.15s)  agree
+    n=15: v1=1890547067 (  0.35s)  v2=1890547067 (  1.98s)  v3=1890547067 (  0.47s)  agree
+    n=16: v1=1531701953 (  1.21s)  v2=1531701953 (  5.85s)  v3=1531701953 (  1.51s)  agree
+
+[4] benchmark
+    v2 chunk=  4: n=17 in   7.06s
+    v2 chunk=  8: n=17 in   7.70s
+    v2 chunk= 16: n=17 in  12.35s
+    v2 chunk= 32: n=17 in  16.62s
+    -> chunk 4
+    v1 n=16:     1.23s/prime    1.969 G slots/s
+    v2 n=16:     2.29s/prime    1.057 G slots/s
+    v3 n=16:     1.52s/prime    1.589 G slots/s
+    v1 n=17:     4.04s/prime    1.868 G slots/s
+    v2 n=17:     7.14s/prime    1.058 G slots/s
+    v3 n=17:     4.86s/prime    1.556 G slots/s
+    v1 n=18:    13.12s/prime    1.797 G slots/s
+    v2 n=18:    22.82s/prime    1.033 G slots/s
+    v3 n=18:    15.52s/prime    1.519 G slots/s
+    v1 n=19:    42.01s/prime    1.746 G slots/s
+    v2 n=19:    71.45s/prime    1.027 G slots/s
+    v3 n=19:    49.87s/prime    1.471 G slots/s
+    bottleneck probe at n=18: same per-index work, no memory scatter
+      v1: compute-only   13.20s of   13.12s full -> 100.6% compute,  -0.6% memory+atomics
+      v3: compute-only   15.73s of   15.52s full -> 101.4% compute,  -1.4% memory+atomics
+    rate relative to v1 at n=19: v1 1.00x  v2 0.59x  v3 0.84x
+
+[5] projection with the fastest measured engine, v1 (1.746 G slots/s per device, 1 device(s))
+    n=20:      3.85 GiB fits  16 primes          0.58 h
+    ...
+
+[6] a(20) with 15 primes + 1 confirmation prime, engine v1
+  [gpu0] p=2147483647  a(20) mod p =   76359569 (134.2s)
+  ... 16 primes, 134.0-135.5 s each ...
+  [gpu0] p=2147483249  a(20) mod p = 1934226814 (134.9s)
+
+a(20) = 3962892199823037560207299517133362502106339705739463771515237113377010682364035706704472064940398
+321 bits, 97 digits; extra prime confirms

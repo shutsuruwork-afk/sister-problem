@@ -4,6 +4,13 @@ One command verifies the engines, cross-checks them, benchmarks, projects,
 and optionally computes a term exactly.  Everything lands in
 `results/run_<UTC>.json`; that file is the thing to send back.
 
+**Index convention.** `n` here counts edges per side ((n+1)×(n+1) grid points).
+OEIS A007764 counts points, so OEIS a(n+1) is this repository's a(n); the runner
+prints both.  All results are checked offline against `data/b007764.txt`
+(published through OEIS a(27), i.e. n ≤ 26).  The unsolved frontier is n = 27.
+
+To let a Claude Code session on your machine do the running, see `EXECUTOR.md`.
+
 ## Setup
 
 GPU (NVIDIA, any card with compute capability ≥ 6.0):
@@ -36,20 +43,18 @@ Then, if you want a full term:
 python local/run_local.py --target 20           # exact a(20)
 python local/run_local.py --auto --hours 3      # largest n that fits memory and 3 h
 python local/run_local.py --resume results/run_XXXX.json   # continue after Ctrl-C
-python local/run_local.py --oeis --target 20    # also compare with the published OEIS terms
 ```
 
 `--target` uses the fastest engine measured in step 4 unless `--engine` says
-otherwise.  `--oeis` makes one GET request to the public OEIS b-file and
-nothing else.
+otherwise.  v4 is limited to n ≤ 22 (32-bit ranks).
 
 ## What each step does
 
 | step | what | stops the run if |
 |---|---|---|
 | 1 | records Python, OS, CuPy/CUDA versions, GPU names and memory | — |
-| 2 | every engine (v1, v2, v3) reproduces OEIS a(1..12) mod p | any mismatch |
-| 3 | the engines (independent implementations) agree for n=13..16 | any disagreement |
+| 2 | every engine (default v1, v3, v4; v2 with `--engines`) reproduces a(1..12) mod p | any mismatch |
+| 3 | the engines agree with each other and with the published terms for n=13..16 | any disagreement |
 | 4 | tunes the v2 chunk size, times every engine for n=16..19 (they must agree at each n), then a bottleneck probe splits v1/v3 time into compute vs memory+atomics | any disagreement |
 | 5 | projects memory and time for n=16..28 from the fastest engine's rate | — |
 | 6 | (`--target`/`--auto`) one sweep per CRT prime across all GPUs, plus one extra prime that must not change the value | — |

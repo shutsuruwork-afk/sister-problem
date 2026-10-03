@@ -5,8 +5,9 @@
  * chunks exercises exactly the boundary and race conditions the GPU sees.
  *
  *   gcc -O3 -march=native -fopenmp -o a007764_cpu a007764_cpu.c
- *   ./a007764_cpu N [P] [CHUNK] [v2|v3]  -> prints "n p residue seconds"
- * v3 ignores CHUNK: one index per iteration, like a GPU thread.
+ *   ./a007764_cpu N [P] [CHUNK] [v2|v3|v4]  -> prints "n p residue seconds"
+ * v3 and v4 ignore CHUNK: one index per iteration, like a GPU thread.
+ * Build with -DV4_STATS to also print how often v4 takes each rank path.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,6 +16,7 @@
 #include "a007764_kernel.h"
 #include "a007764_v2.h"
 #include "a007764_v3.h"
+#include "a007764_v4.h"
 
 static double now(void) { struct timespec t; clock_gettime(CLOCK_MONOTONIC, &t); return t.tv_sec + 1e-9 * t.tv_nsec; }
 
@@ -37,22 +39,48 @@ static u64 *build_ca(int n)
 
 int main(int argc, char **argv)
 {
-    if (argc < 2) { fprintf(stderr, "usage: %s N [P] [CHUNK] [v2|v3]\n", argv[0]); return 2; }
+    if (argc < 2) { fprintf(stderr, "usage: %s N [P] [CHUNK] [v2|v3|v4]\n", argv[0]); return 2; }
     int n = atoi(argv[1]);
     u32 p = argc > 2 ? (u32)strtoul(argv[2], 0, 10) : 2147483629u;
     u64 chunk = argc > 3 ? strtoull(argv[3], 0, 10) : 64;
     int v3 = argc > 4 && strcmp(argv[4], "v3") == 0;
+    int v4 = argc > 4 && strcmp(argv[4], "v4") == 0;
+    if (v4 && n > 22) { fprintf(stderr, "v4 needs n <= 22 (32-bit ranks)\n"); return 2; }
     if (n < 1 || n > 29) { fprintf(stderr, "n out of range\n"); return 2; }
 
     int L = n + 1;
     u64 *Ca = build_ca(n);
     Auto a = { Ca, L };
     u64 B = CA_AT(&a, L, 0, 0), S = 2 * B;
+
+    /* v4 tables: 32-bit Motzkin completions, offsets, reciprocals */
+    int Ts4 = n + 3;
+    u64 *Tw = calloc((size_t)(n + 1) * (n + 6), sizeof(u64));
+    Tw[0] = 1;
+    for (int rem = 1; rem <= n; rem++)
+        for (int d = 0; d <= n + 3; d++) {
+            u64 v = Tw[(size_t)(rem - 1) * (n + 6) + d] + Tw[(size_t)(rem - 1) * (n + 6) + d + 1];
+            if (d) v += Tw[(size_t)(rem - 1) * (n + 6) + d - 1];
+            Tw[(size_t)rem * (n + 6) + d] = v;
+        }
+    u32 *T32 = calloc((size_t)(n + 1) * Ts4, sizeof(u32)), *M32 = calloc(n + 1, sizeof(u32)),
+        *O32 = calloc(n + 2, sizeof(u32));
+    u64 *minv = calloc(n + 1, sizeof(u64));
+    for (int rem = 0; rem <= n; rem++)
+        for (int d = 0; d < Ts4; d++) T32[rem * Ts4 + d] = (u32)Tw[(size_t)rem * (n + 6) + d];
+    for (int k = 0; k <= n; k++) { M32[k] = (u32)Tw[(size_t)k * (n + 6)]; minv[k] = (1ull << 32) / M32[k]; }
+    { u64 acc = 0; for (int x = 0; x <= n; x++) { O32[x] = (u32)acc; acc += (u64)M32[x] * M32[n - x]; } O32[n + 1] = (u32)acc; }
+    T4 t4 = { T32, M32, O32, minv, n, Ts4 };
+#ifdef V4_STATS
+    u64 st_local = 0, st_mark = 0, st_join = 0;
+#endif
     u32 *cur = calloc(S, sizeof(u32)), *nxt = calloc(S, sizeof(u32));
     if (!cur || !nxt) { fprintf(stderr, "allocation of %llu bytes failed\n", (unsigned long long)(8 * S)); return 1; }
 
     double t0 = now();
-    u64 r0 = auto_rank(&a, (u64)A_MARK);        /* (0,0) emits MARK down / right */
+    /* (0,0) emits MARK down / right; the profile M0..0 has a different rank
+     * under v4's MARK-split ranking (0) than under the v2/v3 automaton */
+    u64 r0 = v4 ? (u64)prof_rank4((u64)A_MARK, &t4) : auto_rank(&a, (u64)A_MARK);
     cur[2 * r0] = 1; cur[2 * r0 + 1] = 1;
     u64 answer = 0;
 
@@ -61,7 +89,23 @@ int main(int argc, char **argv)
             int fb = (j == 0), term = (i == n && j == n);
             if (!term) memset(nxt, 0, S * sizeof(u32));
             u64 tacc = 0;
-            if (v3) {
+            if (v4) {
+                long long size_in = (long long)(fb ? B : S);
+#ifdef V4_STATS
+                #pragma omp parallel for schedule(static) reduction(+:tacc,st_local,st_mark,st_join)
+#else
+                #pragma omp parallel for schedule(static) reduction(+:tacc)
+#endif
+                for (long long x = 0; x < size_in; x++) {
+                    u64 local = 0;
+                    v4_index(&t4, cur, nxt, (u64)x, i, j, n, p, fb, term, 0, &local
+#ifdef V4_STATS
+                             , &st_local, &st_mark, &st_join
+#endif
+                             );
+                    tacc += local;
+                }
+            } else if (v3) {
                 long long size_in = (long long)(fb ? B : S);
                 #pragma omp parallel for schedule(static) reduction(+:tacc)
                 for (long long x = 0; x < size_in; x++) {
@@ -88,6 +132,13 @@ int main(int argc, char **argv)
     }
 done:
     printf("%d %u %llu %.3f\n", n, p, (unsigned long long)answer, now() - t0);
+#ifdef V4_STATS
+    if (v4) {
+        double tot = (double)(st_local + st_mark + st_join);
+        printf("v4 output ranks: local O(1) %.3f  MARK moved %.3f  partner rewrite %.3f\n",
+               st_local / tot, st_mark / tot, st_join / tot);
+    }
+#endif
     free(cur); free(nxt); free(Ca);
     return 0;
 }

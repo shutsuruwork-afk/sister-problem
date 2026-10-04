@@ -21,6 +21,15 @@ The research itself is done elsewhere; do not change engine or research code.
    `git push origin claude/antigravity-research-progress-ugqfqc`.
 6. Report to the user in two or three lines: did step 2 and 3 of the runner
    pass, the speed ratio line from step 4, and whether a target value matched.
+7. Send a completion notice to the research session.  Run `ListAgents`; if a
+   session named **`sister-problem-e2`** is listed, `SendMessage` it exactly
+   one line and nothing else:
+
+       GPU run <N> pushed: <short commit sha>
+
+   No numbers, no summary: the research session reads everything from git.
+   Do not wait for a reply (cloud sessions cannot answer yet).  If that
+   session is not listed, skip this step; the user will pass the word on.
 
 ## Never
 

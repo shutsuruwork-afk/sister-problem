@@ -1,5 +1,6 @@
 /* CUDA entry point for v4.  Device code is a007764_v4.h verbatim.
- * dry = 1 turns the launch into the bottleneck probe (no scatter). */
+ * dry >= 1 turns the launch into a bottleneck probe (no memory writes);
+ * see a007764_v4.h for the modes. */
 
 extern "C" __global__ void v4_step(
         const u32 *cur, u32 *nxt, unsigned long long size_in,

@@ -367,8 +367,9 @@ class GpuSweepV4:
                     progress(i + 1, n + 1)
         raise RuntimeError("sweep finished without reaching the terminal vertex")
 
-    def probe(self) -> float:
-        """Same launches with dry=1: per-index work only, no scatter."""
+    def probe(self, mode: int = 1) -> float:
+        """Probe launches (no memory writes).  mode: 1 real path, 2 all-fast,
+        3 all-full-rank, 4 unrank only -- see a007764_v4.h."""
         cp, n = self.cp, self.n
         with cp.cuda.Device(self.device):
             cp.cuda.Device(self.device).synchronize()
@@ -378,7 +379,7 @@ class GpuSweepV4:
                     if i == n and j == n:
                         continue
                     fb = 1 if j == 0 else 0
-                    self._launch(self.B if fb else self.size, i, j, 2147483629, fb, 0, 1)
+                    self._launch(self.B if fb else self.size, i, j, 2147483629, fb, 0, mode)
             cp.cuda.Device(self.device).synchronize()
             return time.perf_counter() - t0
 

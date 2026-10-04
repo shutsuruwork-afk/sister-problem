@@ -124,8 +124,14 @@ DEVFN u32 local4(u64 w, int lo, int hi, int d, int end, const T4 *t)
 }
 
 /* Process one input index of one vertex step (same contract as v1).
- * dry: bottleneck probe -- treat the index as live and XOR the output
- * index into *tacc instead of scattering, so compute is measured alone. */
+ * dry = 0  real sweep.
+ * dry >= 1 probes: treat the index as live, never touch memory, XOR the
+ *          outputs into *tacc so the work cannot be optimised away.
+ *   1  the real code path                       (compute share)
+ *   2  every output takes the O(1) local path   (cost if divergence vanished)
+ *   3  every output takes the full rank         (cost of the slow path)
+ *   4  unrank only                              (input-side cost)
+ * Modes 2-4 compute nonsense ranks on purpose; they exist only for timing. */
 DEVFN void v4_index(const T4 *t, const u32 *cur, u32 *nxt, u64 idx,
                     int i, int j, int n, u32 p, int fb, int term, int dry, u64 *tacc
 #ifdef V4_STATS
@@ -140,6 +146,7 @@ DEVFN void v4_index(const T4 *t, const u32 *cur, u32 *nxt, u64 idx,
     u32 b = fb ? 0u : (u32)(idx & 1ull);
     int dw = 0, a = 0;
     u64 u = prof_unrank4(r, t, fb ? -1 : j - 1, &dw, &a);
+    if (dry == 4) { *tacc ^= u + (u64)dw + (u64)a; return; }
     u64 s = fb ? (u << 2) : word_expand(u, b, j - 1);
     u32 Lp = slot_get(s, j), Up = slot_get(s, j + 1);
     int isjoin = Lp && Up && !(Lp == A_OPEN && Up == A_CLOSE);
@@ -152,7 +159,7 @@ DEVFN void v4_index(const T4 *t, const u32 *cur, u32 *nxt, u64 idx,
         u32 ro;
         if (fb) {
             ro = r;                                          /* j=0: profile unchanged */
-        } else if (isjoin || slot_get(u2, a) != A_MARK) {
+        } else if (dry == 3 || (dry != 2 && (isjoin || slot_get(u2, a) != A_MARK))) {
             ro = prof_rank4(u2, t);                          /* partner rewrite / MARK moved */
 #ifdef V4_STATS
             if (isjoin) (*st_join)++; else (*st_mark)++;
@@ -164,7 +171,10 @@ DEVFN void v4_index(const T4 *t, const u32 *cur, u32 *nxt, u64 idx,
             int left = hi < a;
             int end = left ? a : L;
             u32 mul = left ? t->M[n - a] : 1u;
-            ro = r + (local4(u2, lo, hi, d0, end, t) - local4(u, lo, hi, d0, end, t)) * mul;
+            /* dry 2 forces this path for slow outputs too; feed it u so the
+             * symbols stay valid and the work is the same as a real fast output */
+            u64 w2 = (dry == 2 && (isjoin || slot_get(u2, a) != A_MARK)) ? u : u2;
+            ro = r + (local4(w2, lo, hi, d0, end, t) - local4(u, lo, hi, d0, end, t)) * mul;
 #ifdef V4_STATS
             (*st_local)++;
 #endif

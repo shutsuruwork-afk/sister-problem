@@ -317,6 +317,20 @@ def main():
                                            "compute_share": tc / full})
                     say(f"      {eng}: compute-only {tc:7.2f}s of {full:7.2f}s full "
                         f"-> {100 * tc / full:5.1f}% compute, {100 * (1 - tc / full):5.1f}% memory+atomics")
+            if pn and "v4" in engines and pn <= 22:
+                say(f"    v4 time decomposition at n={pn} (probe modes, no memory writes):")
+                sw = be.g.GpuSweepV4(pn, device=0)
+                dec = {}
+                for mode, label in ((4, "unrank only"), (2, "all outputs fast (no divergence)"),
+                                    (1, "real code path"), (3, "all outputs full rank")):
+                    dec[mode] = sw.probe(mode)
+                    say(f"      mode {mode}: {dec[mode]:7.2f}s  {label}")
+                del sw
+                bench["v4_decomposition"] = {"n": pn, "unrank_only": dec[4], "all_fast": dec[2],
+                                             "real_path": dec[1], "all_full": dec[3]}
+                say(f"      -> removing divergence could save at most "
+                    f"{100 * (1 - dec[2] / dec[1]):.0f}% of compute; unrank is "
+                    f"{100 * dec[4] / dec[1]:.0f}% of the real path")
         log.put("bench", bench)
     bench = log.data["bench"]
     if env["backend"] == "gpu" and "chunk" in bench:

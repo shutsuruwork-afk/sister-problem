@@ -19,17 +19,13 @@ The research itself is done elsewhere; do not change engine or research code.
 5. `git add results/<the two files>` and commit with the message
    `Add GPU run <N> results (<gpu-model>)`, then
    `git push origin claude/antigravity-research-progress-ugqfqc`.
-6. Report to the user in two or three lines: did step 2 and 3 of the runner
-   pass, the speed ratio line from step 4, and whether a target value matched.
-7. Send a completion notice to the research session.  Run `ListAgents`; if a
-   session named **`sister-problem-e2`** is listed, `SendMessage` it exactly
-   one line and nothing else:
+6. Report to the user in two or three lines.  **Start with the short commit
+   sha of your push** (the user relays it to the research session, which
+   reads everything else from git), then: did steps 2 and 3 of the runner
+   pass, and whether a target value matched.
 
-       GPU run <N> pushed: <short commit sha>
-
-   No numbers, no summary: the research session reads everything from git.
-   Do not wait for a reply (cloud sessions cannot answer yet).  If that
-   session is not listed, skip this step; the user will pass the word on.
+(A session on this machine cannot see the cloud research session in
+`ListAgents`, so there is no direct notice; the user passes the sha on.)
 
 ## Never
 

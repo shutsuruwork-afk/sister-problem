@@ -42,7 +42,7 @@ def _read(path: str) -> str:
 
 SOURCES = ("a007764_kernel.h", "a007764_cuda.cu", "a007764_v2.h", "a007764_cuda_v2.cu",
            "a007764_v3.h", "a007764_cuda_v3.cu", "a007764_cuda_probe.cu",
-           "a007764_v4.h", "a007764_cuda_v4.cu")
+           "a007764_v4.h", "a007764_cuda_v4.cu", "a007764_v5.h", "a007764_cuda_v5.cu")
 
 
 def cuda_source() -> str:
@@ -384,6 +384,75 @@ class GpuSweepV4:
             return time.perf_counter() - t0
 
 
+# --------------------------------------------------------------------------
+# v5: v4 split into a fast kernel and a slow kernel per vertex step, so lanes
+#     that need bracket-partner scans no longer drag whole warps down
+# --------------------------------------------------------------------------
+class GpuSweepV5:
+    def __init__(self, n: int, device: int = 0, block: int = 256,
+                 qfrac: float = 0.30) -> None:
+        import cupy as cp
+
+        self.cp, self.n, self.device, self.block = cp, n, device, block
+        T32, M32, off, minv, B = build_tables_v4(n)
+        with cp.cuda.Device(device):
+            mod = _module(device)
+            self.k_fast = mod.get_function("v5_fast_k")
+            self.k_slow = mod.get_function("v5_slow_k")
+            self.k_rowend = mod.get_function("row_end")
+            self.B, self.size = B, 2 * B
+            self.dT, self.dM = cp.asarray(T32), cp.asarray(M32)
+            self.dO, self.dI = cp.asarray(off), cp.asarray(minv)
+            self.shmem = (n + 1) * 8 + ((n + 1) * (n + 3) + (n + 1) + (n + 2)) * 4
+            sms = cp.cuda.Device(device).attributes["MultiProcessorCount"]
+            self.grid = max(1, min((self.size + block - 1) // block, sms * 32))
+            self.qcap = max(1024, int(qfrac * self.size))
+            self.cur = cp.zeros(self.size, dtype=cp.uint32)
+            self.nxt = cp.zeros(self.size, dtype=cp.uint32)
+            self.queue = cp.zeros(self.qcap, dtype=cp.uint32)
+            self.qcount = cp.zeros(1, dtype=cp.uint32)
+            self.acc = cp.zeros(1, dtype=cp.uint64)
+            self.max_queued = 0
+
+    def run(self, p: int, progress=None) -> int:
+        cp, n = self.cp, self.n
+        tabs = (self.dT, self.dM, self.dO, self.dI)
+        with cp.cuda.Device(self.device):
+            self.cur.fill(0)
+            self.cur[0] = 1
+            self.cur[1] = 1
+            for i in range(n + 1):
+                for j in range(1 if i == 0 else 0, n + 1):
+                    fb = 1 if j == 0 else 0
+                    term = 1 if (i == n and j == n) else 0
+                    size_in = self.B if fb else self.size
+                    if term:
+                        self.acc.fill(0)
+                    else:
+                        self.nxt.fill(0)
+                    self.qcount.fill(0)
+                    common = (np.int32(i), np.int32(j), np.int32(n), np.uint32(p),
+                              np.int32(fb), np.int32(term)) + tabs + (self.acc,)
+                    self.k_fast((self.grid,), (self.block,),
+                                (self.cur, self.nxt, np.uint64(size_in)) + common
+                                + (self.queue, self.qcount, np.uint32(self.qcap)),
+                                shared_mem=self.shmem)
+                    self.k_slow((self.grid,), (self.block,),
+                                (self.cur, self.nxt) + common
+                                + (self.queue, self.qcount, np.uint32(self.qcap)),
+                                shared_mem=self.shmem)
+                    if term:
+                        return int(self.acc.get()[0] % p)
+                    self.cur, self.nxt = self.nxt, self.cur
+                self.nxt.fill(0)
+                self.k_rowend((self.grid,), (self.block,),
+                              (self.cur, self.nxt, np.uint64(self.B)))
+                self.cur, self.nxt = self.nxt, self.cur
+                if progress:
+                    progress(i + 1, n + 1)
+        raise RuntimeError("sweep finished without reaching the terminal vertex")
+
+
 def make_sweep(engine: str, n: int, device: int = 0, **kw):
     if engine == "v1":
         return GpuSweep(n, device=device)
@@ -393,6 +462,8 @@ def make_sweep(engine: str, n: int, device: int = 0, **kw):
         return GpuSweepV3(n, device=device)
     if engine == "v4":
         return GpuSweepV4(n, device=device)
+    if engine == "v5":
+        return GpuSweepV5(n, device=device)
     raise ValueError(engine)
 
 

@@ -28,6 +28,11 @@ struct Dim3 { unsigned x, y, z; };
 static Dim3 threadIdx{0,0,0}, blockIdx{0,0,0}, blockDim{1,1,1}, gridDim{1,1,1};
 static inline unsigned atomicCAS(unsigned* a, unsigned c, unsigned v){ unsigned o=*a; if(o==c)*a=v; return o; }
 static inline unsigned long long atomicAdd(unsigned long long* a, unsigned long long v){ unsigned long long o=*a; *a=o+v; return o; }
+static inline unsigned atomicAdd(unsigned* a, unsigned v){ unsigned o=*a; *a=o+v; return o; }
+static inline unsigned __activemask(){ return 1u; }
+static inline int __ffs(unsigned x){ return __builtin_ffs((int)x); }
+static inline int __popc(unsigned x){ return __builtin_popcount(x); }
+static inline unsigned __shfl_sync(unsigned, unsigned v, int){ return v; }
 """
 
 

@@ -152,8 +152,8 @@ class CpuBackend:
         self.chunk = 64
 
     def run(self, engine, n, p, device=0):
-        if engine not in ("v2", "v3", "v4"):
-            raise RuntimeError("CPU backend implements v2, v3 and v4 only")
+        if engine not in ("v2", "v3", "v4", "v5"):
+            raise RuntimeError("CPU backend implements v2-v5 only")
         out = subprocess.run([self.bin, str(n), str(p), str(self.chunk), engine], check=True,
                              capture_output=True, text=True).stdout.split()
         return int(out[2])
@@ -184,7 +184,7 @@ def main():
     ap.add_argument("--quick", action="store_true", help="verification only")
     ap.add_argument("--oeis", action="store_true", help=argparse.SUPPRESS)   # now always on, offline
     ap.add_argument("--engines", default=None,
-                    help="comma list to benchmark (default: v1,v3,v4 on GPU, v3,v4 on CPU)")
+                    help="comma list to benchmark (default: v1,v3,v4,v5 on GPU, v3,v4,v5 on CPU)")
     ap.add_argument("--resume", help="results JSON of an interrupted target run")
     ap.add_argument("--out", default=os.path.join(ROOT, "results"), help="results directory")
     args = ap.parse_args()
@@ -218,7 +218,7 @@ def main():
     if args.engines:
         engines = tuple(e.strip() for e in args.engines.split(","))
     else:
-        engines = ("v1", "v3", "v4") if env["backend"] == "gpu" else ("v3", "v4")
+        engines = ("v1", "v3", "v4", "v5") if env["backend"] == "gpu" else ("v3", "v4", "v5")
     known = oeis_known()
     log.put("published_terms_n", [n for n in sorted(known) if n >= 1])
     say(f"    published terms available for n=1..{max(known)} "
@@ -392,7 +392,7 @@ def main():
     engine = fastest if args.engine == "auto" else args.engine
     if env["backend"] == "cpu" and engine == "v1":
         engine = "v3"
-    if engine == "v4" and target > 22:
+    if engine in ("v4", "v5") and target > 22:
         engine = "v1" if env["backend"] == "gpu" else "v3"      # v4 is 32-bit only
     tgt = log.data.get("target") or {"n": target, "engine": engine, "residues": {}}
     engine = tgt["engine"]

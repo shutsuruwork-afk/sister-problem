@@ -1,0 +1,58 @@
+results -> C:\sp\results\run_20261004T043955Z.json
+
+[1] environment: backend=gpu  python 3.12.2  Windows-11-10.0.26200-SP0
+    gpu0: NVIDIA GeForce GTX 1660 SUPER  cc 7.5  22 SMs  5.0/6.0 GiB free
+    published terms available for n=1..26 (OEIS a(2)..a(27))
+
+[2] ground truth: every engine must reproduce a(1..12) mod p  (OEIS a(2)..a(13))
+    v1: n=1..12 all match
+    v3: n=1..12 all match
+    v4: n=1..12 all match
+
+[3] cross-check: v1, v3, v4 are independent implementations
+    n=13: v1=1199697884 (  0.04s)  v3=1199697884 (  0.05s)  v4=1199697884 (  0.04s)  agree  =OEIS
+    n=14: v1=  91088579 (  0.10s)  v3=  91088579 (  0.15s)  v4=  91088579 (  0.12s)  agree  =OEIS
+    n=15: v1=1890547067 (  0.35s)  v3=1890547067 (  0.48s)  v4=1890547067 (  0.40s)  agree  =OEIS
+    n=16: v1=1531701953 (  1.22s)  v3=1531701953 (  1.53s)  v4=1531701953 (  1.31s)  agree  =OEIS
+
+[4] benchmark
+    v1 n=16:     1.23s/prime    1.962 G slots/s
+    v3 n=16:     1.54s/prime    1.572 G slots/s
+    v4 n=16:     1.31s/prime    1.847 G slots/s
+    v1 n=17:     4.07s/prime    1.859 G slots/s
+    v3 n=17:     4.88s/prime    1.550 G slots/s
+    v4 n=17:     4.15s/prime    1.822 G slots/s
+    v1 n=18:    13.12s/prime    1.796 G slots/s
+    v3 n=18:    15.50s/prime    1.521 G slots/s
+    v4 n=18:    13.12s/prime    1.797 G slots/s
+    v1 n=19:    42.25s/prime    1.736 G slots/s
+    v3 n=19:    50.40s/prime    1.456 G slots/s
+    v4 n=19:    42.11s/prime    1.742 G slots/s
+    bottleneck probe at n=18: same per-index work, no memory scatter
+      v1: compute-only   13.18s of   13.12s full -> 100.4% compute,  -0.4% memory+atomics
+      v3: compute-only   16.02s of   15.50s full -> 103.4% compute,  -3.4% memory+atomics
+      v4: compute-only   14.24s of   13.12s full -> 108.6% compute,  -8.6% memory+atomics
+    v4 time decomposition at n=18 (probe modes, no memory writes):
+      mode 4:    3.39s  unrank only
+      mode 2:    9.02s  all outputs fast (no divergence)
+      mode 1:   14.31s  real code path
+      mode 3:   13.50s  all outputs full rank
+      -> removing divergence could save at most 37% of compute; unrank is 24% of the real path
+    rate relative to v1 at n=19: v1 1.00x  v3 0.84x  v4 1.00x
+
+[5] projection with the fastest measured engine, v4 (1.742 G slots/s per device, 1 device(s))
+    n=16 (OEIS a(17)):      0.06 GiB fits  11 primes          0.00 h  (published)
+    n=17 (OEIS a(18)):      0.17 GiB fits  12 primes          0.01 h  (published)
+    n=18 (OEIS a(19)):      0.49 GiB fits  13 primes          0.05 h  (published)
+    n=19 (OEIS a(20)):      1.37 GiB fits  15 primes          0.18 h  (published)
+    n=20 (OEIS a(21)):      3.85 GiB fits  16 primes          0.58 h  (published)
+    n=21 (OEIS a(22)):     10.86 GiB ----  17 primes          1.91 h  (published)
+    n=22 (OEIS a(23)):     30.74 GiB ----  19 primes          6.61 h  (published)
+    n=23 (OEIS a(24)):     87.18 GiB ----  20 primes         21.49 h  (published)
+    n=24 (OEIS a(25)):    247.75 GiB ----  22 primes         72.91 h  (published)
+    n=25 (OEIS a(26)):    705.39 GiB ----  24 primes        244.93 h  (published)
+    n=26 (OEIS a(27)):   2011.89 GiB ----  25 primes        784.73 h  (published)
+    n=27 (OEIS a(28)):   5747.67 GiB ----  27 primes       2603.88 h  <- unsolved frontier
+    n=28 (OEIS a(29)):  16445.56 GiB ----  29 primes       8584.05 h
+
+done. send C:\sp\results\run_20261004T043955Z.json

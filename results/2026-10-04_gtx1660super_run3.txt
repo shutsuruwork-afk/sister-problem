@@ -1,0 +1,74 @@
+results -> C:\sp\results\run_20261004T034008Z.json
+
+[1] environment: backend=gpu  python 3.12.2  Windows-11-10.0.26200-SP0
+    gpu0: NVIDIA GeForce GTX 1660 SUPER  cc 7.5  22 SMs  5.0/6.0 GiB free
+    published terms available for n=1..26 (OEIS a(2)..a(27))
+
+[2] ground truth: every engine must reproduce a(1..12) mod p  (OEIS a(2)..a(13))
+    v1: n=1..12 all match
+    v3: n=1..12 all match
+    v4: n=1..12 all match
+
+[3] cross-check: v1, v3, v4 are independent implementations
+    n=13: v1=1199697884 (  0.04s)  v3=1199697884 (  0.06s)  v4=1199697884 (  0.04s)  agree  =OEIS
+    n=14: v1=  91088579 (  0.11s)  v3=  91088579 (  0.15s)  v4=  91088579 (  0.12s)  agree  =OEIS
+    n=15: v1=1890547067 (  0.36s)  v3=1890547067 (  0.49s)  v4=1890547067 (  0.40s)  agree  =OEIS
+    n=16: v1=1531701953 (  1.25s)  v3=1531701953 (  1.55s)  v4=1531701953 (  1.30s)  agree  =OEIS
+
+[4] benchmark
+    v1 n=16:     1.24s/prime    1.952 G slots/s
+    v3 n=16:     1.55s/prime    1.563 G slots/s
+    v4 n=16:     1.29s/prime    1.866 G slots/s
+    v1 n=17:     4.09s/prime    1.848 G slots/s
+    v3 n=17:     4.91s/prime    1.541 G slots/s
+    v4 n=17:     4.09s/prime    1.849 G slots/s
+    v1 n=18:    13.25s/prime    1.779 G slots/s
+    v3 n=18:    15.68s/prime    1.503 G slots/s
+    v4 n=18:    12.99s/prime    1.815 G slots/s
+    v1 n=19:    42.59s/prime    1.722 G slots/s
+    v3 n=19:    50.42s/prime    1.455 G slots/s
+    v4 n=19:    41.30s/prime    1.776 G slots/s
+    bottleneck probe at n=18: same per-index work, no memory scatter
+      v1: compute-only   13.33s of   13.25s full -> 100.6% compute,  -0.6% memory+atomics
+      v3: compute-only   15.88s of   15.68s full -> 101.3% compute,  -1.3% memory+atomics
+      v4: compute-only   13.90s of   12.99s full -> 107.0% compute,  -7.0% memory+atomics
+    rate relative to v1 at n=19: v1 1.00x  v3 0.84x  v4 1.03x
+
+[5] projection with the fastest measured engine, v4 (1.776 G slots/s per device, 1 device(s))
+    n=16 (OEIS a(17)):      0.06 GiB fits  11 primes          0.00 h  (published)
+    n=17 (OEIS a(18)):      0.17 GiB fits  12 primes          0.01 h  (published)
+    n=18 (OEIS a(19)):      0.49 GiB fits  13 primes          0.05 h  (published)
+    n=19 (OEIS a(20)):      1.37 GiB fits  15 primes          0.17 h  (published)
+    n=20 (OEIS a(21)):      3.85 GiB fits  16 primes          0.57 h  (published)
+    n=21 (OEIS a(22)):     10.86 GiB ----  17 primes          1.88 h  (published)
+    n=22 (OEIS a(23)):     30.74 GiB ----  19 primes          6.49 h  (published)
+    n=23 (OEIS a(24)):     87.18 GiB ----  20 primes         21.08 h  (published)
+    n=24 (OEIS a(25)):    247.75 GiB ----  22 primes         71.51 h  (published)
+    n=25 (OEIS a(26)):    705.39 GiB ----  24 primes        240.24 h  (published)
+    n=26 (OEIS a(27)):   2011.89 GiB ----  25 primes        769.70 h  (published)
+    n=27 (OEIS a(28)):   5747.67 GiB ----  27 primes       2554.01 h  <- unsolved frontier
+    n=28 (OEIS a(29)):  16445.56 GiB ----  29 primes       8419.65 h
+
+[6] a(20) with 15 primes + 1 confirmation prime, engine v4
+  [gpu0] p=2147483647  a(20) mod p =   76359569 (131.3s)
+  [gpu0] p=2147483629  a(20) mod p = 1371065494 (131.4s)
+  [gpu0] p=2147483587  a(20) mod p =  235511911 (131.3s)
+  [gpu0] p=2147483579  a(20) mod p = 1244288706 (131.3s)
+  [gpu0] p=2147483563  a(20) mod p =  485114803 (131.7s)
+  [gpu0] p=2147483549  a(20) mod p = 1592165632 (131.3s)
+  [gpu0] p=2147483543  a(20) mod p = 1843093031 (131.6s)
+  [gpu0] p=2147483497  a(20) mod p =  361246740 (130.5s)
+  [gpu0] p=2147483489  a(20) mod p = 1480112250 (130.1s)
+  [gpu0] p=2147483477  a(20) mod p = 1076462072 (130.1s)
+  [gpu0] p=2147483423  a(20) mod p = 1175993387 (130.1s)
+  [gpu0] p=2147483399  a(20) mod p =  241836686 (130.1s)
+  [gpu0] p=2147483353  a(20) mod p =  915099461 (130.1s)
+  [gpu0] p=2147483323  a(20) mod p = 1311269809 (130.1s)
+  [gpu0] p=2147483269  a(20) mod p = 2013818268 (130.1s)
+  [gpu0] p=2147483249  a(20) mod p = 1934226814 (130.1s)
+published OEIS a(21): MATCH
+
+a(20) [OEIS a(21)] = 3962892199823037560207299517133362502106339705739463771515237113377010682364035706704472064940398
+321 bits, 97 digits; extra prime confirms
+
+done. send C:\sp\results\run_20261004T034008Z.json

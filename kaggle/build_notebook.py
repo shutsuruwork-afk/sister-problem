@@ -14,7 +14,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 FILES = ["a007764_core.py", "a007764_kernel.h", "a007764_cuda.cu",
          "a007764_v2.h", "a007764_cuda_v2.cu", "a007764_v3.h", "a007764_cuda_v3.cu",
          "a007764_cuda_probe.cu", "a007764_v4.h", "a007764_cuda_v4.cu",
-         "a007764_v5.h", "a007764_cuda_v5.cu", "a007764_gpu.py"]
+         "a007764_v5.h", "a007764_cuda_v5.cu", "a007764_v6.h", "a007764_cuda_v6.cu",
+         "a007764_gpu.py"]
 
 
 def md(text: str) -> dict:

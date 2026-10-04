@@ -6,6 +6,8 @@
  *
  *   gcc -O3 -march=native -fopenmp -o a007764_cpu a007764_cpu.c
  *   ./a007764_cpu N [P] [CHUNK] [v2|v3|v4|v5] [QFRAC]  -> prints "n p residue seconds"
+ *   ./a007764_cpu N 0 0 v6 [QFRAC] K  -> K residues in one sweep over the first K
+ *                                         built-in primes; prints "n K r_0 .. r_K-1 seconds"
  * v3, v4 and v5 ignore CHUNK: one index per iteration, like a GPU thread.
  * v5 runs a fast pass that queues arc-joining lanes, then a slow pass over the
  * queue; QFRAC (default 0.30) is the queue capacity as a fraction of the
@@ -21,6 +23,7 @@
 #include "a007764_v3.h"
 #include "a007764_v4.h"
 #include "a007764_v5.h"
+#include "a007764_v6.h"
 
 static double now(void) { struct timespec t; clock_gettime(CLOCK_MONOTONIC, &t); return t.tv_sec + 1e-9 * t.tv_nsec; }
 
@@ -48,7 +51,12 @@ int main(int argc, char **argv)
     u32 p = argc > 2 ? (u32)strtoul(argv[2], 0, 10) : 2147483629u;
     u64 chunk = argc > 3 ? strtoull(argv[3], 0, 10) : 64;
     int v3 = argc > 4 && strcmp(argv[4], "v3") == 0;
-    int v5 = argc > 4 && strcmp(argv[4], "v5") == 0;
+    int v6 = argc > 4 && strcmp(argv[4], "v6") == 0;
+    int K = v6 ? (argc > 6 ? atoi(argv[6]) : 1) : 1;
+    static const u32 PR[V6_KMAX] = { 2147483647u, 2147483629u, 2147483587u, 2147483579u,
+                                     2147483563u, 2147483549u, 2147483543u, 2147483497u };
+    if (K < 1 || K > V6_KMAX) { fprintf(stderr, "K must be 1..%d\n", V6_KMAX); return 2; }
+    int v5 = (argc > 4 && strcmp(argv[4], "v5") == 0) || v6;
     int v4 = (argc > 4 && strcmp(argv[4], "v4") == 0) || v5;
     double qfrac = argc > 5 ? atof(argv[5]) : 0.30;
     if (v4 && n > 22) { fprintf(stderr, "v4/v5 need n <= 22 (32-bit ranks)\n"); return 2; }
@@ -79,25 +87,50 @@ int main(int argc, char **argv)
     T4 t4 = { T32, M32, O32, minv, n, Ts4 };
     u64 qcap = (u64)(qfrac * (double)S);
     u32 *queue = v5 ? calloc(qcap + 1, sizeof(u32)) : NULL;
+    Planes pl; pl.k = K; pl.S = S; for (int q = 0; q < V6_KMAX; q++) pl.p[q] = q < K ? PR[q] : 1u;
+    u64 ansv[V6_KMAX] = {0};
 #ifdef V4_STATS
     u64 st_local = 0, st_mark = 0, st_join = 0;
 #endif
-    u32 *cur = calloc(S, sizeof(u32)), *nxt = calloc(S, sizeof(u32));
+    u32 *cur = calloc(S * (v6 ? K : 1), sizeof(u32)), *nxt = calloc(S * (v6 ? K : 1), sizeof(u32));
     if (!cur || !nxt) { fprintf(stderr, "allocation of %llu bytes failed\n", (unsigned long long)(8 * S)); return 1; }
 
     double t0 = now();
     /* (0,0) emits MARK down / right; the profile M0..0 has a different rank
      * under v4's MARK-split ranking (0) than under the v2/v3 automaton */
     u64 r0 = v4 ? (u64)prof_rank4((u64)A_MARK, &t4) : auto_rank(&a, (u64)A_MARK);
-    cur[2 * r0] = 1; cur[2 * r0 + 1] = 1;
+    for (int q = 0; q < (v6 ? K : 1); q++) { cur[(u64)q * S + 2 * r0] = 1; cur[(u64)q * S + 2 * r0 + 1] = 1; }
     u64 answer = 0;
 
     for (int i = 0; i <= n; i++) {
         for (int j = (i ? 0 : 1); j <= n; j++) {
             int fb = (j == 0), term = (i == n && j == n);
-            if (!term) memset(nxt, 0, S * sizeof(u32));
+            if (!term) memset(nxt, 0, S * (v6 ? K : 1) * sizeof(u32));
             u64 tacc = 0;
-            if (v5) {
+            if (v6) {
+                long long size_in = (long long)(fb ? B : S);
+                u32 qcount = 0;
+                u64 tk[V6_KMAX] = {0};
+                #pragma omp parallel
+                {
+                    u64 lk[V6_KMAX] = {0};
+                    #pragma omp for schedule(static)
+                    for (long long x = 0; x < size_in; x++) {
+                        if (v6_fast(&t4, &pl, cur, nxt, (u64)x, i, j, n, fb, term, lk)) {
+                            u32 pos = __atomic_fetch_add(&qcount, 1u, __ATOMIC_RELAXED);
+                            if (pos < qcap) queue[pos] = (u32)x;
+                            else v6_slow(&t4, &pl, cur, nxt, (u64)x, i, j, n, fb, term, lk);
+                        }
+                    }
+                    long long cnt = qcount < qcap ? (long long)qcount : (long long)qcap;
+                    #pragma omp for schedule(static)
+                    for (long long q = 0; q < cnt; q++)
+                        v6_slow(&t4, &pl, cur, nxt, (u64)queue[q], i, j, n, fb, term, lk);
+                    #pragma omp critical
+                    for (int q = 0; q < K; q++) tk[q] += lk[q];
+                }
+                if (term) { for (int q = 0; q < K; q++) ansv[q] = tk[q] % PR[q]; goto done; }
+            } else if (v5) {
                 long long size_in = (long long)(fb ? B : S);
                 u32 qcount = 0;
                 #pragma omp parallel for schedule(static) reduction(+:tacc)
@@ -154,11 +187,17 @@ int main(int argc, char **argv)
             if (term) { answer = tacc % p; goto done; }
             u32 *t = cur; cur = nxt; nxt = t;
         }
-        memset(nxt, 0, S * sizeof(u32));
-        for (u64 r = 0; r < B; r++) nxt[r] = cur[2 * r];
+        memset(nxt, 0, S * (v6 ? K : 1) * sizeof(u32));
+        for (int q = 0; q < (v6 ? K : 1); q++)
+            for (u64 r = 0; r < B; r++) nxt[(u64)q * S + r] = cur[(u64)q * S + 2 * r];
         u32 *t = cur; cur = nxt; nxt = t;
     }
 done:
+    if (v6) {
+        printf("%d %d", n, K);
+        for (int q = 0; q < K; q++) printf(" %llu", (unsigned long long)ansv[q]);
+        printf(" %.3f\n", now() - t0);
+    } else
     printf("%d %u %llu %.3f\n", n, p, (unsigned long long)answer, now() - t0);
 #ifdef V4_STATS
     if (v4) {

@@ -43,3 +43,42 @@ for label, mem in (("8xB300 (1.97 TiB)", 2013 * 2 ** 30), ("2 nodes (3.93 TiB)",
         carried = planes * (b // planes)            # prime width floor(b/planes) bits each
         sweeps = -(-600 // carried)
         print(f"{label:>22} {buffers:>8} {b:>10} {sweeps:>7} {sweeps * sweep_h:>10,.0f}")
+
+
+# --------------------------------------------------------------------------
+# v2 of the model (2026-11-03): real storage formats instead of ideal bits.
+#   v7 packs a record of K residues x b bits (W = K*b <= 64) into 64-bit words,
+#   f = floor(64/W) records per word  ->  64/f bits per state per buffer.
+#   In place (r12, exact for n<=14): one buffer plus spill entries of about
+#   0.105 x 2B(n) at peak; an entry is (offset in chunk, value).  Two spill
+#   encodings: simple 64-bit entries, or packed 32-bit (20-bit offset + value,
+#   needs b <= 12) -- the latter assumed only where it fits.
+# --------------------------------------------------------------------------
+SPILL = 0.105
+print("\nwith real formats (v7 packing, r12 in-place spill):")
+print(f"{'memory budget':>22} {'mode':>14} {'K x b':>7} {'bits/state':>10} {'CRT bits/sweep':>14} {'sweeps':>7} {'G-hours':>9}")
+for label, mem in (("8xB300 (1.97 TiB)", 2013 * 2 ** 30), ("2 nodes (3.93 TiB)", 2 * 2013 * 2 ** 30),
+                   ("NVL72-class (13.5 TB)", 13.5e12)):
+    budget = mem * 8 / S                                     # bits per state, all buffers together
+    for mode in ("ping-pong", "in-place"):
+        best = None
+        for K in range(1, 9):
+            for b in range(9, 33):
+                W = K * b
+                if W > 64:
+                    break
+                slot = 64 / (64 // W)
+                if mode == "ping-pong":
+                    need = 2 * slot
+                else:
+                    entry = 32 if b <= 12 else 64
+                    need = slot + SPILL * entry
+                if need > budget:
+                    continue
+                carried = K * (b - 0.02)                     # moduli just below 2^b
+                sweeps = -(-600 // int(carried))
+                if best is None or sweeps < best[0]:
+                    best = (sweeps, K, b, need, carried)
+        if best:
+            sw, K, b, need, carried = best
+            print(f"{label:>22} {mode:>14} {K:>3} x {b:<2} {need:>10.1f} {carried:>14.1f} {sw:>7} {sw * sweep_h:>9,.0f}")

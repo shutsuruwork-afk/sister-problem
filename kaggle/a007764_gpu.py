@@ -11,6 +11,7 @@ OEIS terms) followed by a007764_cuda.cu.
 
 from __future__ import annotations
 
+import math
 import os
 import threading
 import time
@@ -43,7 +44,7 @@ def _read(path: str) -> str:
 SOURCES = ("a007764_kernel.h", "a007764_cuda.cu", "a007764_v2.h", "a007764_cuda_v2.cu",
            "a007764_v3.h", "a007764_cuda_v3.cu", "a007764_cuda_probe.cu",
            "a007764_v4.h", "a007764_cuda_v4.cu", "a007764_v5.h", "a007764_cuda_v5.cu",
-           "a007764_v6.h", "a007764_cuda_v6.cu")
+           "a007764_v6.h", "a007764_cuda_v6.cu", "a007764_v7.h", "a007764_cuda_v7.cu")
 
 
 def cuda_source() -> str:
@@ -545,6 +546,146 @@ class GpuSweepV6:
         return self.run_many([p])[0]
 
 
+# --------------------------------------------------------------------------
+# v7: residues of b < 32 bits, K per state, packed into 64-bit words
+# --------------------------------------------------------------------------
+V7_KMAX = 8
+
+
+def _is_prime(x: int) -> bool:
+    if x < 2:
+        return False
+    d = 2
+    while d * d <= x:
+        if x % d == 0:
+            return False
+        d += 1
+    return True
+
+
+def primes_below_bits(b: int, count: int) -> List[int]:
+    """The `count` largest primes below 2^b (pairwise coprime CRT moduli)."""
+    out, x = [], (1 << b) - 1
+    while len(out) < count and x > 1:
+        if _is_prime(x):
+            out.append(x)
+        x -= 1
+    if len(out) < count:
+        raise ValueError(f"only {len(out)} primes below 2^{b}")
+    return out
+
+
+def moduli_for(n: int, b: int, margin: float = 1.30) -> List[int]:
+    """b-bit primes whose product comfortably exceeds a(n)."""
+    need = estimate_bits(n) * margin
+    out, bits, x = [], 0.0, (1 << b) - 1
+    while bits < need:
+        if _is_prime(x):
+            out.append(x)
+            bits += math.log2(x)
+        x -= 1
+        if x < 2:
+            raise ValueError("not enough primes of this width")
+    return out
+
+
+class GpuSweepV7:
+    SLICE = 1 << 26                        # input slice per fast/slow kernel pair
+
+    def __init__(self, n: int, device: int = 0, k: int = 1, b: int = 16,
+                 block: int = 256, qfrac: float = 0.30) -> None:
+        import cupy as cp
+
+        if not (1 <= k <= V7_KMAX and 2 <= b <= 32 and k * b <= 64):
+            raise ValueError("need 1<=k<=8, k*b<=64")
+        self.cp, self.n, self.device, self.block, self.k, self.b = cp, n, device, block, k, b
+        T32, M32, off, minv, B = build_tables_v4(n)
+        self.f = 64 // (k * b)
+        with cp.cuda.Device(device):
+            mod = _module(device)
+            self.k_fast = mod.get_function("v7_fast_k")
+            self.k_slow = mod.get_function("v7_slow_k")
+            self.k_rowend = mod.get_function("v7_rowend_k")
+            self.B, self.size = B, 2 * B
+            self.words = (self.size + self.f - 1) // self.f
+            self.bwords = (B + self.f - 1) // self.f
+            self.dT, self.dM = cp.asarray(T32), cp.asarray(M32)
+            self.dO, self.dI = cp.asarray(off), cp.asarray(minv)
+            self.shmem = (n + 1) * 8 + ((n + 1) * (n + 3) + (n + 1) + (n + 2)) * 4
+            sms = cp.cuda.Device(device).attributes["MultiProcessorCount"]
+            self.grid = max(1, min((self.size + block - 1) // block, sms * 32))
+            self.slice = min(self.SLICE, self.size)
+            self.qcap = max(1024, int(qfrac * self.slice))
+            self.cur = cp.zeros(self.words, dtype=cp.uint64)
+            self.nxt = cp.zeros(self.words, dtype=cp.uint64)
+            self.queue = cp.zeros(self.qcap, dtype=cp.uint32)
+            self.qcount = cp.zeros(1, dtype=cp.uint32)
+            self.acc = cp.zeros(V7_KMAX, dtype=cp.uint64)
+            self.dP = cp.ones(V7_KMAX, dtype=cp.uint32)
+
+    @staticmethod
+    def bytes_needed(n: int, k: int, b: int) -> int:
+        M = motzkin_numbers(n + 3)
+        S = 2 * (M[n + 2] - M[n + 1])
+        f = 64 // (k * b)
+        return 2 * ((S + f - 1) // f) * 8 + int(0.30 * min(GpuSweepV7.SLICE, S)) * 4
+
+    def run_many(self, moduli: Sequence[int]) -> List[int]:
+        cp, n, S = self.cp, self.n, self.size
+        kk = len(moduli)
+        if not 1 <= kk <= self.k or any(m >= (1 << self.b) for m in moduli):
+            raise ValueError("moduli must number <= k and be below 2^b")
+        tabs = (self.dT, self.dM, self.dO, self.dI)
+        with cp.cuda.Device(self.device):
+            self.dP.fill(1)
+            self.dP[:kk] = cp.asarray(np.array(moduli, dtype=np.uint32))
+            # seed: records 0 and 1 carry residue 1 in every used lane
+            one = sum(1 << (t * self.b) for t in range(kk))
+            self.cur.fill(0)
+            W = self.k * self.b
+            seed = {}
+            for y in (0, 1):
+                w, sl = divmod(y, self.f)
+                seed[w] = seed.get(w, 0) | (one << (sl * W))
+            for w, word in seed.items():
+                self.cur[w:w + 1] = cp.asarray(np.array([word], dtype=np.uint64))
+            for i in range(n + 1):
+                for j in range(1 if i == 0 else 0, n + 1):
+                    fb = 1 if j == 0 else 0
+                    term = 1 if (i == n and j == n) else 0
+                    size_in = self.B if fb else S
+                    if term:
+                        self.acc.fill(0)
+                    else:
+                        self.nxt.fill(0)
+                    common = (np.int32(self.k), np.int32(self.b), self.dP, np.int32(i), np.int32(j),
+                              np.int32(n), np.int32(fb), np.int32(term)) + tabs + (self.acc,)
+                    for s0 in range(0, size_in, self.slice):
+                        s1 = min(size_in, s0 + self.slice)
+                        self.qcount.fill(0)
+                        self.k_fast((self.grid,), (self.block,),
+                                    (self.cur, self.nxt, np.uint64(s0), np.uint64(s1)) + common
+                                    + (self.queue, self.qcount, np.uint32(self.qcap)),
+                                    shared_mem=self.shmem)
+                        self.k_slow((self.grid,), (self.block,),
+                                    (self.cur, self.nxt) + common
+                                    + (self.queue, self.qcount, np.uint32(self.qcap)),
+                                    shared_mem=self.shmem)
+                    if term:
+                        accs = self.acc.get()
+                        return [int(accs[t] % moduli[t]) for t in range(kk)]
+                    self.cur, self.nxt = self.nxt, self.cur
+                self.nxt.fill(0)
+                self.k_rowend((self.grid,), (self.block,),
+                              (self.cur, self.nxt, np.int32(self.k), np.int32(self.b), self.dP,
+                               np.uint32(self.B), np.uint32(self.bwords)))
+                self.cur, self.nxt = self.nxt, self.cur
+        raise RuntimeError("sweep finished without reaching the terminal vertex")
+
+    def run(self, p: int, progress=None) -> int:
+        return self.run_many([p])[0]
+
+
 def make_sweep(engine: str, n: int, device: int = 0, **kw):
     if engine == "v1":
         return GpuSweep(n, device=device)
@@ -558,6 +699,8 @@ def make_sweep(engine: str, n: int, device: int = 0, **kw):
         return GpuSweepV5(n, device=device)
     if engine == "v6":
         return GpuSweepV6(n, device=device, k=kw.get("k", 1))
+    if engine == "v7":
+        return GpuSweepV7(n, device=device, k=kw.get("k", 1), b=kw.get("b", 16))
     raise ValueError(engine)
 
 

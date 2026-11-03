@@ -8,6 +8,9 @@
  *   ./a007764_cpu N [P] [CHUNK] [v2|v3|v4|v5] [QFRAC]  -> prints "n p residue seconds"
  *   ./a007764_cpu N 0 0 v6 [QFRAC] K  -> K residues in one sweep over the first K
  *                                         built-in primes; prints "n K r_0 .. r_K-1 seconds"
+ *   ./a007764_cpu N 0 0 v7 QFRAC K B  -> K residues of B bits packed per state, moduli =
+ *                                         the K largest primes below 2^B; prints
+ *                                         "n K B m_0 r_0 .. m_K-1 r_K-1 seconds"
  * v3, v4 and v5 ignore CHUNK: one index per iteration, like a GPU thread.
  * v5 runs a fast pass that queues arc-joining lanes, then a slow pass over the
  * queue; QFRAC (default 0.30) is the queue capacity as a fraction of the
@@ -24,6 +27,7 @@
 #include "a007764_v4.h"
 #include "a007764_v5.h"
 #include "a007764_v6.h"
+#include "a007764_v7.h"
 
 static double now(void) { struct timespec t; clock_gettime(CLOCK_MONOTONIC, &t); return t.tv_sec + 1e-9 * t.tv_nsec; }
 
@@ -44,6 +48,87 @@ static u64 *build_ca(int n)
     return Ca;
 }
 
+static int is_prime(u32 x) { if (x < 2) return 0; for (u32 d = 2; d * d <= x; d++) if (x % d == 0) return 0; return 1; }
+
+static int run_v7(int n, double qfrac, int K, int bits)
+{
+    if (n > 22 || K < 1 || K > V7_KMAX || bits < 2 || bits > 32 || K * bits > 64) {
+        fprintf(stderr, "v7: need n<=22, 1<=K<=%d, K*B<=64\n", V7_KMAX); return 2;
+    }
+    Pack pk; pk.K = K; pk.b = bits; pk.W = K * bits; pk.f = 64 / pk.W;
+    pk.finv = (1ull << 32) / (u64)pk.f;
+    pk.recmask = pk.W == 64 ? ~0ull : ((1ull << pk.W) - 1ull);
+    pk.bmask = (1ull << bits) - 1ull;
+    { int c = 0; for (u64 x = (1ull << bits) - 1; c < K; x--) if (is_prime((u32)x)) pk.m[c++] = (u32)x; }
+    for (int q = K; q < V7_KMAX; q++) pk.m[q] = 1;
+
+    int Ts4 = n + 3;
+    u64 *Tw = calloc((size_t)(n + 1) * (n + 6), sizeof(u64));
+    Tw[0] = 1;
+    for (int rem = 1; rem <= n; rem++)
+        for (int d = 0; d <= n + 3; d++) {
+            u64 v = Tw[(size_t)(rem - 1) * (n + 6) + d] + Tw[(size_t)(rem - 1) * (n + 6) + d + 1];
+            if (d) v += Tw[(size_t)(rem - 1) * (n + 6) + d - 1];
+            Tw[(size_t)rem * (n + 6) + d] = v;
+        }
+    u32 *T32 = calloc((size_t)(n + 1) * Ts4, 4), *M32 = calloc(n + 1, 4), *O32 = calloc(n + 2, 4);
+    u64 *mi = calloc(n + 1, 8);
+    for (int rem = 0; rem <= n; rem++) for (int d = 0; d < Ts4; d++) T32[rem * Ts4 + d] = (u32)Tw[(size_t)rem * (n + 6) + d];
+    for (int k = 0; k <= n; k++) { M32[k] = (u32)Tw[(size_t)k * (n + 6)]; mi[k] = (1ull << 32) / M32[k]; }
+    { u64 a = 0; for (int x = 0; x <= n; x++) { O32[x] = (u32)a; a += (u64)M32[x] * M32[n - x]; } O32[n + 1] = (u32)a; }
+    T4 t4 = { T32, M32, O32, mi, n, Ts4 };
+    u64 B = O32[n + 1], S = 2 * B, words = (S + pk.f - 1) / pk.f;
+    u64 *cur = calloc(words, 8), *nxt = calloc(words, 8);
+    const char *se = getenv("V7_SLICE");                /* same slicing as the GPU driver */
+    u64 slice = se ? strtoull(se, 0, 10) : (1ull << 26);
+    if (slice > S) slice = S;
+    u64 qcap = (u64)(qfrac * (double)slice);
+    u32 *queue = calloc(qcap + 1, 4);
+    double t0 = now();
+    { u32 one[V7_KMAX]; for (int q = 0; q < V7_KMAX; q++) one[q] = 1; pk_add(&pk, cur, 0, one); pk_add(&pk, cur, 1, one); }
+    u64 ans[V7_KMAX] = {0};
+    for (int i = 0; i <= n; i++) {
+        for (int j = (i ? 0 : 1); j <= n; j++) {
+            int fb = (j == 0), term = (i == n && j == n);
+            long long size_in = (long long)(fb ? B : S);
+            if (!term) memset(nxt, 0, words * 8);
+            u64 tk[V7_KMAX] = {0};
+            for (long long s0 = 0; s0 < size_in; s0 += (long long)slice) {
+            long long s1 = s0 + (long long)slice < size_in ? s0 + (long long)slice : size_in;
+            u32 qcount = 0;
+            #pragma omp parallel
+            {
+                u64 lk[V7_KMAX] = {0};
+                #pragma omp for schedule(static)
+                for (long long x = s0; x < s1; x++)
+                    if (v7_lane(&t4, &pk, cur, nxt, (u32)x, i, j, n, fb, term, 1, lk)) {
+                        u32 pos = __atomic_fetch_add(&qcount, 1u, __ATOMIC_RELAXED);
+                        if (pos < qcap) queue[pos] = (u32)x;
+                        else v7_lane(&t4, &pk, cur, nxt, (u32)x, i, j, n, fb, term, 0, lk);
+                    }
+                long long cnt = qcount < qcap ? (long long)qcount : (long long)qcap;
+                #pragma omp for schedule(static)
+                for (long long q = 0; q < cnt; q++)
+                    v7_lane(&t4, &pk, cur, nxt, queue[q], i, j, n, fb, term, 0, lk);
+                #pragma omp critical
+                for (int q = 0; q < K; q++) tk[q] += lk[q];
+            }
+            }
+            if (term) { for (int q = 0; q < K; q++) ans[q] = tk[q] % pk.m[q]; goto done; }
+            u64 *tmp = cur; cur = nxt; nxt = tmp;
+        }
+        memset(nxt, 0, words * 8);
+        { u64 bw = (B + pk.f - 1) / pk.f;
+          for (u64 w = 0; w < bw; w++) v7_rowend_word(&pk, cur, nxt, (u32)w, (u32)B); }
+        u64 *tmp = cur; cur = nxt; nxt = tmp;
+    }
+done:
+    printf("%d %d %d", n, K, bits);
+    for (int q = 0; q < K; q++) printf(" %u %llu", pk.m[q], (unsigned long long)ans[q]);
+    printf(" %.3f\n", now() - t0);
+    return 0;
+}
+
 int main(int argc, char **argv)
 {
     if (argc < 2) { fprintf(stderr, "usage: %s N [P] [CHUNK] [v2|v3|v4|v5] [QFRAC]\n", argv[0]); return 2; }
@@ -62,6 +147,9 @@ int main(int argc, char **argv)
     if (v4 && n > 22) { fprintf(stderr, "v4/v5 need n <= 22 (32-bit ranks)\n"); return 2; }
     if (n < 1 || n > 29) { fprintf(stderr, "n out of range\n"); return 2; }
 
+    if (argc > 4 && strcmp(argv[4], "v7") == 0) return run_v7(n, argc > 5 ? atof(argv[5]) : 0.30,
+                                                              argc > 6 ? atoi(argv[6]) : 1,
+                                                              argc > 7 ? atoi(argv[7]) : 16);
     int L = n + 1;
     u64 *Ca = build_ca(n);
     Auto a = { Ca, L };

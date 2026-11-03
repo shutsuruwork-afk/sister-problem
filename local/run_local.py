@@ -195,10 +195,15 @@ def main():
     ap.add_argument("--target", type=int, help="compute a(N) exactly after benchmarking")
     ap.add_argument("--auto", action="store_true", help="pick the largest N fitting memory and --hours")
     ap.add_argument("--hours", type=float, default=2.0, help="time budget for --auto (default 2)")
-    ap.add_argument("--engine", choices=("auto", "v1", "v2", "v3"), default="auto",
+    ap.add_argument("--engine", choices=("auto", "v1", "v2", "v3", "v4", "v5", "v6", "v7"), default="auto",
                     help="engine for the target run (default: fastest measured)")
     ap.add_argument("--cpu", action="store_true", help="force the CPU/OpenMP backend")
     ap.add_argument("--quick", action="store_true", help="verification only")
+    ap.add_argument("--bits", type=int, default=16,
+                    help="--engine v7: residue width in bits (moduli are primes below 2^bits)")
+    ap.add_argument("--k", type=int, default=1, help="--engine v6/v7: residues carried per sweep")
+    ap.add_argument("--skip-bench", action="store_true",
+                    help="skip steps 3-5 (use with --target for a long run)")
     ap.add_argument("--oeis", action="store_true", help=argparse.SUPPRESS)   # now always on, offline
     ap.add_argument("--engines", default=None,
                     help="comma list to benchmark (default: v1,v3,v5,v6 on GPU, v3,v5,v6 on CPU)")
@@ -266,6 +271,9 @@ def main():
         return 0
 
     # 3. engines against each other beyond the known terms ---------------
+    if args.skip_bench:
+        log.data.setdefault("crosscheck", "skipped")
+        log.data.setdefault("bench", {"ladder": [], "skipped": True})
     if "crosscheck" not in log.data and len(engines) >= 2:
         say("\n[3] cross-check: " + ", ".join(engines) + " are independent implementations")
         rows = []
@@ -360,20 +368,54 @@ def main():
                     if ok is False:
                         say("    v6 residue mismatch -- stopping")
                         return 1
-            if env["backend"] == "gpu" and pn and "v4" in engines and pn <= 22:
-                say(f"    v4 time decomposition at n={pn} (probe modes, no memory writes):")
-                sw = be.g.GpuSweepV4(pn, device=0)
-                dec = {}
-                for mode, label in ((4, "unrank only"), (2, "all outputs fast (no divergence)"),
-                                    (1, "real code path"), (3, "all outputs full rank")):
-                    dec[mode] = sw.probe(mode)
-                    say(f"      mode {mode}: {dec[mode]:7.2f}s  {label}")
+        if env["backend"] == "gpu" and "v6" in engines:
+            import math
+            from a007764_gpu import CRT_PRIMES_31BIT as PRS, primes_below_bits
+            fn = 18
+            say(f"    storage formats at n={fn}: CRT bits gained per second vs memory per state")
+            bench["formats"] = []
+            fmts = [("v6", 1, 31), ("v6", 4, 31), ("v7", 1, 16), ("v7", 1, 10), ("v7", 1, 9),
+                    ("v7", 4, 16), ("v7", 7, 9), ("v7", 2, 31)]
+            for eng, k, b in fmts:
+                if eng == "v6":
+                    mods = list(PRS[:k])
+                    per_buf = 32 * k
+                    need = be.g.GpuSweepV6.bytes_needed(fn, k)
+                else:
+                    mods = primes_below_bits(b, k)
+                    per_buf = 64 / (64 // (k * b))
+                    need = be.g.GpuSweepV7.bytes_needed(fn, k, b)
+                if need > 0.9 * be.free_bytes():
+                    continue
+                be.cp.get_default_memory_pool().free_all_blocks()
+                sw = be.g.make_sweep(eng, fn, k=k, b=b) if eng == "v7" else be.g.make_sweep(eng, fn, k=k)
+                rs, tt = timed(sw.run_many, mods)
                 del sw
-                bench["v4_decomposition"] = {"n": pn, "unrank_only": dec[4], "all_fast": dec[2],
-                                             "real_path": dec[1], "all_full": dec[3]}
-                say(f"      -> removing divergence could save at most "
-                    f"{100 * (1 - dec[2] / dec[1]):.0f}% of compute; unrank is "
-                    f"{100 * dec[4] / dec[1]:.0f}% of the real path")
+                ok = all(rs[q] == known[fn] % mods[q] for q in range(k))
+                gained = sum(math.log2(m) for m in mods)
+                row = {"engine": eng, "k": k, "b": b, "seconds": tt, "bits_per_state_per_buffer": per_buf,
+                       "crt_bits": gained, "crt_bits_per_s": gained / tt, "match": ok}
+                bench["formats"].append(row)
+                say(f"      {eng} {k} x {b:>2} bit: {per_buf:5.1f} bits/state/buffer  {tt:7.2f}s  "
+                    f"{gained:6.1f} CRT bits -> {gained / tt:6.2f} bits/s  {'=OEIS' if ok else 'MISMATCH'}")
+                log.put("bench", bench)
+                if not ok:
+                    say("    packed residue mismatch -- stopping")
+                    return 1
+        if env["backend"] == "gpu" and pn and "v4" in engines and pn <= 22:
+            say(f"    v4 time decomposition at n={pn} (probe modes, no memory writes):")
+            sw = be.g.GpuSweepV4(pn, device=0)
+            dec = {}
+            for mode, label in ((4, "unrank only"), (2, "all outputs fast (no divergence)"),
+                                (1, "real code path"), (3, "all outputs full rank")):
+                dec[mode] = sw.probe(mode)
+                say(f"      mode {mode}: {dec[mode]:7.2f}s  {label}")
+            del sw
+            bench["v4_decomposition"] = {"n": pn, "unrank_only": dec[4], "all_fast": dec[2],
+                                         "real_path": dec[1], "all_full": dec[3]}
+            say(f"      -> removing divergence could save at most "
+                f"{100 * (1 - dec[2] / dec[1]):.0f}% of compute; unrank is "
+                f"{100 * dec[4] / dec[1]:.0f}% of the real path")
         log.put("bench", bench)
     bench = log.data["bench"]
     if env["backend"] == "gpu" and "chunk" in bench:
@@ -410,25 +452,34 @@ def main():
             return None
         k = max(fits)
         return k, rates["v6"][1] * scal[k]
-    if not rate:
+    free = be.free_bytes()
+    if args.skip_bench:
+        if not args.target or args.engine == "auto":
+            say("\n--skip-bench needs --target and an explicit --engine")
+            return 1
+        rate = rate or 1.0
+        fastest = fastest or args.engine
+    elif not rate:
         say("\nno benchmark completed (not enough memory for n=16?); stopping")
         return 1
-    free = be.free_bytes()
     proj = []
-    say(f"\n[5] projection with the fastest measured engine, {fastest} "
-        f"({rate / 1e9:.3f} G slots/s per device, {be.ndev} device(s))")
-    for n in range(16, 29):
-        np_ = len(primes_for(n))
-        plan = v6_plan(n)
-        r_eff = max(rate, plan[1]) if plan else rate
-        hours = work(n) / r_eff * (np_ + 1) / be.ndev / 3600
-        fits = bytes_needed(n) < 0.9 * free
-        proj.append({"n": n, "bytes": bytes_needed(n), "fits": fits, "primes": np_ + 1, "hours": hours})
-        tag = "  <- unsolved frontier" if n == 27 else ("  (published)" if n in known else "")
-        if plan and plan[1] > rate:
-            tag = f"  [v6 k={plan[0]}]" + tag
-        say(f"    n={n:2d} (OEIS a({oeis_index(n)})): {bytes_needed(n) / 2**30:9.2f} GiB "
-            f"{'fits' if fits else '----'}  {np_ + 1:2d} primes  {hours:12.2f} h{tag}")
+    if args.skip_bench:
+        say("\n[5] projection skipped (--skip-bench)")
+    else:
+        say(f"\n[5] projection with the fastest measured engine, {fastest} "
+            f"({rate / 1e9:.3f} G slots/s per device, {be.ndev} device(s))")
+        for n in range(16, 29):
+            np_ = len(primes_for(n))
+            plan = v6_plan(n)
+            r_eff = max(rate, plan[1]) if plan else rate
+            hours = work(n) / r_eff * (np_ + 1) / be.ndev / 3600
+            fits = bytes_needed(n) < 0.9 * free
+            proj.append({"n": n, "bytes": bytes_needed(n), "fits": fits, "primes": np_ + 1, "hours": hours})
+            tag = "  <- unsolved frontier" if n == 27 else ("  (published)" if n in known else "")
+            if plan and plan[1] > rate:
+                tag = f"  [v6 k={plan[0]}]" + tag
+            say(f"    n={n:2d} (OEIS a({oeis_index(n)})): {bytes_needed(n) / 2**30:9.2f} GiB "
+                f"{'fits' if fits else '----'}  {np_ + 1:2d} primes  {hours:12.2f} h{tag}")
     log.put("projection", proj)
 
     target = args.target
@@ -443,12 +494,19 @@ def main():
         return 0
 
     # 6. exact target -----------------------------------------------------
-    if bytes_needed(target) > 0.9 * free:
-        say(f"\nn={target} needs {bytes_needed(target) / 2**30:.2f} GiB; only {free / 2**30:.2f} free")
+    from a007764_gpu import CRT_PRIMES_31BIT, crt, moduli_for, primes_below_bits
+    if args.engine == "v7" or (log.data.get("target") or {}).get("engine") == "v7":
+        bits = (log.data.get("target") or {}).get("bits", args.bits)
+        mods = moduli_for(target, bits)
+        primes, extra = mods, primes_below_bits(bits, len(mods) + 1)[-1]
+        need = be.g.GpuSweepV7.bytes_needed(target, args.k, bits) if env["backend"] == "gpu" else 0
+    else:
+        primes = primes_for(target)
+        extra = CRT_PRIMES_31BIT[len(primes)]
+        need = bytes_needed(target)
+    if need > 0.9 * free:
+        say(f"\nn={target} needs {need / 2**30:.2f} GiB; only {free / 2**30:.2f} free")
         return 1
-    primes = primes_for(target)
-    from a007764_gpu import CRT_PRIMES_31BIT, crt
-    extra = CRT_PRIMES_31BIT[len(primes)]
     engine = fastest if args.engine == "auto" else args.engine
     tplan = v6_plan(target)
     if args.engine == "auto" and tplan and tplan[1] > rate:
@@ -459,7 +517,12 @@ def main():
         engine = "v5"                     # CPU v6 only knows the 8 built-in primes
     if engine in ("v4", "v5", "v6") and target > 22:
         engine = "v1" if env["backend"] == "gpu" else "v3"      # v4 is 32-bit only
+    if engine == "v7" and env["backend"] == "cpu":
+        raise RuntimeError("--engine v7 targets need the GPU backend")
     tgt = log.data.get("target") or {"n": target, "engine": engine, "residues": {}}
+    if engine == "v7":
+        tgt.setdefault("bits", args.bits)
+        tgt.setdefault("k", args.k)
     engine = tgt["engine"]
     log.put("target", tgt)
     say(f"\n[6] a({target}) with {len(primes)} primes + 1 confirmation prime, engine {engine}")
@@ -473,8 +536,11 @@ def main():
 
         kw = {"chunk": be.chunk} if engine == "v2" else {}
         if engine == "v6":
-            kw = {"k": (tplan[0] if tplan else 1)}
+            kw = {"k": (tplan[0] if tplan else args.k)}
             say(f"    v6 with {kw['k']} residues per sweep")
+        if engine == "v7":
+            kw = {"k": tgt["k"], "b": tgt["bits"]}
+            say(f"    v7: {kw['k']} residue(s) of {kw['b']} bits per state, {len(primes)} moduli")
         g.solve(target, primes=todo, devices=list(range(be.ndev)), engine=engine,
                 on_residue=record, **kw)
     else:

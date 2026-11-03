@@ -46,7 +46,16 @@ python local/run_local.py --resume results/run_XXXX.json   # continue after Ctrl
 ```
 
 `--target` uses the fastest engine measured in step 4 unless `--engine` says
-otherwise.  v4 is limited to n ≤ 22 (32-bit ranks).
+otherwise.  v4-v7 are limited to n ≤ 22 (32-bit ranks).
+
+Packed residues (v7) make larger n fit: `--engine v7 --bits 10` stores one
+10-bit residue per state (6 per 64-bit word), so n=21 (OEIS a(22)) needs 3.7
+GiB instead of 10.9.  `--k` carries several residues per sweep (v6/v7), and
+`--skip-bench` goes straight to the target for long runs:
+
+```bash
+python local/run_local.py --target 21 --engine v7 --bits 10 --skip-bench
+```
 
 ## What each step does
 
